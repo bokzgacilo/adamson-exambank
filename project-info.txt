@@ -1,0 +1,37 @@
+PROF ROLE SIDE / INSTRUCTOR
+
+✅ 1: edit profile pwede mag change pass change pic 
+✅ 2: dapat hindi ma access ni prof 1 yung gawa ni prof 2 na questions dapat kung sino gumawa siya lang makaka edit
+✅ 3: si prof is taga gawa lang ng questions
+✅ 4: si prof dapat hindi makagawa ng exam pero pwede siya makapag export for blackboard dun sa exam bank na ginawa ni coordinator and dapat ma access using access code so hindi dapat basta basta ma export dapat access code muna
+✅ 5. Also shows subject questions but can't edit other instructors question
+6. Instructor can have 3 max subjects
+✅ 7. categorization for terms (Prelim, Midterm, Finals)
+8. pwede mag drag ng csv para by batch po yung questions
+
+COORDINATOR ROLE SIDE
+✅ 1: edit profile pwede mag change pass change pic 
+✅ 2: Na oopen niya lahat ng mga ginawa ng prof pwede rin niya i edit and create exams
+✅ 3: Si coordinator lang nakaka gawa ng exam, pipili siya dun sa mga ginawang question ni prof and dapat pwede rin mag generate example gusto ni coordinator ng 10 ToF, 10 MC etc
+✅ 4: TOS aask muna si coordinator ng system if ilang MC,ToF,Identifications yung need gawin example need 10 10 10 dapat 10 10 10 din yung magagawa dapat pag sobra or kulang mag eeerror yung system or warning 
+✅ 5: Pag tapos na yung exam mapupunta siya sa exam bank and then dapat may access code siya then dun lang makakapag export sila prof
+
+EXAM BANK 
+✅ 1: si coordinator lang nakakagalaw
+✅ 2. Categorize questions with sorting
+
+ADMIN SIDE
+✅ 1: can view credentials 
+✅ 2: can change password (para if makalimutan ni prof yung password niya)
+✅ 3: pwede mag deactivate ng prof user (para pag nag resign na si prof)
+✅ 4: lahat ng kaya i access ni coordinator and prof dapat kaya ni admin
+
+✅ +di maka create questions
+✅ +sa choices walang bar para mag lagay ng correct answer
+
++++ SPECIAL/UNIQUE FEATURES
+
+Statistic
+✅ total number of questions (sort by types)
+total number of exams
+total number of users

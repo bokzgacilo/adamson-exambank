@@ -1,0 +1,11 @@
+TF	What is love?	True	correct	False	incorrect
+TF	Who is first president of Philippine Republic?	Emilio Aguinaldo	correct
+MC	What is the largest planet in the Solar System?	Earth	incorrect	Mars	incorrect	Jupiter	correct	Venus	incorrect
+MC	Which element has the atomic number 1?	Oxygen	incorrect	Hydrogen	correct	Helium	incorrect	Carbon	incorrect
+MC	Who wrote "Romeo and Juliet"?	William Shakespeare	correct	Charles Dickens	incorrect	Mark Twain	incorrect	J.K. Rowling	incorrect
+MC	What is the currency of Japan?	Yuan	incorrect	Won	incorrect	Yen	correct	Ringgit	incorrect
+MC	How many continents are there on Earth?	5	incorrect	6	incorrect	7	correct	8	incorrect
+TF	The Great Wall of China is visible from space.	True	incorrect	False	correct
+TF	Sound travels faster in water than in air.	True	correct	False	incorrect
+TF	What is C++	121	correct
+TF	Quiestion 4545	True	correct	False	incorrect

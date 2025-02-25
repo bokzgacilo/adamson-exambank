@@ -1,0 +1,12 @@
+{
+    "name": "bokzg/backend",
+    "description": "Backend service for exam-bank",
+    "autoload": {
+        "psr-4": {
+            "MyApp\\": "src"
+        }
+    },
+    "require": {
+        "cboden/ratchet": "^0.4.4"
+    }
+}
