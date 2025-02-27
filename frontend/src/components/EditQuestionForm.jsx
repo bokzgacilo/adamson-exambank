@@ -28,6 +28,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
     (state) => state.user
   );
   const [SelectedOption, SetSelectedOption] = useState(QuestionData.category);
+  const [SelectedClassification, SetSelectedClassification] = useState(QuestionData.classification);
   const [MultipleChoices, SetMultipleChoices] = useState(
     QuestionData.options ? JSON.parse(QuestionData.options) : []
   );
@@ -48,6 +49,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
     created_by: fullname,
     terms: SelectedTerms,
     subject: SelectedSubject,
+    classification: SelectedClassification
   };
 
   useEffect(() => {
@@ -67,11 +69,17 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
           console.error("Error fetching subjects:", error);
         });
     }
-  }, [Question, MultipleChoices, SelectedOption, SelectedTerms, SelectedSubject]);
+  }, [Question, MultipleChoices, SelectedOption, SelectedTerms, SelectedSubject, SelectedClassification]);
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
     SetSelectedSubject(subject);
+  };
+
+  const handleChangeClassification = (e) => {
+    const classification = e.target.value;
+    SetSelectedClassification(classification);
+    console.log(classification)
   };
 
   const RenderSubject = () => {
@@ -80,6 +88,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
         value={SelectedSubject}
         onChange={handleChangeSelectedSubject}
         mb={4}
+        size="sm"
       >
         {Subjects.map((subject, index) => (
           <option key={index} value={subject.name}>
@@ -88,7 +97,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
         ))}
       </Select>
     ) : (
-      <Input value={user_assigned_subject} readOnly mb={4} />
+      <Input size="sm" value={user_assigned_subject} readOnly mb={4} />
     );
   };
 
@@ -169,12 +178,13 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   const renderFormElement = () => {
     switch (SelectedOption) {
       case "Identification":
-        return <Input type="text" onChange={(e) => handleInputChange(1, e.target.value)} value={MultipleChoices[0].option} />;
+        return <Input size="sm" type="text" onChange={(e) => handleInputChange(1, e.target.value)} value={MultipleChoices[0].option} />;
       case "Enumeration":
         return (
           <>
             <Text>Separate answers by new line</Text>
             <Textarea
+              size="sm"
               value={EnumerationText}
               onChange={handleEnumerationChange}
               placeholder="Enter answers"
@@ -209,6 +219,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
                     isChecked={option.is_correct}
                   />
                   <Input
+                    size="sm"
                     onChange={(e) =>
                       handleInputChange(option.id, e.target.value)
                     }
@@ -231,6 +242,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
       {RenderSubject()}
       <Text fontWeight="semibold">QUESTION</Text>
       <Input
+        size="sm"
         type="text"
         mb={4}
         value={Question}
@@ -260,8 +272,22 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
           </Checkbox>
         </HStack>
       </CheckboxGroup>
+      <Text fontWeight="semibold">CLASSIFICATION</Text>
+      <Select
+        size="sm"
+        value={SelectedClassification}
+        onChange={handleChangeClassification}
+        mb={4}
+      >
+        <option value="Knowledge">Knowledge</option>
+        <option value="Comprehension">Comprehension</option>
+        <option value="Application">Application</option>
+        <option value="Analysis">Analysis</option>
+        <option value="Synthesis">Synthesis</option>
+        <option value="Evaluation">Evaluation</option>
+      </Select>
       <Text fontWeight="semibold">CATEGORY</Text>
-      <Select value={SelectedOption} onChange={handleChangeOption} mb={4}>
+      <Select size="sm" value={SelectedOption} onChange={handleChangeOption} mb={4}>
         <option value="Identification">Identification</option>
         <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>

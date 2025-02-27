@@ -109,6 +109,12 @@ export default function CreateBatchQuestion({ isOpen, onClose }) {
     );
   };
 
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = "/BATCH_QUESTION.xlsx";
+    link.download = "BATCH_QUESTION.xlsx";
+    link.click();
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -130,6 +136,7 @@ export default function CreateBatchQuestion({ isOpen, onClose }) {
             <Button
               leftIcon={<TbFile />}
               mr={2}
+              onClick={handleDownload}
             >
               Download Template
             </Button>

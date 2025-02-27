@@ -8,11 +8,11 @@ class Question
     $this->conn = $db;
   }
 
-  public function create($question, $options, $answer, $category, $name, $subject, $term)
+  public function create($question, $options, $answer, $category, $name, $subject, $term, $classification)
   {
-    $query = "INSERT INTO question (question, options, answer, category, created_by, subject, terms) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO question (question, options, answer, category, created_by, subject, terms, classification) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("sssssss", $question, $options, $answer, $category, $name, $subject, $term);
+    $stmt->bind_param("ssssssss", $question, $options, $answer, $category, $name, $subject, $term, $classification);
 
     if ($stmt->execute()) {
       $last_id = $this->conn->insert_id;
@@ -30,24 +30,26 @@ class Question
     return false;
   }
 
-  public function update($id, $question, $options, $answer, $category, $name, $subject, $term)
+  public function update($id, $question, $options, $answer, $category, $name, $subject, $term, $classification)
   {
     $query = "UPDATE question 
-              SET question = ?, 
-                  options = ?, 
-                  answer = ?, 
-                  category = ?, 
-                  created_by = ?, 
-                  subject = ?, 
-                  terms = ? 
-              WHERE id = ?";
+      SET question = ?, 
+          options = ?, 
+          answer = ?, 
+          category = ?, 
+          created_by = ?, 
+          subject = ?, 
+          terms = ?,
+          classification = ?,
+          last_updated = NOW()
+      WHERE id = ?";
 
     $stmt = $this->conn->prepare($query);
     if (!$stmt) {
       die("Prepare failed: " . $this->conn->error);
     }
 
-    $stmt->bind_param("sssssssi", $question, $options, $answer, $category, $name, $subject, $term, $id);
+    $stmt->bind_param("ssssssssi", $question, $options, $answer, $category, $name, $subject, $term, $classification, $id);
 
     if ($stmt->execute()) {
       $fetch_query = "SELECT * FROM question WHERE id = ?";

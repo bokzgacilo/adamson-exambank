@@ -41,6 +41,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
   );
   const [SelectedOption, SetSelectedOption] = useState("Identification");
   const [MultipleChoices, SetMultipleChoices] = useState([]);
+  const [SelectedClassification, SetSelectedClassification] = useState("Knowledge")
   const [EnumerationText, SetEnumerationText] = useState("");
   const [Question, SetQuestion] = useState("");
   const [Subjects, SetSubjects] = useState([]);
@@ -57,6 +58,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
     created_by: fullname,
     terms: SelectedTerms,
     subject: SelectedSubject,
+    classification: SelectedClassification
   };
 
   const HandleCreate = () => {
@@ -77,7 +79,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             isClosable: true,
           });
 
-          onClose();
+          // onClose();
           
           set(ref(firebaseDB, "logs/" + Date.now()), {
             action: "Question Added",
@@ -124,6 +126,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
         value={SelectedSubject}
         onChange={handleChangeSelectedSubject}
         mb={4}
+        size="sm"
       >
         {Subjects.map((subject, index) => (
           <option key={index} value={subject.name}>
@@ -132,7 +135,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
         ))}
       </Select>
     ) : (
-      <Input value={user_assigned_subject} readOnly mb={4} />
+      <Input size="sm" value={user_assigned_subject} readOnly mb={4} />
     );
   };
 
@@ -218,6 +221,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             type="text"
             placeholder="Enter answer"
             onChange={(e) => handleInputChange(1, e.target.value)}
+            size="sm"
           />
         );
       case "Enumeration":
@@ -225,6 +229,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
           <>
             <Text>Separate answers by new line</Text>
             <Textarea
+              size="sm"
               value={EnumerationText}
               onChange={handleEnumerationChange}
               placeholder="Enter answers"
@@ -265,6 +270,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
                     onChange={() => handleRadioChange(option.id)}
                   />
                   <Input
+                    size="sm"
                     type="text"
                     value={option.option}
                     onChange={(e) =>
@@ -287,7 +293,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
         <ModalContent>
           <ModalCloseButton />
           <ModalHeader>
-            <Heading size="md">Create New Question</Heading>
+            <Heading size="md">CREATE QUESTION</Heading>
           </ModalHeader>
           <ModalBody>
             <Stack>
@@ -295,6 +301,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
               {RenderSubject()}
               <Text fontWeight="semibold">QUESTION</Text>
               <Input
+                size="sm"
                 type="text"
                 mb={4}
                 value={Question}
@@ -324,8 +331,23 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
                   </Checkbox>
                 </HStack>
               </CheckboxGroup>
+              <Text fontWeight="semibold">CLASSIFICATION</Text>
+              <Select
+                size="sm"
+                value={SelectedClassification}
+                onChange={(e) => SetSelectedClassification(e.target.value)}
+                mb={4}
+              >
+                <option value="Knowledge">Knowledge</option>
+                <option value="Comprehension">Comprehension</option>
+                <option value="Application">Application</option>
+                <option value="Analysis">Analysis</option>
+                <option value="Synthesis">Synthesis</option>
+                <option value="Evaluation">Evaluation</option>
+              </Select>
               <Text fontWeight="semibold">CATEGORY</Text>
               <Select
+                size="sm"
                 value={SelectedOption}
                 onChange={handleChangeOption}
                 mb={4}
@@ -342,10 +364,11 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
           <ModalFooter>
             <Button
               colorScheme="green"
-              leftIcon={<TbCheck />}
+              rightIcon={<TbCheck />}
+              size="sm"
               onClick={HandleCreate}
             >
-              Create
+              CREATE
             </Button>
           </ModalFooter>
         </ModalContent>

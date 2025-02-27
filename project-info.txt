@@ -5,9 +5,7 @@ PROF ROLE SIDE / INSTRUCTOR
 ✅ 3: si prof is taga gawa lang ng questions
 ✅ 4: si prof dapat hindi makagawa ng exam pero pwede siya makapag export for blackboard dun sa exam bank na ginawa ni coordinator and dapat ma access using access code so hindi dapat basta basta ma export dapat access code muna
 ✅ 5. Also shows subject questions but can't edit other instructors question
-6. Instructor can have 3 max subjects
 ✅ 7. categorization for terms (Prelim, Midterm, Finals)
-8. pwede mag drag ng csv para by batch po yung questions
 
 COORDINATOR ROLE SIDE
 ✅ 1: edit profile pwede mag change pass change pic 
@@ -35,3 +33,7 @@ Statistic
 ✅ total number of questions (sort by types)
 total number of exams
 total number of users
+6. Instructor can have 3 max subjects (optional)
+8. pwede mag drag ng csv para by batch po yung questions
+9. EXPORT (bug)
+10. Classifcation of question

@@ -23,7 +23,7 @@ import PropTypes from "prop-types";
 import QuestionDetail from "./QuestionDetail";
 import { TbCheck, TbPencil, TbX } from "react-icons/tb";
 import EditQuestionForm from "./EditQuestionForm";
-import app from "../helper/Firebase";
+import useUserStore from "../helper/useUserStore";
 
 QuestionDataTable.propTypes = {
   data: PropTypes.any.isRequired,
@@ -32,21 +32,17 @@ QuestionDataTable.propTypes = {
 export default function QuestionDataTable({ data }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [IsEditing, SetIsEditing] = useState(false);
-  const [UpdatedQuestionData, SetUpdatedQuestionData] = useState([])
+  const [UpdatedQuestionData, SetUpdatedQuestionData] = useState([]);
   const toast = useToast();
+  const { user } = useUserStore();
 
-
-  const {
-    isOpen,
-    onOpen,
-    onClose,
-  } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [selectedQuestion, setSelectedQuestion] = useState(null);
 
   const HandleToggleEdit = () => {
-    SetIsEditing(true)
-  }
+    SetIsEditing(true);
+  };
 
   const QuestionTemplate = (rowData) => (
     <Button variant="link" onClick={() => OpenQuestion(rowData)}>
@@ -67,54 +63,83 @@ export default function QuestionDataTable({ data }) {
   };
 
   const CloseQuestion = () => {
-    setSelectedQuestion([])
-    SetIsEditing(false)
-    onClose()
-  }
+    setSelectedQuestion([]);
+    SetIsEditing(false);
+    onClose();
+  };
 
   const HandleSaveEdit = () => {
     axios
-    .post("http://localhost/exam-bank/api/QuestionRoute.php?action=update", UpdatedQuestionData)
-    .then((response) => {
-      if (response.data) {
-        console.log(response.data);
+      .post(
+        "http://localhost/exam-bank/api/QuestionRoute.php?action=update",
+        UpdatedQuestionData
+      )
+      .then((response) => {
+        if (response.data) {
+          console.log(response.data);
 
-        toast({
-          title: "Question Updated!",
-          description: `Question ${UpdatedQuestionData.id} updated`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+          toast({
+            title: "Question Updated!",
+            description: `Question ${UpdatedQuestionData.id} updated`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
 
-        onClose();
-      } else {
-        console.log(response.data);
-      }
-    });
-  }
+          onClose();
+        } else {
+          console.log(response.data);
+        }
+      });
+  };
+
+  const HandleEnable = () => {
+    axios
+      .post("http://localhost/exam-bank/api/QuestionRoute.php?action=enable", {
+        id: selectedQuestion.id,
+      })
+      .then((response) => {
+        if (response.data) {
+          console.log(response.data);
+
+          toast({
+            title: "Question Enabled!",
+            description: `Question ${selectedQuestion.id} enabled`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+
+          onClose();
+        } else {
+          console.log(response.data);
+        }
+      });
+  };
 
   const HandleDisable = () => {
     axios
-    .post("http://localhost/exam-bank/api/QuestionRoute.php?action=disable", {id: selectedQuestion.id})
-    .then((response) => {
-      if (response.data) {
-        console.log(response.data);
+      .post("http://localhost/exam-bank/api/QuestionRoute.php?action=disable", {
+        id: selectedQuestion.id,
+      })
+      .then((response) => {
+        if (response.data) {
+          console.log(response.data);
 
-        toast({
-          title: "Question Disabled!",
-          description: `Question ${selectedQuestion.id} disabled`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
+          toast({
+            title: "Question Disabled!",
+            description: `Question ${selectedQuestion.id} disabled`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
 
-        onClose();
-      } else {
-        console.log(response.data);
-      }
-    });
-  }
+          onClose();
+        } else {
+          console.log(response.data);
+        }
+      });
+  };
 
   return (
     <PrimeReactProvider>
@@ -126,29 +151,57 @@ export default function QuestionDataTable({ data }) {
           <ModalCloseButton />
           <ModalHeader>
             <Heading size="md">
-              {!IsEditing ? "Question" : "Edit Question"}
+              {!IsEditing ? "QUESTION" : "EDIT QUESTION"}
             </Heading>
           </ModalHeader>
           <ModalBody>
             {!IsEditing ? (
               <QuestionDetail QuestionData={selectedQuestion} />
             ) : (
-              <EditQuestionForm SetUpdatedQuestionData={SetUpdatedQuestionData} QuestionData={selectedQuestion} />
+              <EditQuestionForm
+                SetUpdatedQuestionData={SetUpdatedQuestionData}
+                QuestionData={selectedQuestion}
+              />
             )}
           </ModalBody>
           <ModalFooter>
-            <Button
-              leftIcon={!IsEditing ? <TbPencil /> : <TbCheck />}
-              colorScheme={!IsEditing ? "blue" : "green"}
-              onClick={!IsEditing ? HandleToggleEdit : HandleSaveEdit}
-              mr={2}
-            >
-              {!IsEditing ? "Edit" : "Save"}
-            </Button>
-            {
-              !IsEditing && <Button leftIcon={<TbX />} colorScheme="red" onClick={HandleDisable}>Disable</Button>
-            }
-            
+            {user.fullname === selectedQuestion?.created_by && (
+              <Button
+                leftIcon={!IsEditing ? <TbPencil /> : <TbCheck />}
+                colorScheme={!IsEditing ? "blue" : "green"}
+                onClick={!IsEditing ? HandleToggleEdit : HandleSaveEdit}
+                size="sm"
+                mr={2}
+              >
+                {!IsEditing ? "Edit" : "Save"}
+              </Button>
+            )}
+
+            {!IsEditing && user.fullname === selectedQuestion?.created_by && (
+              <>
+                {selectedQuestion?.status == null ? (
+                  ""
+                ) : selectedQuestion.status !== "1" && !IsEditing ? (
+                  <Button
+                    leftIcon={<TbCheck />}
+                    colorScheme="green"
+                    size="sm"
+                    onClick={HandleEnable}
+                  >
+                    Activate
+                  </Button>
+                ) : (
+                  <Button
+                    leftIcon={<TbX />}
+                    colorScheme="red"
+                    size="sm"
+                    onClick={HandleDisable}
+                  >
+                    Deactivate
+                  </Button>
+                )}
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -188,7 +241,11 @@ export default function QuestionDataTable({ data }) {
           header="Subject"
           sortable
         ></Column>
-        <Column field="created_by" header="Created By" sortable></Column>
+        <Column
+          field="classification"
+          header="Classification"
+          sortable
+        ></Column>
         <Column
           field="status"
           header="Status"

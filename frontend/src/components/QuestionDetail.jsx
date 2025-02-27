@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 QuestionDetail.propTypes = {
   QuestionData: PropTypes.any.isRequired,
@@ -33,12 +33,12 @@ export default function QuestionDetail({ QuestionData }) {
   const renderFormElement = () => {
     switch (QuestionData.category) {
       case "Identification":
-        return <Input disabled type="text" value={MultipleChoices[0].option} />;
+        return <Input size="sm" disabled type="text" value={MultipleChoices[0].option} />;
       case "Enumeration":
         return (
           <>
             <Text>Separate answers by new line</Text>
-            <Textarea isDisabled placeholder="Enter answers" value={MultipleChoices.map(choice => choice.option).join("\n")} />
+            <Textarea size="sm" isDisabled placeholder="Enter answers" value={MultipleChoices.map(choice => choice.option).join("\n")} />
           </>
         );
       case "True/False":
@@ -65,7 +65,7 @@ export default function QuestionDetail({ QuestionData }) {
                   gap={4}
                 >
                   <Checkbox disabled isChecked={option.is_correct} />
-                  <Input readOnly type="text" value={option.option} />
+                  <Input size="sm" readOnly type="text" value={option.option} />
                 </Flex>
               ))}
             </Stack>
@@ -76,13 +76,21 @@ export default function QuestionDetail({ QuestionData }) {
     }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const formattedTime = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  
+    return `${formattedDate} - ${formattedTime}`;
+  };
+
   return (
     <Stack>
       <Text fontWeight="semibold">SUBJECT</Text>
-      <Input value={QuestionData.subject} readOnly name="subject" mb={4} />
+      <Input size="sm"  value={QuestionData.subject} readOnly name="subject" mb={4} />
 
       <Text fontWeight="semibold">QUESTION</Text>
-      <Input value={QuestionData.question} readOnly name="question" mb={4} />
+      <Input size="sm" value={QuestionData.question} readOnly name="question" mb={4} />
 
       <Text fontWeight="semibold">TERMS</Text>
       <HStack justifyContent="space-evenly" mb={4}>
@@ -97,8 +105,18 @@ export default function QuestionDetail({ QuestionData }) {
         </Checkbox>
       </HStack>
 
+      <Text fontWeight="semibold">CLASSIFICATION</Text>
+      <Select size="sm" value={QuestionData.classification} isDisabled mb={4}>
+        <option value="Knowledge">Knowledge</option>
+        <option value="Comprehension">Comprehension</option>
+        <option value="Application">Application</option>
+        <option value="Analysis">Analysis</option>
+        <option value="Synthesis">Synthesis</option>
+        <option value="Evaluation">Evaluation</option>
+      </Select>
+
       <Text fontWeight="semibold">CATEGORY</Text>
-      <Select value={QuestionData.category} isDisabled mb={4}>
+      <Select size="sm" value={QuestionData.category} isDisabled mb={4}>
         <option value="Identification">Identification</option>
         <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>
@@ -115,7 +133,11 @@ export default function QuestionDetail({ QuestionData }) {
         </SimpleGrid>
         <SimpleGrid alignItems="center" templateColumns="40% 60%">
           <Text>Date Created</Text>
-          <Text>{QuestionData.date_created}</Text>
+          <Text>{formatDate(QuestionData.date_created)}</Text>
+        </SimpleGrid>
+        <SimpleGrid alignItems="center" templateColumns="40% 60%">
+          <Text>Last Updated</Text>
+          <Text>{formatDate(QuestionData.last_updated)}</Text>
         </SimpleGrid>
       </Stack>
     </Stack>

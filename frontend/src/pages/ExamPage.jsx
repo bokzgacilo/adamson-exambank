@@ -47,10 +47,12 @@ export default function ExamPage() {
   const [QuestionSet, SetQuestionSet] = useState([]);
 
   const [TOS, SetTOS] = useState({
-    Identification : 10,
-    Multiple: 10,
-    Enumeration: 10,
-    "True/False" : 10
+    Knowledge : 10,
+    Comprehension: 10,
+    Application: 10,
+    Analysis: 10,
+    Synthesis: 10,
+    Evaluation: 10
   })
 
   useEffect(() => {
@@ -63,46 +65,139 @@ export default function ExamPage() {
       });
   }, [IsTOS]);
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=upload_tos", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      console.log(response.data)
+      SetTOS(response.data)
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+
+  }
+
+  const DownloadFormat = () => {
+    const link = document.createElement("a");
+    link.href = "/TOS_FORMAT.xlsx";
+    link.download = "TOS_FORMAT.xlsx";
+    link.click();
+  }
+
   const RenderTOS = (tos) => {
     switch(tos){
       case "upload":
         return (
           <>
             <Text fontWeight="semibold">UPLOAD TOS FILE</Text>
-            <Input size="sm" type="file" />
+            <Flex direction="row" alignItems="center" gap={4}>
+              <Input accept=".xlsx" onChange={handleFileChange} size="sm" type="file" />
+              <Button onClick={DownloadFormat} size="sm">Template</Button>
+            </Flex>
             <Text fontSize="12px">Accepted files (.CSV, .XLSX, .JPG)</Text>
+            <Text fontSize="12px" fontWeight="semibold">Knowledge</Text>
+            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Comprehension</Text>
+            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Application</Text>
+            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Analysis</Text>
+            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Synthesis</Text>
+            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Evaluation</Text>
+            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
           </>
         )
       default:
         return (
           <>
             <Text fontWeight="semibold">SET CATEGORY ITEMS</Text>
-            <Text fontSize="12px" fontWeight="semibold">Identification</Text>
-            <NumberInput value={TOS.Identification} onChange={(value) => SetTOS({...TOS, Identification : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <Text fontSize="12px" fontWeight="semibold">Knowledge</Text>
+            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="12px" fontWeight="semibold">Multiple Choice</Text>
-            <NumberInput value={TOS.Multiple} onChange={(value) => SetTOS({...TOS, Multiple : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <Text fontSize="12px" fontWeight="semibold">Comprehension</Text>
+            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="12px" fontWeight="semibold">Enumeration</Text>
-            <NumberInput value={TOS.Enumeration} onChange={(value) => SetTOS({...TOS, Enumeration : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <Text fontSize="12px" fontWeight="semibold">Application</Text>
+            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="12px" fontWeight="semibold">True/False</Text>
-            <NumberInput value={TOS["True/False"]} onChange={(value) => SetTOS({...TOS, "True/False" : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <Text fontSize="12px" fontWeight="semibold">Analysis</Text>
+            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Synthesis</Text>
+            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={5} max={25} allowMouseWheel>
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+            <Text fontSize="12px" fontWeight="semibold">Evaluation</Text>
+            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -126,10 +221,12 @@ export default function ExamPage() {
     SetIsTOS("upload")
     SetIsExamBuilderOpen(false)
     SetTOS({
-      identification : 10,
-      multiple: 10,
-      enumeration: 10,
-      true_false : 10
+      Knowledge : 10,
+      Comprehension: 10,
+      Application: 10,
+      Analysis: 10,
+      Synthesis: 10,
+      Evaluation: 10
     })
     OnCloseExamBuilder()
   }
@@ -148,7 +245,7 @@ export default function ExamPage() {
 
   return (
     <>
-      <Modal size="4xl" isOpen={IsOpenExamBuilder} onClose={HandleCloseExamBuilder}>
+      <Modal size={!IsExamBuilderOpen ? "4xl" : "full" } isOpen={IsOpenExamBuilder} onClose={HandleCloseExamBuilder}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>

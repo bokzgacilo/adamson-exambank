@@ -16,6 +16,7 @@ import {
   Tag,
   Icon,
   Divider,
+  HStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -32,7 +33,6 @@ CreateExamForm.propTypes = {
 export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
   const AccessCode = Math.floor(100000 + Math.random() * 900000);
   const [Questions, SetQuestions] = useState([]);
-
   const [ExamName, SetExamName] = useState("");
   const { user_assigned_subject } = useUserStore(
     (state) => state.user
@@ -85,13 +85,13 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
       case "True/False": {
         return (
           <RadioGroup>
-            <Stack spacing={4}>
+            <HStack spacing={4}>
               {JSON.parse(options).map((option) => (
                 <Radio key={option.id} isChecked={option.is_correct}>
                   {option.option}
                 </Radio>
               ))}
-            </Stack>
+            </HStack>
           </RadioGroup>
         );
       }
@@ -99,7 +99,7 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
       case "Multiple":
         return (
           <RadioGroup>
-            <Stack spacing={4}>
+            <HStack spacing={4}>
               {JSON.parse(options).map((option) => (
                 <Flex
                   key={option.id}
@@ -107,11 +107,11 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
                   alignItems="center"
                   gap={4}
                 >
-                  <Radio isChecked={option.is_correct} />
+                  <Checkbox isChecked={option.is_correct} />
                   <Input size="sm" type="text" value={option.option} readOnly />
                 </Flex>
               ))}
-            </Stack>
+            </HStack>
           </RadioGroup>
         );
       default:
@@ -176,12 +176,12 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
   };
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const categories = ["All", ...new Set(Questions.map((q) => q.category))];
+  const categories = ["All", ...new Set(Questions.map((q) => q.classification))];
 
   const filteredQuestions =
     selectedCategory === "All"
       ? Questions
-      : Questions.filter((q) => q.category === selectedCategory);
+      : Questions.filter((q) => q.classification === selectedCategory);
 
   const categoryCounts = QuestionSet.reduce((acc, item) => {
     const categoryKey = item.category; // Normalize case
@@ -198,7 +198,7 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
               <Stack spacing={4}>
                 <Flex direction="row">
                   <Text fontWeight="semibold" mr="auto">
-                    {index + 1}. {item.question}
+                    {index + 1}. {item.question} : {item.classification}
                   </Text>
                   <Button
                     size="xs"
@@ -267,7 +267,7 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
             </Flex>
           );
         })}
-        <Text mt={4} fontWeight="semibold">SELECT CATEGORY</Text>
+        <Text mt={4} fontWeight="semibold">SORT BY CLASSIFICATION</Text>
         <Stack spacing={4}>
           <Select
             size="sm"
@@ -275,9 +275,9 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
             onChange={(e) => setSelectedCategory(e.target.value)}
             mb={4}
           >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+            {categories.map((classification) => (
+              <option key={classification} value={classification}>
+                {classification}
               </option>
             ))}
           </Select>

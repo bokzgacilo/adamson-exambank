@@ -20,7 +20,7 @@ switch ($action) {
     
         $data = json_decode(file_get_contents("php://input"), true);
     
-        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"])) {
+        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"],$data["classification"])) {
             echo json_encode(["message" => "Invalid input"]);
             exit;
         }
@@ -36,7 +36,8 @@ switch ($action) {
             $data["category"],
             $data["created_by"],
             $data["subject"],
-            $termJson
+            $termJson,
+            $data["classification"]
         );
     
         if ($newQuestion) {
@@ -56,7 +57,7 @@ switch ($action) {
     
         $data = json_decode(file_get_contents("php://input"), true);
     
-        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"])) {
+        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"], $data["classification"])) {
             echo json_encode(["message" => "Invalid input"]);
             exit;
         }
@@ -73,7 +74,8 @@ switch ($action) {
             $data["category"],
             $data["created_by"],
             $data["subject"],
-            $termJson
+            $termJson,
+            $data["classification"]
         );
     
         if ($newQuestion) {
@@ -98,6 +100,17 @@ switch ($action) {
         echo json_encode($questions);
         break;
     case "disable":
+        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(["message" => "Invalid request method"]);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $questions = $question -> toggle_status($data["id"]);
+
+        echo json_encode($questions);
+        break;
+    case "enable":
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             echo json_encode(["message" => "Invalid request method"]);
             exit;
