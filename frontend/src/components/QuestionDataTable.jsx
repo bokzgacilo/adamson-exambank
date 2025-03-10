@@ -17,6 +17,7 @@ import {
   Stack,
   useToast,
   Tag,
+  Text,
 } from "@chakra-ui/react";
 import { Button, useDisclosure } from "@chakra-ui/react";
 import PropTypes from "prop-types";
@@ -24,12 +25,15 @@ import QuestionDetail from "./QuestionDetail";
 import { TbCheck, TbPencil, TbX } from "react-icons/tb";
 import EditQuestionForm from "./EditQuestionForm";
 import useUserStore from "../helper/useUserStore";
+import LoadingSpinner from "./LoadingSpinner";
 
 QuestionDataTable.propTypes = {
   data: PropTypes.any.isRequired,
 };
 
 export default function QuestionDataTable({ data }) {
+  const [ShowSpinner, SetShowSpinner] = useState(false)
+
   const [globalFilter, setGlobalFilter] = useState("");
   const [IsEditing, SetIsEditing] = useState(false);
   const [UpdatedQuestionData, SetUpdatedQuestionData] = useState([]);
@@ -45,17 +49,16 @@ export default function QuestionDataTable({ data }) {
   };
 
   const QuestionTemplate = (rowData) => (
-    <Button variant="link" onClick={() => OpenQuestion(rowData)}>
+    <Text fontWeight="semibold" cursor="pointer" onClick={() => OpenQuestion(rowData)}>
       {rowData.question}
-    </Button>
+    </Text>
   );
 
-  const StatusTemplate = (rowData) =>
-    rowData.status === 1 || rowData.status === "1" ? (
-      <Tag colorScheme="green">Active</Tag>
-    ) : (
-      <Tag colorScheme="red">Inactive</Tag>
-    );
+  const StatusTemplate = (rowData) => (
+    <Tag size="sm" colorScheme={rowData.status == 1 ? "green" : "red"}>
+      {rowData.status == 1 ? "Active" : "Inactive"}
+    </Tag>
+  );
 
   const OpenQuestion = (rowData) => {
     setSelectedQuestion(rowData);
@@ -143,6 +146,7 @@ export default function QuestionDataTable({ data }) {
 
   return (
     <PrimeReactProvider>
+
       <Modal isOpen={isOpen} onClose={CloseQuestion}>
         <ModalOverlay />
         <ModalCloseButton />
@@ -165,7 +169,8 @@ export default function QuestionDataTable({ data }) {
             )}
           </ModalBody>
           <ModalFooter>
-            {user.fullname === selectedQuestion?.created_by && (
+            {(user.fullname === selectedQuestion?.created_by ||
+              user.usertype === "Coordinator") && (
               <Button
                 leftIcon={!IsEditing ? <TbPencil /> : <TbCheck />}
                 colorScheme={!IsEditing ? "blue" : "green"}
@@ -177,7 +182,8 @@ export default function QuestionDataTable({ data }) {
               </Button>
             )}
 
-            {!IsEditing && user.fullname === selectedQuestion?.created_by && (
+            {!IsEditing && (user.fullname === selectedQuestion?.created_by ||
+              user.usertype === "Coordinator") && (
               <>
                 {selectedQuestion?.status == null ? (
                   ""

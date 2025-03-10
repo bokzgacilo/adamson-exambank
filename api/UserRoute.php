@@ -25,7 +25,9 @@ switch ($action) {
       exit;
     }
 
-    $result = $user->create($data["name"], $data["role"], $data["assigned_subject"], $data["username"], $data["password"]);
+    $assigned_subjects = json_encode($data["assigned_subject"]);
+
+    $result = $user->create($data["name"], $data["role"], $assigned_subjects, $data["username"], $data["password"]);
 
     echo json_encode(["message" => $result ? "User created successfully" : "Failed to create user"]);
     break;
@@ -78,20 +80,35 @@ switch ($action) {
     break;
 
 
-  case "login":
-    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-      echo json_encode(["message" => "Invalid request method"]);
-      exit;
-    }
-    $data = json_decode(file_get_contents("php://input"), true);
-    $users = $user->login($data['username'], $data['password']);
+    case "get_user_data":
+      if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+          echo json_encode(["message" => "Invalid request method"]);
+          exit;
+      }
+  
+      $data = json_decode(file_get_contents("php://input"), true);
+      $users = $user->get_user_data($data['id']);
+  
+      echo json_encode($users);
+      break;  
 
-    if ($users) {
-      echo $users;
-    } else {
-      echo json_encode(["success" => false, "message" => "Invalid username or password"]);
-    }
-    break;
+    case "login":
+      if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+          echo json_encode(["message" => "Invalid request method"]);
+          exit;
+      }
+  
+      $data = json_decode(file_get_contents("php://input"), true);
+      $users = $user->login($data['username'], $data['password']);
+  
+      $decodedUsers = json_decode($users, true);
+  
+      if (isset($decodedUsers['error'])) {
+        echo json_encode(["success" => false, "message" => $decodedUsers['error']]);
+      } else {
+        echo json_encode(["success" => true, "user" => $decodedUsers]);
+      }
+      break;  
   default:
     echo json_encode(["message" => "Invalid action"]);
 }

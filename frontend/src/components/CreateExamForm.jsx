@@ -15,39 +15,29 @@ import {
   CardBody,
   Tag,
   Icon,
-  Divider,
   HStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
 import PropTypes from "prop-types";
-import useUserStore from "../helper/useUserStore";
 import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 CreateExamForm.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
+  TOS: PropTypes.string.isRequired,
+  SelectedSubject: PropTypes.string.isRequired, 
+  QuestionSet: PropTypes.array.isRequired, 
+  SetQuestionSet: PropTypes.func.isRequired, 
+  AccessCode: PropTypes.string.isRequired,
 };
 
-export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
-  const AccessCode = Math.floor(100000 + Math.random() * 900000);
+export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, QuestionSet, SetQuestionSet }) {
   const [Questions, SetQuestions] = useState([]);
-  const [ExamName, SetExamName] = useState("");
-  const { user_assigned_subject } = useUserStore(
-    (state) => state.user
+  const [filteredClassification, setFilteredClassification] = useState("");
+  const filteredQuestions = Questions.filter(
+    (q) =>
+      !filteredClassification || q.classification === filteredClassification
   );
-  const [Subject, SetSubject] = useState(
-    user_assigned_subject !== "none" ? user_assigned_subject : "Math"
-  );
-
-  // const data = {
-  //   exam_name: ExamName,
-  //   subject: Subject,
-  //   access_code: AccessCode,
-  //   questions: QuestionSet,
-  //   created_by: fullname,
-  // };
+  const [, SetSubjects] = useState([]);
 
   const handleCheckboxChange = (id) => {
     SetQuestionSet((prevItems) => {
@@ -120,85 +110,89 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
   };
 
   useEffect(() => {
-    console.log(QuestionSet)
-    axios
-      .get(
-        `http://localhost/exam-bank/api/ExamRoute.php?action=getAllQuestion&subject=${user_assigned_subject}`
-      )
-      .then((response) => {
-        SetQuestions(response.data);
-      });
-  }, [QuestionSet]);
+    const fetchData = async (method, url, setter, body = null) => {
+      try {
+        const { data } = await axios({
+          method: method.toLowerCase(),
+          url,
+          ...(body && { data: body }),
+        });
+        setter(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-  const UserSubject = () => {
-    switch (localStorage.getItem("usertype")) {
-      case "Instructor":
-        return (
-          <Input
-            size="sm"
-            type="text"
-            value={localStorage.getItem("usersubject")}
-            isReadOnly
-            mb={4}
-          />
-        );
-      default:
-        return (
-          <Select
-            size="sm"
-            mb={4}
-            value={Subject}
-            onChange={(e) => SetSubject(e.target.value)}
-          >
-            <option>Programming Language II</option>
-            <option>Math</option>
-            <option>Computer Programming</option>
-          </Select>
-        );
-    }
-  };
+    const GetAllSubjects = () =>
+      fetchData(
+        "GET",
+        "http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll",
+        SetSubjects
+      );
 
-  const moveItem = (index, direction) => {
-    SetQuestionSet((prevItems) => {
-      const newItems = [...prevItems];
+    const GetAllQuestions = () => {
+      axios
+        .post(
+          `http://localhost/exam-bank/api/QuestionRoute.php?action=QuestionForBank`,
+          {
+            subject: SelectedSubject
+          }
+        )
+        .then((response) => {
+          SetQuestions(response.data);
+        });
+    };
 
-      const newIndex = index + direction;
-
-      if (newIndex < 0 || newIndex >= newItems.length) return prevItems;
-
-      [newItems[index], newItems[newIndex]] = [
-        newItems[newIndex],
-        newItems[index],
-      ];
-
-      return newItems;
-    });
-  };
-  const [selectedCategory, setSelectedCategory] = useState("All");
-
-  const categories = ["All", ...new Set(Questions.map((q) => q.classification))];
-
-  const filteredQuestions =
-    selectedCategory === "All"
-      ? Questions
-      : Questions.filter((q) => q.classification === selectedCategory);
+    GetAllSubjects();
+    GetAllQuestions();
+  }, []);
 
   const categoryCounts = QuestionSet.reduce((acc, item) => {
-    const categoryKey = item.category; // Normalize case
+    const categoryKey = item.classification;
     acc[categoryKey] = (acc[categoryKey] || 0) + 1;
     return acc;
   }, {});
 
+  const moveItem = (index, direction) => {
+    SetQuestionSet((prevItems) => {
+      const newItems = [...prevItems];
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= newItems.length) return prevItems;
+      [newItems[index], newItems[newIndex]] = [
+        newItems[newIndex],
+        newItems[index],
+      ];
+      return newItems;
+    });
+  };
+  const CheckIfSelected = (qid) => {
+    if(QuestionSet.some((q) => q.id === qid)){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   return (
-    <SimpleGrid templateColumns="1fr 1fr" gap={4}>
-      <Stack backgroundColor="#fbfbfb" p={4}>
+    <SimpleGrid templateColumns="40% 1fr 1fr" gap={4}>
+      <Stack
+        backgroundColor="#fbfbfb"
+        p={4}
+        overflowY="auto"
+        maxH="calc(100vh - 150px)"
+        w="100%"
+      >
         {QuestionSet.map((item, index) => (
           <Card key={item.id}>
             <CardBody>
               <Stack spacing={4}>
                 <Flex direction="row">
-                  <Text fontWeight="semibold" mr="auto">
-                    {index + 1}. {item.question} : {item.classification}
+                  <Text fontSize="14px" fontWeight="semibold" mr="auto">
+                    {index + 1}. {item.question}
+                  </Text>
+
+                  <Text fontWeight="semibold" fontSize="10px" mr={2}>
+                    {item.classification}
                   </Text>
                   <Button
                     size="xs"
@@ -225,40 +219,19 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
       <Stack>
         <Heading size="md">METADATA</Heading>
         <Text fontWeight="semibold">ACCESS CODE</Text>
-        <Input
-          size="sm"
-          type="text"
-          mb={2}
-          value={AccessCode}
-          disabled
-        />
-        <Text fontWeight="semibold">NAME</Text>
-        <Input
-          size="sm"
-          type="text"
-          mb={2}
-          value={ExamName}
-          onChange={(e) => SetExamName(e.currentTarget.value)}
-        />
-        <Text fontWeight="semibold">SUBJECT</Text>
-        {UserSubject()}
-        <Divider />
-        <Flex direction="row" justifyContent="space-between">
-          <Heading size="md" mb={2}>
-            BANK
-          </Heading>
-          <Text>{Questions.length}</Text>
-        </Flex>
+        <Input size="sm" type="text" mb={2} value={AccessCode} disabled />
+        
         <Text fontWeight="semibold">TOS</Text>
         {Object.entries(TOS).map(([category, expected]) => {
           const count = categoryCounts[category] || 0;
+
           return (
             <Flex
               key={category}
               alignItems="center"
               justifyContent="space-between"
             >
-              <Text fontWeight="bold">
+              <Text fontWeight="semibold">
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </Text>
               <Text color={count >= expected ? "green.500" : "red.500"}>
@@ -267,37 +240,41 @@ export default function CreateExamForm({TOS, QuestionSet, SetQuestionSet}) {
             </Flex>
           );
         })}
-        <Text mt={4} fontWeight="semibold">SORT BY CLASSIFICATION</Text>
-        <Stack spacing={4}>
-          <Select
-            size="sm"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            mb={4}
-          >
-            {categories.map((classification) => (
-              <option key={classification} value={classification}>
-                {classification}
-              </option>
-            ))}
-          </Select>
+      </Stack>
 
-          <Stack spacing={2}>
-            {filteredQuestions.map((item) => (
-              <Flex direction="row" key={item.id}>
-                <Checkbox
-                  key={item.id}
-                  mr={4}
-                  onChange={() => handleCheckboxChange(item.id)}
-                  isChecked={QuestionSet.some((q) => q.id === item.id)}
-                />
-                <Text fontWeight="semibold">{item.question}</Text>
-                <Tag ml="auto" size="sm">
-                  {item.category}
-                </Tag>
-              </Flex>
-            ))}
-          </Stack>
+      <Stack>
+        <Heading size="md">BANK</Heading>
+        <Text fontWeight="semibold">SORT BY CLASSIFICATION</Text>
+        <Select
+          size="sm"
+          onChange={(e) => setFilteredClassification(e.target.value)}
+          mb={4}
+        >
+          <option value="">All</option>
+          <option value="Knowledge">Knowledge</option>
+          <option value="Comprehension">Comprehension</option>
+          <option value="Application">Application</option>
+          <option value="Evaluation">Evaluation</option>
+          <option value="Analysis">Analysis</option>
+          <option value="Synthesis">Synthesis</option>
+        </Select>
+
+        <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">
+          {filteredQuestions.map((item) => (
+            <Flex direction="row" key={item.id}>
+              <Checkbox
+                key={item.id}
+                mr={4}
+                onChange={() => handleCheckboxChange(item.id)}
+                isChecked={CheckIfSelected(item.id)}
+                isDisabled={categoryCounts[item.classification] >= TOS[item.classification] && !CheckIfSelected(item.id)}
+              />
+              <Text fontWeight="semibold">{item.question}</Text>
+              <Tag ml="auto" size="sm">
+                {item.category}
+              </Tag>
+            </Flex>
+          ))}
         </Stack>
       </Stack>
     </SimpleGrid>

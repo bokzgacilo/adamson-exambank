@@ -1,12 +1,8 @@
 import {
   Button,
   Stack,
-  Radio,
-  RadioGroup,
   Select,
-  Flex,
   Text,
-  Textarea,
   Input,
   useToast,
   Modal,
@@ -14,79 +10,76 @@ import {
   ModalContent,
   ModalHeader,
   ModalCloseButton,
-  Heading,
   ModalBody,
   ModalFooter,
-  CheckboxGroup,
-  Checkbox,
-  HStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
 import PropTypes from "prop-types";
 import useUserStore from "../helper/useUserStore";
-import { TbCheck, TbFile } from "react-icons/tb";
+import { TbCheck, TbDownload } from "react-icons/tb";
 
 CreateBatchQuestion.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  spinner: PropTypes.func.isRequired,
 };
 
-export default function CreateBatchQuestion({ isOpen, onClose }) {
-  const { fullname, user_assigned_subject, usertype } = useUserStore(
-    (state) => state.user
-  );
-  const [Subjects, SetSubjects] = useState([]);
-  const [SelectedSubject, SetSelectedSubject] = useState([])
-
+export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
+  const { user } = useUserStore();
+  const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
+  const [File, SetFile] = useState(null);
+  const reconstructedArray = parsedSubjects.map((name, index) => ({
+    id: index + 1,
+    name: name,    
+  }));
   const toast = useToast();
+  const [Subjects, SetSubjects] = useState([]);
+  const [SelectedSubject, SetSelectedSubject] = useState("");
 
-  // const data = {
-  //   question: Question,
-  //   options: MultipleChoices,
-  //   answer: MultipleChoices.filter((item) => item.is_correct === true),
-  //   category: SelectedOption,
-  //   created_by: fullname,
-  //   terms: SelectedTerms,
-  //   subject: SelectedSubject,
-  // };
+  const HandeFileChange = (e) => {
+    SetFile(e.target.files[0]);
+  };
 
-  const HandleCreate = () => {
-    // axios
-    //   .post("http://localhost/exam-bank/api/QuestionRoute.php?action=create", data)
-    //   .then((response) => {
-    //     if (response.data) {
-    //       console.log(response.data);
-
-    //       toast({
-    //         title: "Question Created!",
-    //         description: `Question: ${Question} successfully created`,
-    //         status: "success",
-    //         duration: 3000,
-    //         isClosable: true,
-    //       });
-
-    //       onClose();
-    //     } else {
-    //       console.log(response.data);
-    //     }
-    //   });
+  const HandleCreate = async () => {
+    if (!File) {
+      alert("Please select a file first.");
+      return;
+    }
+    spinner(true)
+    
+    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=ProcessQuestionBatch",  {
+      subject: SelectedSubject,
+      excel_data : File,
+      creator: user.fullname
+    }, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then(response => {
+        toast({ title: "Batch Uploaded!", description: `${response.data.data.length} questions successfully created`, status: "success", duration: 3000, isClosable: true });
+        spinner(false)
+        onClose()
+        SetFile(null)
+      })
   };
 
   useEffect(() => {
-    if (user_assigned_subject === "none") {
+    if (reconstructedArray[0].name === "None") {
       axios
         .get("http://localhost/exam-bank/api/SubjectRoute.php", {
-          params: { action: "GetAllSubjects", type: usertype },
+          params: { action: "GetAllSubjects", type: user.usertype },
         })
         .then((response) => {
           SetSubjects(response.data);
-          SetSelectedSubject(user_assigned_subject === "none" ? response.data[0].name : user_assigned_subject)
+          SetSelectedSubject(response.data[0].name)
         })
         .catch((error) => {
           console.error("Error fetching subjects:", error);
         });
+    }else {
+      SetSubjects(reconstructedArray)
+      SetSelectedSubject(reconstructedArray[0].name)
     }
   }, []);
 
@@ -96,16 +89,32 @@ export default function CreateBatchQuestion({ isOpen, onClose }) {
   }
 
   const RenderSubject = () => {
-    return usertype !== "Instructor" ? (
-      <Select value={SelectedSubject} onChange={handleChangeSelectedSubject} mb={4}>
+    return user.type === "Instructor" ? (
+      <Select
+        value={SelectedSubject}
+        onChange={handleChangeSelectedSubject}
+        mb={4}
+        size="sm"
+      >
         {Subjects.map((subject, index) => (
-            <option key={index} value={subject.name}>
-              {subject.name}
-            </option>
+          <option key={index} value={subject}>
+            {subject}
+          </option>
         ))}
       </Select>
     ) : (
-      <Input value={user_assigned_subject} readOnly mb={4} />
+      <Select
+        value={SelectedSubject}
+        onChange={handleChangeSelectedSubject}
+        mb={4}
+        size="sm"
+      >
+        {Subjects.map((subject, index) => (
+          <option key={index} value={subject.name}>
+            {subject.name}
+          </option>
+        ))}
+      </Select>
     );
   };
 
@@ -122,26 +131,28 @@ export default function CreateBatchQuestion({ isOpen, onClose }) {
         <ModalContent>
           <ModalCloseButton />
           <ModalHeader>
-            <Heading size="md">Upload CSV/EXCEL</Heading>
+            <Text fontWeight="semibold">UPLOAD CSV or XLSX</Text>
           </ModalHeader>
           <ModalBody>
             <Stack>
               <Text fontWeight="semibold">SUBJECT</Text>
               {RenderSubject()}
               <Text fontWeight="semibold">SELECT FILE TO UPLOAD</Text>
-              <Input type="file" accept=".csv, .xlsx" />
+              <Input size="sm" type="file" accept=".csv, .xlsx" onChange={HandeFileChange} />
             </Stack>
           </ModalBody>
           <ModalFooter>
             <Button
-              leftIcon={<TbFile />}
+              leftIcon={<TbDownload />}
+              size="sm"
               mr={2}
               onClick={handleDownload}
             >
-              Download Template
+              Template
             </Button>
             <Button
               colorScheme="green"
+              size="sm"
               leftIcon={<TbCheck />}
               onClick={HandleCreate}
             >

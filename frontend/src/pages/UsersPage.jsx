@@ -12,8 +12,11 @@ export default function UserPage() {
   useEffect(() => {
     axios.get(`http://localhost/exam-bank/api/UserRoute.php?action=viewAll`)
       .then(response => {
+        console.log(response.data)
         SetUsers(response.data)
       });
+
+    
   }, []);
 
   return (

@@ -45,6 +45,22 @@ class User
     return $stmt->execute();
   }
 
+  public function get_user_data($id)
+  {
+    $stmt = $this->conn->prepare("SELECT * FROM user WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+
+      return $row;
+    } else {
+      return json_encode([]);
+    }
+  }
+
   public function login($username, $password)
   {
     $stmt = $this->conn->prepare("SELECT * FROM user WHERE username = ? AND password = ?");
@@ -55,40 +71,45 @@ class User
     if ($result->num_rows > 0) {
       $row = $result->fetch_assoc();
 
+      if ($row['status'] == 0) {
+        return json_encode(["error" => "Your account is inactive. Please contact support."]);
+      }
+
       return json_encode($row);
-    }else {
-      return [];
+    } else {
+      return json_encode(["error" => "Invalid username or password."]);
     }
   }
-public function change_avatar($id, $avatar, $password)
-{
+
+  public function change_avatar($id, $avatar, $password)
+  {
     $query = "UPDATE user SET password = ? WHERE id = ?";
-    
+
     if ($avatar) {
-        $uploadDir = "user_images/$id/";
+      $uploadDir = "user_images/$id/";
 
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+      if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+      }
 
-        $extension = pathinfo($avatar["name"], PATHINFO_EXTENSION);
-        $fileName = "avatar_$id.$extension";
-        $imagePath = "user_images/$id/" . $fileName;
+      $extension = pathinfo($avatar["name"], PATHINFO_EXTENSION);
+      $fileName = "avatar_$id.$extension";
+      $imagePath = "user_images/$id/" . $fileName;
 
-        if (move_uploaded_file($avatar["tmp_name"], $imagePath)) {
-            $query = "UPDATE user SET avatar = ?, password = ? WHERE id = ?";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("ssi", $imagePath, $password, $id);
-        } else {
-            return false;
-        }
-    } else {
+      if (move_uploaded_file($avatar["tmp_name"], $imagePath)) {
+        $query = "UPDATE user SET avatar = ?, password = ? WHERE id = ?";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("si", $password, $id);
+        $stmt->bind_param("ssi", $imagePath, $password, $id);
+      } else {
+        return false;
+      }
+    } else {
+      $stmt = $this->conn->prepare($query);
+      $stmt->bind_param("si", $password, $id);
     }
 
     return $stmt->execute();
-}
+  }
 
 
   public function change_password($id, $password)

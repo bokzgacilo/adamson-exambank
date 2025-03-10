@@ -24,9 +24,8 @@ EditQuestionForm.propTypes = {
 
 export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData }) {
   const hasFetched = useRef(false)
-  const { fullname, user_assigned_subject, usertype } = useUserStore(
-    (state) => state.user
-  );
+  const { user } = useUserStore();
+  const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
   const [SelectedOption, SetSelectedOption] = useState(QuestionData.category);
   const [SelectedClassification, SetSelectedClassification] = useState(QuestionData.classification);
   const [MultipleChoices, SetMultipleChoices] = useState(
@@ -37,7 +36,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   );
   const [Question, SetQuestion] = useState(QuestionData.question);
   const [Subjects, SetSubjects] = useState([]);
-  const [SelectedSubject, SetSelectedSubject] = useState(user_assigned_subject);
+  const [SelectedSubject, SetSelectedSubject] = useState("");
   const [SelectedTerms, SetSelectedTerms] = useState(JSON.parse(QuestionData.terms));
 
   const data = {
@@ -46,7 +45,7 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
     options: MultipleChoices,
     answer: MultipleChoices.filter((item) => item.is_correct === true),
     category: SelectedOption,
-    created_by: fullname,
+    created_by: user.fullname,
     terms: SelectedTerms,
     subject: SelectedSubject,
     classification: SelectedClassification
@@ -55,21 +54,15 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   useEffect(() => {
     SetUpdatedQuestionData(data)
 
-    if (!hasFetched.current && user_assigned_subject === "none") {
-      hasFetched.current = true; 
-      axios
-        .get("http://localhost/exam-bank/api/SubjectRoute.php", {
-          params: { action: "GetAllSubjects", type: usertype },
-        })
-        .then((response) => {
-          SetSubjects(response.data);
-          SetSelectedSubject(response.data[0].name);
-        })
-        .catch((error) => {
-          console.error("Error fetching subjects:", error);
-        });
+    if (parsedSubjects.includes("None")) {
+      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: user.usertype } })
+        .then(({ data }) => { SetSubjects(data); SetSelectedSubject(data[0]?.name || ""); })
+        .catch(console.error);
+    } else {
+      SetSubjects(parsedSubjects);
+      SetSelectedSubject(parsedSubjects[0]);
     }
-  }, [Question, MultipleChoices, SelectedOption, SelectedTerms, SelectedSubject, SelectedClassification]);
+  }, [Question, MultipleChoices, SelectedOption, SelectedTerms, SelectedClassification]);
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
@@ -83,7 +76,20 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   };
 
   const RenderSubject = () => {
-    return usertype !== "Instructor" ? (
+    return user.usertype === "Instructor" ? (
+      <Select
+        value={SelectedSubject}
+        onChange={handleChangeSelectedSubject}
+        mb={4}
+        size="sm"
+      >
+        {Subjects.map((subject, index) => (
+          <option key={index} value={subject}>
+            {subject}
+          </option>
+        ))}
+      </Select>
+    ) : (
       <Select
         value={SelectedSubject}
         onChange={handleChangeSelectedSubject}
@@ -96,8 +102,6 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
           </option>
         ))}
       </Select>
-    ) : (
-      <Input size="sm" value={user_assigned_subject} readOnly mb={4} />
     );
   };
 

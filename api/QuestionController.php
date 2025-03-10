@@ -70,23 +70,69 @@ class Question
 
 
 
-  public function viewAll($subject, $type)
+  public function viewAll($subjects)
   {
-    if ($type === "Admin" || $type === "Coordinator") {
-      $query = "SELECT * FROM question";
-      $stmt = $this->conn->query($query);
-    } else if ($type === "Instructor") {
-      $query = "SELECT * FROM question WHERE subject = ?";
-      $stmt = $this->conn->prepare($query);
-      $stmt->bind_param("s", $subject);
-      $stmt->execute();
-      $stmt = $stmt->get_result();
-    } else {
-      return [];
+    $subject_array = json_decode($subjects, true);
+
+    if (!is_array($subject_array)) {
+      return json_encode(["error" => "Invalid subject format"]);
     }
 
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    if (count($subject_array) === 1 && $subject_array[0] === "None") {
+      $query = "SELECT * FROM question";
+      $stmt = $this->conn->query($query);
+      return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
+    }
+    $placeholders = implode(',', array_fill(0, count($subject_array), '?'));
+    $query = "SELECT * FROM question WHERE subject IN ($placeholders)";
+
+    $stmt = $this->conn->prepare($query);
+    if (!$stmt) {
+      return json_encode(["error" => "Query preparation failed"]);
+    }
+
+    $types = str_repeat("s", count($subject_array));
+    $stmt->bind_param($types, ...$subject_array);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    return json_encode($result->fetch_all(MYSQLI_ASSOC));
   }
+
+  public function QuestionForBank($subject)
+  {
+    // Prepare the SQL query
+    $query = "SELECT id, question, options, category, classification 
+          FROM question 
+          WHERE subject = ? AND status <> 0";
+
+
+    // Assuming $this->db is the database connection
+    $stmt = $this->conn->prepare($query);
+
+    if ($stmt === false) {
+      return json_encode(["error" => "Failed to prepare statement"]);
+    }
+
+    // Bind the parameter
+    $stmt->bind_param("s", $subject);
+
+    // Execute the statement
+    if (!$stmt->execute()) {
+      return json_encode(["error" => "Execution failed"]);
+    }
+
+    // Fetch results
+    $result = $stmt->get_result();
+    $data = $result->fetch_all(MYSQLI_ASSOC);
+
+    // Close the statement
+    $stmt->close();
+
+    return json_encode($data);
+  }
+
 
 
   public function view($id)
@@ -107,7 +153,6 @@ class Question
     return $stmt->execute();
   }
 
-  // Delete an exam
   public function delete($id)
   {
     $query = "DELETE FROM exams WHERE id = ?";

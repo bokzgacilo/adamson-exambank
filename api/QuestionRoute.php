@@ -17,18 +17,18 @@ switch ($action) {
             echo json_encode(["message" => "Invalid request method"]);
             exit;
         }
-    
+
         $data = json_decode(file_get_contents("php://input"), true);
-    
-        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"],$data["classification"])) {
+
+        if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"], $data["classification"])) {
             echo json_encode(["message" => "Invalid input"]);
             exit;
         }
-    
+
         $optionsJson = json_encode($data["options"]);
         $answerJson = json_encode($data["answer"]);
         $termJson = json_encode($data["terms"]);
-    
+
         $newQuestion = $question->create(
             $data["question"],
             $optionsJson,
@@ -39,7 +39,7 @@ switch ($action) {
             $termJson,
             $data["classification"]
         );
-    
+
         if ($newQuestion) {
             echo json_encode([
                 "message" => "Question created successfully",
@@ -48,24 +48,24 @@ switch ($action) {
         } else {
             echo json_encode(["message" => "Failed to create question"]);
         }
-        break;    
+        break;
     case "update":
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             echo json_encode(["message" => "Invalid request method"]);
             exit;
         }
-    
+
         $data = json_decode(file_get_contents("php://input"), true);
-    
+
         if (!$data || !isset($data["question"], $data["options"], $data["answer"], $data["category"], $data["created_by"], $data["subject"], $data["classification"])) {
             echo json_encode(["message" => "Invalid input"]);
             exit;
         }
-    
+
         $optionsJson = json_encode($data["options"]);
         $answerJson = json_encode($data["answer"]);
         $termJson = json_encode($data["terms"]);
-    
+
         $newQuestion = $question->update(
             $data["id"],
             $data["question"],
@@ -77,7 +77,7 @@ switch ($action) {
             $termJson,
             $data["classification"]
         );
-    
+
         if ($newQuestion) {
             echo json_encode([
                 "message" => "Question created successfully",
@@ -86,7 +86,7 @@ switch ($action) {
         } else {
             echo json_encode(["message" => "Failed to create question"]);
         }
-        break;    
+        break;
 
     case "viewAll":
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -94,10 +94,24 @@ switch ($action) {
             exit;
         }
 
-        $data = json_decode(file_get_contents("php://input"), true);
-        $questions = $question -> viewAll($data["subject"], $data["type"]);
 
-        echo json_encode($questions);
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $questions = $question->viewAll($data["subject"]);
+
+        print_r($questions);
+        break;
+    case "QuestionForBank":
+        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(["message" => "Invalid request method"]);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $questions = $question->QuestionForBank($data["subject"]);
+
+        print_r($questions);
         break;
     case "disable":
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -106,7 +120,7 @@ switch ($action) {
         }
 
         $data = json_decode(file_get_contents("php://input"), true);
-        $questions = $question -> toggle_status($data["id"]);
+        $questions = $question->toggle_status($data["id"]);
 
         echo json_encode($questions);
         break;
@@ -117,7 +131,7 @@ switch ($action) {
         }
 
         $data = json_decode(file_get_contents("php://input"), true);
-        $questions = $question -> toggle_status($data["id"]);
+        $questions = $question->toggle_status($data["id"]);
 
         echo json_encode($questions);
         break;
@@ -125,4 +139,3 @@ switch ($action) {
     default:
         echo json_encode(["message" => "Invalid action"]);
 }
-?>

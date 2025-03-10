@@ -35,24 +35,37 @@ switch ($action) {
             echo json_encode(["message" => "Invalid request method"]);
             exit;
         }
-        
+
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $exams = $exam -> export($data["data"]);
+        $exams = $exam->export($data["data"]);
 
         echo json_encode($exams);
         break;
-    case "getAllQuestion":
+    case "GenerateTOSQuestion":
         if ($_SERVER["REQUEST_METHOD"] !== "GET") {
-            echo json_encode(["message" => "Invalid request method"]);
+            echo json_encode(["success" => false, "message" => "Invalid request method"]);
             exit;
         }
-        $subject = $_GET['subject'];
 
-        $exams = $exam->getAllQuestion($subject);
+        // Check if 'tos' parameter is provided
+        if (!isset($_GET['TOS']) || empty($_GET['TOS'])) {
+            echo json_encode(["success" => false, "message" => "TOS parameter is required"]);
+            exit;
+        }
 
-        echo json_encode($exams);
+        $tos = json_decode($_GET['TOS'], true);
+
+        if (!is_array($tos)) {
+            echo json_encode(["success" => false, "message" => "Invalid TOS format"]);
+            exit;
+        }
+
+        $exams = $exam->GenerateTOSQuestion($tos, $_GET['Subject']);
+
+        echo json_encode(["success" => true, "data" => $exams]);
         break;
+
     case "viewAll":
         if ($_SERVER["REQUEST_METHOD"] !== "GET") {
             echo json_encode(["message" => "Invalid request method"]);

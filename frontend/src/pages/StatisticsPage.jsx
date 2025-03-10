@@ -5,32 +5,36 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import QuestionCharts from "../charts/QuestionsChart";
-import UsersChart from "../charts/QuestionsChart copy";
+import UsersChart from "../charts/UsersChart";
+import ExamsChart from "../charts/ExamsChart";
 
 export default function StatisticsPage() {
 
   return (
     <SimpleGrid p={4} columns={3} spacing={4}>
       <Card>
-        <CardHeader>
-          Questions
+        <CardHeader fontWeight="bold">
+          QUESTIONS
         </CardHeader>
         <CardBody>
           <QuestionCharts />
         </CardBody>
       </Card>
+
       <Card>
-      <CardHeader>
-          Exam
-        </CardHeader>
-        <CardBody></CardBody>
-      </Card>
-      <Card>
-      <CardHeader>
-          Users
+      <CardHeader fontWeight="bold">
+          EXAMS
         </CardHeader>
         <CardBody>
           <UsersChart />
+        </CardBody>
+      </Card>
+      <Card>
+      <CardHeader fontWeight="bold">
+          USERS
+        </CardHeader>
+        <CardBody>
+          <ExamsChart />
         </CardBody>
       </Card>
     </SimpleGrid>

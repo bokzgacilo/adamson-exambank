@@ -5,10 +5,11 @@ import Chart from "chart.js/auto";
 
 
 export default function QuestionCharts() {
-  const [Data, SetData] = useState({ questions_by_category: {}, questions_by_subject: {}}); // Initialize as an object
+  const [Data, SetData] = useState({ questions_by_classification : {} ,questions_by_category: {}, questions_by_subject: {}}); // Initialize as an object
   const ByCategoryRef = useRef(null);
   const ByCategoryInstance = useRef(null);
-
+  const ByClassificationRef = useRef(null);
+  const ByClassificationInstance = useRef(null);
   const BySubjectRef = useRef(null);
   const BySubjectInstance = useRef(null);
 
@@ -25,9 +26,11 @@ export default function QuestionCharts() {
   useEffect(() => {
     if (!Data.questions_by_category || Object.keys(Data.questions_by_category).length === 0) return;
     if (!Data.questions_by_subject || Object.keys(Data.questions_by_subject).length === 0) return;
+    if (!Data.questions_by_classification || Object.keys(Data.questions_by_classification).length === 0) return;
 
     const ctx = ByCategoryRef.current.getContext("2d");
     const ctx2 = BySubjectRef.current.getContext("2d");
+    const ctx3 = ByClassificationRef.current.getContext("2d");
 
     if (ByCategoryInstance.current) {
       ByCategoryInstance.current.destroy();
@@ -35,6 +38,10 @@ export default function QuestionCharts() {
 
     if (BySubjectInstance.current) {
       BySubjectInstance.current.destroy();
+    }
+
+    if (ByClassificationInstance.current) {
+      ByClassificationInstance.current.destroy();
     }
 
     ByCategoryInstance.current = new Chart(ctx, {
@@ -45,6 +52,30 @@ export default function QuestionCharts() {
           {
             label: "By Category",
             data: Object.values(Data.questions_by_category),
+            backgroundColor: "rgba(32, 92, 222, 0.73)",
+            borderColor: "rgba(32, 92, 222, 0.73)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+
+    ByClassificationInstance.current = new Chart(ctx3, {
+      type: "bar",
+      data: {
+        labels: Object.keys(Data.questions_by_classification),
+        datasets: [
+          {
+            label: "By Classification",
+            data: Object.values(Data.questions_by_classification),
             backgroundColor: "rgba(32, 92, 222, 0.73)",
             borderColor: "rgba(32, 92, 222, 0.73)",
             borderWidth: 1,
@@ -89,8 +120,13 @@ export default function QuestionCharts() {
       if (ByCategoryInstance.current) {
         ByCategoryInstance.current.destroy();
       }
+
       if (BySubjectInstance.current) {
         BySubjectInstance.current.destroy();
+      }
+
+      if (ByClassificationInstance.current) {
+        ByClassificationInstance.current.destroy();
       }
     };
   }, [Data]);
@@ -98,11 +134,14 @@ export default function QuestionCharts() {
   return (
   <Stack>
     <Heading textAlign="center">{Data.total_questions}</Heading>
-    <Text  textAlign="center">Total Number</Text>
-    <Text fontWeight="semibold"  mt={4}>By Category</Text>
-    <canvas ref={ByCategoryRef} />;
-    <Text fontWeight="semibold" mt={4}>By Subject</Text>
+    <Text fontWeight="semibold" textAlign="center">TOTAL NUMBER</Text>
+    <Text fontWeight="semibold" mt={4}>BY SUBJECT</Text>
     <canvas ref={BySubjectRef} />;
+    <Text fontWeight="semibold"  mt={4}>BY CLASSIFICATION</Text>
+    <canvas ref={ByClassificationRef} />;
+    <Text fontWeight="semibold"  mt={4}>BY CATEGORY</Text>
+    <canvas ref={ByCategoryRef} />;
+    
   </Stack>
   );
 }

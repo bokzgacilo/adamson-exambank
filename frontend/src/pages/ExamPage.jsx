@@ -14,7 +14,6 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  SimpleGrid,
   ModalFooter,
   Text,
   RadioGroup,
@@ -25,6 +24,8 @@ import {
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
+  Select,
+  useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -33,6 +34,8 @@ import CreateExamForm from "../components/CreateExamForm";
 import ExamDataTable from "../components/ExamDataTable";
 import useUserStore from "../helper/useUserStore";
 import { TbArrowRight, TbCheck } from "react-icons/tb";
+import LoadingSpinner from "../components/LoadingSpinner";
+const AccessCode = Math.floor(100000 + Math.random() * 900000);
 
 export default function ExamPage() {
   const {
@@ -43,27 +46,45 @@ export default function ExamPage() {
   const { user } = useUserStore();
   const [IsTOS, SetIsTOS] = useState("upload");
   const [Exams, SetExams] = useState([]);
+  const [ExamName, SetExamName] = useState("");
   const [IsExamBuilderOpen, SetIsExamBuilderOpen] = useState(false)
   const [QuestionSet, SetQuestionSet] = useState([]);
+  const [Subjects, SetSubjects] = useState([])
+  const [SelectedSubject, SetSelectedSubject] = useState("")
+  const [ShowSpinner, SetShowSpinner] = useState(false)
+  const toast = useToast();
 
   const [TOS, SetTOS] = useState({
-    Knowledge : 10,
-    Comprehension: 10,
-    Application: 10,
-    Analysis: 10,
-    Synthesis: 10,
-    Evaluation: 10
+    Knowledge : 5,
+    Comprehension: 5,
+    Application: 5,
+    Analysis: 5,
+    Synthesis: 5,
+    Evaluation: 5
   })
 
   useEffect(() => {
-    axios
-      .get(
-        `http://localhost/exam-bank/api/ExamRoute.php?action=viewAll&subject=${user.user_assigned_subject}`
-      )
-      .then((response) => {
-        SetExams(response.data);
-      });
-  }, [IsTOS]);
+    const fetchData = async () => {
+      try {
+        const examsResponse = await axios.get(
+          `http://localhost/exam-bank/api/ExamRoute.php?action=viewAll&subject=${user.user_assigned_subject}`
+        );
+        SetExams(examsResponse.data);
+
+        const subjectsResponse = await axios.get(
+          "http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll"
+        );
+        SetSubjects(subjectsResponse.data);
+        if (subjectsResponse.data.length > 0) {
+          SetSelectedSubject(subjectsResponse.data[0].name);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -102,7 +123,7 @@ export default function ExamPage() {
               <Button onClick={DownloadFormat} size="sm">Template</Button>
             </Flex>
             <Text fontSize="12px">Accepted files (.CSV, .XLSX, .JPG)</Text>
-            <Text fontSize="12px" fontWeight="semibold">Knowledge</Text>
+            <Text fontSize="12px" fontWeight="semibold" mt={4}>Knowledge</Text>
             <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
@@ -156,7 +177,7 @@ export default function ExamPage() {
         return (
           <>
             <Text fontWeight="semibold">SET CATEGORY ITEMS</Text>
-            <Text fontSize="12px" fontWeight="semibold">Knowledge</Text>
+            <Text fontSize="12px" fontWeight="semibold" mt={4}>Knowledge</Text>
             <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
@@ -214,30 +235,73 @@ export default function ExamPage() {
   }
 
   const HandleProceedTOS = () => {
-    SetIsExamBuilderOpen(true)
+    if(ExamName === ""){
+      alert("Name expected")
+      return
+    }
+
+    if(IsTOS === "upload"){
+      axios
+      .get(
+        `http://localhost/exam-bank/api/ExamRoute.php?action=GenerateTOSQuestion&Subject=${SelectedSubject}&TOS=${JSON.stringify(TOS)}`
+      )
+      .then((response) => {
+        SetQuestionSet(response.data.data)
+        SetIsExamBuilderOpen(true)
+      });
+    }else {
+      SetQuestionSet([])
+      SetIsExamBuilderOpen(true)
+    }
   }
 
   const HandleCloseExamBuilder =() => {
     SetIsTOS("upload")
     SetIsExamBuilderOpen(false)
+    SetQuestionSet([])
     SetTOS({
-      Knowledge : 10,
-      Comprehension: 10,
-      Application: 10,
-      Analysis: 10,
-      Synthesis: 10,
-      Evaluation: 10
+      Knowledge : 5,
+      Comprehension: 5,
+      Application: 5,
+      Analysis: 5,
+      Synthesis: 5,
+      Evaluation: 5
     })
     OnCloseExamBuilder()
   }
 
   const HandleCreateExam = () => {
     const totalSum = Object.values(TOS).map(Number).reduce((sum, value) => sum + value, 0);
-    console.log(QuestionSet.length)
-    console.log(totalSum)
+    const data = {
+      access_code : AccessCode,
+      questions: QuestionSet,
+      subject: SelectedSubject,
+      created_by: user.fullname,
+      exam_name: ExamName
+    }
 
     if(totalSum === QuestionSet.length){
-      alert("COMPLETE")
+      SetShowSpinner(true);
+
+      axios.post("http://localhost/exam-bank/api/ExamRoute.php?action=create", data)
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        })
+        .finally(() => {
+          SetShowSpinner(false);
+          HandleCloseExamBuilder()
+
+          toast({
+            title: 'Exam Created',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          })
+        });
+
     }else {
       alert("INCOMPLETE")
     }
@@ -245,35 +309,53 @@ export default function ExamPage() {
 
   return (
     <>
-      <Modal size={!IsExamBuilderOpen ? "4xl" : "full" } isOpen={IsOpenExamBuilder} onClose={HandleCloseExamBuilder}>
+      {ShowSpinner && <LoadingSpinner />}
+      <Modal size={!IsExamBuilderOpen ? "md" : "full" } isOpen={IsOpenExamBuilder} onClose={HandleCloseExamBuilder}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
             <ModalCloseButton />
-            <Heading size="md">{!IsExamBuilderOpen ? "SELECT METHOD" : "EXAM BUILDER" }</Heading>
+            <Heading size="md">{!IsExamBuilderOpen ? "CREATE EXAM" : "EXAM BUILDER" }</Heading>
           </ModalHeader>
-          <ModalBody>
-            {IsExamBuilderOpen ? <CreateExamForm TOS={TOS}  QuestionSet={QuestionSet} SetQuestionSet={SetQuestionSet} /> : <>
-              <SimpleGrid columns={2}>
+          <ModalBody flex="1">
+            {IsExamBuilderOpen ? <CreateExamForm AccessCode={AccessCode} TOS_TYPE={IsTOS} SelectedSubject={SelectedSubject} TOS={TOS} QuestionSet={QuestionSet} SetQuestionSet={SetQuestionSet} /> : <>
+              <Stack>
+                <Text fontWeight="semibold">MODE</Text>
                 <RadioGroup onChange={(picked) => TOSPickerHandler(picked)} defaultValue="upload">
-                  <Stack spacing={4}>
-                    <Radio value="upload" size="lg">
+                  <Stack spacing={4} direction='row' justifyContent="space-evenly">
+                    <Radio value="upload">
                         <Heading size="sm">Upload TOS</Heading>
                     </Radio>
-                    <Radio value="manual" size="lg">
+                    <Radio value="manual">
                         <Heading size="sm">Manual TOS</Heading>
                     </Radio>
                   </Stack>
                 </RadioGroup>
-                  <Stack>
-                    {RenderTOS(IsTOS)}
-                  </Stack>
-              </SimpleGrid>
+                <Text fontWeight="semibold" mt={2}>NAME</Text>
+                <Input
+                  placeholder="Enter exam name"
+                  size="sm"
+                  type="text"
+                  value={ExamName}
+                  onChange={(e) => SetExamName(e.currentTarget.value)}
+                />
+                <Text fontWeight="semibold" mt={2}>SUBJECT</Text>
+                 <Select size="sm"  onChange={(e) => SetSelectedSubject(e.target.value)} mb={2}>
+                  {Subjects.map((subject) => (
+                    <option key={subject.id} value={subject.name}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </Select>
+                <Stack>
+                  {RenderTOS(IsTOS)}
+                </Stack>
+              </Stack>
             </>}
           
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme={!IsExamBuilderOpen ? "blue" : "green"} rightIcon={!IsExamBuilderOpen ? <TbArrowRight /> : <TbCheck />} onClick={!IsExamBuilderOpen ? HandleProceedTOS : HandleCreateExam}>
+            <Button size="sm" colorScheme={!IsExamBuilderOpen ? "blue" : "green"} rightIcon={!IsExamBuilderOpen ? <TbArrowRight /> : <TbCheck />} onClick={!IsExamBuilderOpen ? HandleProceedTOS : HandleCreateExam}>
               {!IsExamBuilderOpen ? "Next" : "Create Exam"}
             </Button>
           </ModalFooter>
@@ -295,6 +377,7 @@ export default function ExamPage() {
                     leftIcon={<BiPlus />}
                     colorScheme="green"
                     onClick={OnOpenExamBuilder}
+                    size="sm"
                   >
                     Create Exam
                   </Button>

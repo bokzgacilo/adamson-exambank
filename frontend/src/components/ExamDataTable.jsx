@@ -1,6 +1,5 @@
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
-
 import { useState } from "react";
 import { PrimeReactProvider } from "primereact/api";
 import {
@@ -39,12 +38,15 @@ export default function ExamDataTable({ data }) {
   const [DLink, SetLink] = useState("")
   const toast = useToast();
 
-  const StatusTemplate = (rowData) =>
-    rowData.status === "1" ? (
-      <Tag colorScheme="green">Active</Tag>
-    ) : (
-      <Tag colorScheme="red">Inactive</Tag>
-    );
+  const StatusTemplate = (rowData) => {
+    return <Tag size="sm" colorScheme={rowData.status === "1" ? "green" : "red"}>{rowData.status === "1" ? "Active" : "Inactive"}</Tag>
+  }
+
+
+  const NumberOfItems = (rowData) => {
+    const counts = JSON.parse(rowData.questions);
+    return <Text>{counts.length}</Text>
+  } 
 
   const ExamTemplate = (rowData) => (
     <Button variant="link" onClick={() => openDrawer(rowData)}>
@@ -139,10 +141,17 @@ export default function ExamDataTable({ data }) {
     }
   }
 
+  const ExamDetailOnClose = () => {
+    SetAccessCode(0)
+    SetLink("")
+    SetSelectedExam(null)
+    onClose()
+  }
+
   return (
     <PrimeReactProvider>
       <Modal
-        onClose={onClose}
+        onClose={ExamDetailOnClose}
         isOpen={isOpen}
         scrollBehavior="outside"
       >
@@ -170,10 +179,9 @@ export default function ExamDataTable({ data }) {
           )}
           <ModalFooter>
             <Flex direction="row" gap={2}>
-              <Input valie={AccessCode} onChange={(e) => SetAccessCode(e.currentTarget.value)} type="text" placeholder="Access Code"></Input>
-              <Button colorScheme="blue" onClick={HandleExportToBlackboard}>Export</Button>
-              {DLink !== "" && <Button onClick={() => window.open(`http://localhost:8080${DLink}`, "_blank")}>Download</Button>}
-              <Button onClick={onClose}>Close</Button>
+              <Input size="sm" value={AccessCode} onChange={(e) => SetAccessCode(e.currentTarget.value)} type="text" placeholder="Access Code"></Input>
+              {DLink !== "" ? <Button size="sm" onClick={() => window.open(`http://localhost/exam-bank/api/${DLink}`, "_blank")}>Download</Button> : <Button size="sm" colorScheme="blue" onClick={HandleExportToBlackboard}>Export</Button>}
+              <Button size="sm" onClick={ExamDetailOnClose}>Close</Button>
             </Flex>
           </ModalFooter>
         </ModalContent>
@@ -196,7 +204,7 @@ export default function ExamDataTable({ data }) {
         rowsPerPageOptions={[10, 15, 30]}
         showGridlines
         size="small"
-        globalFilter={globalFilter} // 🔍 Enable global search
+        globalFilter={globalFilter}
       >
         <Column field="id" header="ID" sortable></Column>
         <Column
@@ -206,15 +214,16 @@ export default function ExamDataTable({ data }) {
           filter
           sortable
         ></Column>
-        <Column field="subject" header="Subject" filter sortable></Column>
+        <Column field="questions" header="Items" body={NumberOfItems}></Column>
+        <Column field="subject" header="Subject" filter></Column>
         {localStorage.getItem("usertype") !== "Instructor" && <Column field="access_code" header="Access Code" sortable></Column>}
         
         <Column field="created_by" header="Created By" sortable></Column>
-        <Column
+        {/* <Column
           field="approval_status"
           header="Is Approved?"
           body={StatusTemplate}
-        ></Column>
+        ></Column> */}
         <Column field="status" header="Status" body={StatusTemplate}></Column>
       </DataTable>
     </PrimeReactProvider>

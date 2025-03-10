@@ -41,18 +41,19 @@ export default function LoginPage() {
                     values
                   )
                   .then((response) => {
-                    if (response.data.id !== undefined) {
-                      setUserId(response.data.id);
+                    if (response.data.user.id !== undefined) {
+
+                      setUserId(response.data.user.id);
 
                       const userData = {
-                        id: response.data.id,
-                        fullname: response.data.name,
-                        username: response.data.username,
-                        password: response.data.password,
-                        avatar: "http://localhost/exam-bank/api/" + response.data.avatar,
-                        usertype: response.data.type,
+                        id: response.data.user.id,
+                        fullname: response.data.user.name,
+                        username: response.data.user.username,
+                        password: response.data.user.password,
+                        avatar: "http://localhost/exam-bank/api/" + response.data.user.avatar,
+                        usertype: response.data.user.type,
                         user_assigned_subject:
-                          response.data.assigned_subject || [],
+                          response.data.user.assigned_subject || [],
                       };
 
                       useUserStore.getState().setUser(userData)
