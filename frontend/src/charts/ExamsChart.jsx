@@ -16,7 +16,6 @@ export default function ExamsChart() {
       .get("http://localhost/exam-bank/api/StatisticsRoute.php?action=all_users")
       .then((response) => {
         SetData(response.data);
-        console.log("Fetched Data:", response.data);
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);

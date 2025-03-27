@@ -38,7 +38,7 @@ switch ($action) {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $exams = $exam->export($data["data"]);
+        $exams = $exam->export($data["data"], $data["subject"]);
 
         echo json_encode($exams);
         break;

@@ -23,7 +23,6 @@ class Question
       $fetch_stmt->execute();
       $result = $fetch_stmt->get_result();
 
-      // Return the fetched row
       return $result->fetch_assoc();
     }
 
@@ -68,8 +67,6 @@ class Question
     return false;
   }
 
-
-
   public function viewAll($subjects)
   {
     $subject_array = json_decode($subjects, true);
@@ -102,38 +99,27 @@ class Question
 
   public function QuestionForBank($subject)
   {
-    // Prepare the SQL query
     $query = "SELECT id, question, options, category, classification 
           FROM question 
           WHERE subject = ? AND status <> 0";
 
-
-    // Assuming $this->db is the database connection
     $stmt = $this->conn->prepare($query);
-
     if ($stmt === false) {
       return json_encode(["error" => "Failed to prepare statement"]);
     }
 
-    // Bind the parameter
     $stmt->bind_param("s", $subject);
 
-    // Execute the statement
     if (!$stmt->execute()) {
       return json_encode(["error" => "Execution failed"]);
     }
 
-    // Fetch results
     $result = $stmt->get_result();
     $data = $result->fetch_all(MYSQLI_ASSOC);
-
-    // Close the statement
     $stmt->close();
 
     return json_encode($data);
   }
-
-
 
   public function view($id)
   {
@@ -155,7 +141,7 @@ class Question
 
   public function delete($id)
   {
-    $query = "DELETE FROM exams WHERE id = ?";
+    $query = "DELETE FROM question WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
     return $stmt->execute();

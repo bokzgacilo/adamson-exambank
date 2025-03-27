@@ -113,6 +113,17 @@ switch ($action) {
 
         print_r($questions);
         break;
+    case "delete":
+        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(["message" => "Invalid request method"]);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $questions = $question->delete($data["id"]);
+
+        echo json_encode($questions);
+        break;
     case "disable":
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             echo json_encode(["message" => "Invalid request method"]);

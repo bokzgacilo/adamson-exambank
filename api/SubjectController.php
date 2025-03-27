@@ -42,6 +42,15 @@ class Subject
   }
 
 
+  public function delete($subject_name)
+  {
+    $query = "DELETE FROM subjects WHERE name = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("s", $subject_name);
+    
+    return $stmt->execute();
+  }
+
   public function viewAll()
   {
     $query = "SELECT * FROM subjects"; // No WHERE condition

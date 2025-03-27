@@ -1,5 +1,6 @@
 {
   "name": "frontend",
+  "homepage": "http://127.0.0.1/exam-bank",
   "private": true,
   "version": "0.0.0",
   "type": "module",

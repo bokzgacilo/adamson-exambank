@@ -4,7 +4,7 @@ import {
   ModalCloseButton, Image, Stack, Input, useToast
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import LOGO from "../assets/logo.png";
 import { TbChartDots, TbFileDescription, TbList, TbLogout2, TbQuestionMark, TbUsers } from "react-icons/tb";
 import axios from "axios";
@@ -21,6 +21,7 @@ export default function SidebarComponent() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const toast = useToast();
+  const location = useLocation();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isOpenProfileModal, onOpen: onOpenProfileModal, onClose: onCloseProfileModal } = useDisclosure();

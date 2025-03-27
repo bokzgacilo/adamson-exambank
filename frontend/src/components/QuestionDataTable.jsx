@@ -22,18 +22,17 @@ import {
 import { Button, useDisclosure } from "@chakra-ui/react";
 import PropTypes from "prop-types";
 import QuestionDetail from "./QuestionDetail";
-import { TbCheck, TbPencil, TbX } from "react-icons/tb";
+import { TbCheck, TbPencil, TbTrash, TbX } from "react-icons/tb";
 import EditQuestionForm from "./EditQuestionForm";
 import useUserStore from "../helper/useUserStore";
-import LoadingSpinner from "./LoadingSpinner";
+import { ref, set } from "firebase/database";
+import { database } from "../helper/Firebase";
 
 QuestionDataTable.propTypes = {
   data: PropTypes.any.isRequired,
 };
 
 export default function QuestionDataTable({ data }) {
-  const [ShowSpinner, SetShowSpinner] = useState(false)
-
   const [globalFilter, setGlobalFilter] = useState("");
   const [IsEditing, SetIsEditing] = useState(false);
   const [UpdatedQuestionData, SetUpdatedQuestionData] = useState([]);
@@ -78,21 +77,15 @@ export default function QuestionDataTable({ data }) {
         UpdatedQuestionData
       )
       .then((response) => {
-        if (response.data) {
-          console.log(response.data);
-
-          toast({
-            title: "Question Updated!",
-            description: `Question ${UpdatedQuestionData.id} updated`,
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-
-          onClose();
-        } else {
-          console.log(response.data);
-        }
+        toast({
+          title: "Question Updated!",
+          description: `Question ${UpdatedQuestionData.id} updated`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        // FIREBASE UPDATE QUESTION
+        onClose();
       });
   };
 
@@ -103,8 +96,6 @@ export default function QuestionDataTable({ data }) {
       })
       .then((response) => {
         if (response.data) {
-          console.log(response.data);
-
           toast({
             title: "Question Enabled!",
             description: `Question ${selectedQuestion.id} enabled`,
@@ -112,10 +103,8 @@ export default function QuestionDataTable({ data }) {
             duration: 3000,
             isClosable: true,
           });
-
+          // FIREBASE ENABLE QUESTION
           onClose();
-        } else {
-          console.log(response.data);
         }
       });
   };
@@ -127,8 +116,6 @@ export default function QuestionDataTable({ data }) {
       })
       .then((response) => {
         if (response.data) {
-          console.log(response.data);
-
           toast({
             title: "Question Disabled!",
             description: `Question ${selectedQuestion.id} disabled`,
@@ -136,13 +123,32 @@ export default function QuestionDataTable({ data }) {
             duration: 3000,
             isClosable: true,
           });
-
+          // FIREBASE DISABLE QUESTION
           onClose();
-        } else {
-          console.log(response.data);
         }
       });
   };
+
+  const HandleDelete = () => {
+    axios
+    .post("http://localhost/exam-bank/api/QuestionRoute.php?action=delete", {
+      id: selectedQuestion.id,
+    })
+    .then((response) => {
+      if (response.data) {
+        toast({
+          title: "Question Deleted!",
+          description: `Question ${selectedQuestion.id} deleted`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        set(ref(database, `logs/${Date.now()}`), { action: "Question Deleted", timestamp: Date.now(), target: selectedQuestion.question, actor: user.fullname });
+        onClose();
+      }
+    });
+  }
 
   return (
     <PrimeReactProvider>
@@ -170,7 +176,7 @@ export default function QuestionDataTable({ data }) {
           </ModalBody>
           <ModalFooter>
             {(user.fullname === selectedQuestion?.created_by ||
-              user.usertype === "Coordinator") && (
+              user.usertype === "Coordinator" || user.usertype === "Admin") && (
               <Button
                 leftIcon={!IsEditing ? <TbPencil /> : <TbCheck />}
                 colorScheme={!IsEditing ? "blue" : "green"}
@@ -183,7 +189,7 @@ export default function QuestionDataTable({ data }) {
             )}
 
             {!IsEditing && (user.fullname === selectedQuestion?.created_by ||
-              user.usertype === "Coordinator") && (
+              user.usertype === "Coordinator" || user.usertype === "Admin") && (
               <>
                 {selectedQuestion?.status == null ? (
                   ""
@@ -199,13 +205,14 @@ export default function QuestionDataTable({ data }) {
                 ) : (
                   <Button
                     leftIcon={<TbX />}
-                    colorScheme="red"
                     size="sm"
                     onClick={HandleDisable}
                   >
                     Deactivate
                   </Button>
                 )}
+
+                <Button onClick={HandleDelete} ml={2} size="sm" colorScheme="red" leftIcon={<TbTrash />}>Delete</Button>
               </>
             )}
           </ModalFooter>

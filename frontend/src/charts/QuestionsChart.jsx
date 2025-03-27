@@ -18,7 +18,6 @@ export default function QuestionCharts() {
       .get("http://localhost/exam-bank/api/StatisticsRoute.php?action=all_questions")
       .then((response) => {
         SetData(response.data);
-        console.log("Fetched Data:", response.data);
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);

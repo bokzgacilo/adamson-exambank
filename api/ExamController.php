@@ -17,23 +17,20 @@ class Exam
     return $stmt->execute();
   }
 
-  // Read all exams
   public function viewAll($assigned_subject)
   {
-    $assigned_subjects = json_decode($assigned_subject, true); // Decode JSON
+    $assigned_subjects = json_decode($assigned_subject, true);
 
     if (!is_array($assigned_subjects) || in_array("None", $assigned_subjects, true)) {
-      // If it's "None" or not a valid array, fetch all exams
       $query = "SELECT * FROM exam";
       $stmt = $this->conn->query($query);
     } else {
-      // Fetch exams only for assigned subjects
-      $placeholders = implode(',', array_fill(0, count($assigned_subjects), '?')); // Create ?, ?, ? dynamically
+
+      $placeholders = implode(',', array_fill(0, count($assigned_subjects), '?'));
       $query = "SELECT * FROM exam WHERE subject IN ($placeholders)";
       $stmt = $this->conn->prepare($query);
 
-      // Bind parameters dynamically
-      $types = str_repeat("s", count($assigned_subjects)); // 's' for each subject
+      $types = str_repeat("s", count($assigned_subjects));
       $stmt->bind_param($types, ...$assigned_subjects);
       $stmt->execute();
       $stmt = $stmt->get_result();
@@ -44,19 +41,17 @@ class Exam
 
   public function getAllQuestion($assigned_subject)
   {
-    $assigned_subjects = json_decode($assigned_subject, true); // Decode JSON
+    $assigned_subjects = json_decode($assigned_subject, true);
 
     if (!is_array($assigned_subjects) || in_array("none", array_map('strtolower', $assigned_subjects), true)) {
       $query = "SELECT * FROM question";
       $stmt = $this->conn->query($query);
     } else {
-      // Fetch questions only for assigned subjects
-      $placeholders = implode(',', array_fill(0, count($assigned_subjects), '?')); // ?, ?, ? dynamically
+      $placeholders = implode(',', array_fill(0, count($assigned_subjects), '?'));
       $query = "SELECT * FROM question WHERE subject IN ($placeholders)";
       $stmt = $this->conn->prepare($query);
 
-      // Bind parameters dynamically
-      $types = str_repeat("s", count($assigned_subjects)); // 's' for each subject
+      $types = str_repeat("s", count($assigned_subjects));
       $stmt->bind_param($types, ...$assigned_subjects);
       $stmt->execute();
       $stmt = $stmt->get_result();
@@ -68,9 +63,8 @@ class Exam
   public function GenerateTOSQuestion($tos, $subject)
   {
     $final_questions = [];
-    
+
     foreach ($tos as $classification => $count) {
-      // Select random questions for the given classification
       $query = "SELECT * FROM question WHERE classification = ? AND subject = ? ORDER BY RAND() LIMIT ?";
       $stmt = $this->conn->prepare($query);
       $stmt->bind_param("ssi", $classification, $subject, $count);
@@ -86,7 +80,7 @@ class Exam
   }
 
 
-  public function Export($data)
+  public function Export($data, $subject)
   {
     $filename = "./files/export.txt";
 
@@ -94,34 +88,60 @@ class Exam
 
     if ($file) {
       foreach ($data as $question) {
-        $category = $question['category'] === "Multiple" ? "MC" : "TF"; // MC for multiple choice, TF for true/false
+        $category = $question['category'];
         $questionText = $question['question'];
-        $options = json_decode($question['options'], true); // Decode options
+        $options = json_decode($question['options'], true);
 
-        // Start the line with category and question text
-        $line = "$category\t$questionText";
-
-        // Add options with correctness
-        foreach ($options as $option) {
-          $optionText = $option['option'];
-          $isCorrect = $option['is_correct'] ? "correct" : "incorrect";
-          $line .= "\t$optionText\t$isCorrect";
+        if ($category === "True/False") {
+          $correctOption = "";
+          foreach ($options as $option) {
+            if ($option['is_correct']) {
+              $correctOption = $option['option'];
+              break;
+            }
+          }
+          $correctAnswersText = $correctOption;
+          $points = "1";
+          $categoryLabel = "True/False";
+        } elseif ($category === "Identification") {
+          $correctAnswersText = $options[0]['option'] ?? "N/A";
+          $points = "5";
+          $categoryLabel = "Short Answer";
+        } elseif ($category === "Enumeration") {
+          $correctAnswers = [];
+          foreach ($options as $option) {
+            if ($option['is_correct']) {
+              $correctAnswers[] = $option['option'];
+            }
+          }
+          $correctAnswersText = implode("; ", $correctAnswers);
+          $points = "3";
+          $categoryLabel = "Enumeration";
+        } else { // Multiple Choice
+          $correctAnswers = [];
+          foreach ($options as $option) {
+            if ($option['is_correct']) {
+              $correctAnswers[] = $option['option'];
+            }
+          }
+          $correctAnswersText = implode(", ", $correctAnswers);
+          $points = "3";
+          $categoryLabel = "Multiple";
         }
 
-        // Write line to file
+        // Format the output as a CSV-style export (with double quotes)
+        $line = "\"$categoryLabel\",\"$questionText\",\"$correctAnswersText\",\"$points\",\"$subject\"";
+
         fwrite($file, $line . "\n");
       }
 
       fclose($file);
-
-      // Return the file link
       return $filename;
     } else {
       return false;
     }
   }
 
-  // Update an exam
   public function edit($id, $title, $description, $date)
   {
     $query = "UPDATE exams SET title = ?, description = ?, exam_date = ? WHERE id = ?";
@@ -130,7 +150,6 @@ class Exam
     return $stmt->execute();
   }
 
-  // Delete an exam
   public function delete($id)
   {
     $query = "DELETE FROM exams WHERE id = ?";

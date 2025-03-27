@@ -26,6 +26,9 @@ import { Button, useDisclosure } from "@chakra-ui/react";
 
 import PropTypes from "prop-types";
 import axios from "axios";
+import { ref, set } from "firebase/database";
+import { database } from "../helper/Firebase";
+import useUserStore from "../helper/useUserStore";
 ExamDataTable.propTypes = {
   data: PropTypes.any.isRequired,
 };
@@ -37,11 +40,11 @@ export default function ExamDataTable({ data }) {
   const [AccessCode, SetAccessCode] = useState("")
   const [DLink, SetLink] = useState("")
   const toast = useToast();
+  const {user} = useUserStore();
 
   const StatusTemplate = (rowData) => {
     return <Tag size="sm" colorScheme={rowData.status === "1" ? "green" : "red"}>{rowData.status === "1" ? "Active" : "Inactive"}</Tag>
   }
-
 
   const NumberOfItems = (rowData) => {
     const counts = JSON.parse(rowData.questions);
@@ -127,7 +130,7 @@ export default function ExamDataTable({ data }) {
         isClosable: true,
       })
 
-      axios.post(`http://localhost/exam-bank/api/ExamRoute.php?action=export`, {data: JSON.parse(SelectedExam.questions)})
+      axios.post(`http://localhost/exam-bank/api/ExamRoute.php?action=export`, {data: JSON.parse(SelectedExam.questions), subject: SelectedExam.subject})
       .then(response => {
         SetLink(response.data)
       });
@@ -141,6 +144,26 @@ export default function ExamDataTable({ data }) {
     }
   }
 
+  const HandleDelete = () => {
+    axios
+    .post("http://localhost/exam-bank/api/QuestionRoute.php?action=delete", {
+      id: SelectedExam.id,
+    })
+    .then((response) => {
+      if (response.data) {
+        toast({
+          title: "Exam Deleted!",
+          description: `${SelectedExam.exam_name} deleted`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+
+        set(ref(database, `logs/${Date.now()}`), { action: "Exam Deleted", timestamp: Date.now(), target: SelectedExam.exam_name, actor: user.fullname });
+        onClose();
+      }
+    });
+  }
   const ExamDetailOnClose = () => {
     SetAccessCode(0)
     SetLink("")
@@ -154,6 +177,7 @@ export default function ExamDataTable({ data }) {
         onClose={ExamDetailOnClose}
         isOpen={isOpen}
         scrollBehavior="outside"
+        size="xl"
       >
         <ModalOverlay />
         <ModalContent>
@@ -178,9 +202,10 @@ export default function ExamDataTable({ data }) {
             </>
           )}
           <ModalFooter>
-            <Flex direction="row" gap={2}>
+            <Flex direction="row" justifyContent="space-between" gap={2}>
               <Input size="sm" value={AccessCode} onChange={(e) => SetAccessCode(e.currentTarget.value)} type="text" placeholder="Access Code"></Input>
               {DLink !== "" ? <Button size="sm" onClick={() => window.open(`http://localhost/exam-bank/api/${DLink}`, "_blank")}>Download</Button> : <Button size="sm" colorScheme="blue" onClick={HandleExportToBlackboard}>Export</Button>}
+              <Button size="sm" colorScheme="red" onClick={HandleDelete}>Delete</Button>
               <Button size="sm" onClick={ExamDetailOnClose}>Close</Button>
             </Flex>
           </ModalFooter>
@@ -219,11 +244,6 @@ export default function ExamDataTable({ data }) {
         {localStorage.getItem("usertype") !== "Instructor" && <Column field="access_code" header="Access Code" sortable></Column>}
         
         <Column field="created_by" header="Created By" sortable></Column>
-        {/* <Column
-          field="approval_status"
-          header="Is Approved?"
-          body={StatusTemplate}
-        ></Column> */}
         <Column field="status" header="Status" body={StatusTemplate}></Column>
       </DataTable>
     </PrimeReactProvider>

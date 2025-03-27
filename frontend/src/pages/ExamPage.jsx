@@ -97,12 +97,10 @@ export default function ExamPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log(response.data)
       SetTOS(response.data)
     } catch (error) {
       console.error("Error uploading file:", error);
     }
-
   }
 
   const DownloadFormat = () => {
@@ -284,8 +282,8 @@ export default function ExamPage() {
       SetShowSpinner(true);
 
       axios.post("http://localhost/exam-bank/api/ExamRoute.php?action=create", data)
-        .then((response) => {
-          console.log(response);
+        .then(() => {
+          // FIREBASE CREATE EXAM
         })
         .catch((error) => {
           console.error("Error:", error);

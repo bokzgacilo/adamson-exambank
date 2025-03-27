@@ -65,12 +65,15 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
       classification: selectedClassification
     };
 
-    console.log(data)
-
     axios.post("http://localhost/exam-bank/api/QuestionRoute.php?action=create", data).then(({ data }) => {
       if (data) {
         toast({ title: "Question Created!", description: `Question: ${question} successfully created`, status: "success", duration: 3000, isClosable: true });
         set(ref(firebaseDB, `logs/${Date.now()}`), { action: "Question Added", timestamp: Date.now(), target: question, actor: fullname });
+        
+        setSelectedTerms([])
+        setQuestion("")
+        setMultipleChoices([])
+        onClose()
       }
     });
   };

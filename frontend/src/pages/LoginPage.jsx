@@ -18,12 +18,34 @@ import { TbLogin2 } from "react-icons/tb";
 import { Formik, Form, Field } from "formik";
 import useUserStore from "../helper/useUserStore";
 import useAuthStore from "../helper/useAuthStore";
+import { useEffect, useState } from "react";
+
+const userHasValues = (user) => {
+  return Object.values(user).some(value => 
+    Array.isArray(value) ? value.length > 0 : value
+  );
+};
 
 export default function LoginPage() {
-  const { setUser } = useUserStore();
+  const { user } = useUserStore();
   const setUserId = useAuthStore((state) => state.setUserId);
   const navigate = useNavigate();
   const toast = useToast();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userid") || null;
+
+    if (userHasValues(user) && userId) {
+      navigate("/dashboard");
+    } else {
+      setCheckingAuth(false);
+    }
+  }, [])
+
+  if (checkingAuth) {
+    return null;
+  }
 
   return (
     <Container maxW="400px">
@@ -42,7 +64,6 @@ export default function LoginPage() {
                   )
                   .then((response) => {
                     if (response.data.user.id !== undefined) {
-
                       setUserId(response.data.user.id);
 
                       const userData = {

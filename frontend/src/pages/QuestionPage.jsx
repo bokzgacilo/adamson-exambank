@@ -17,15 +17,19 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import useUserStore from "../helper/useUserStore";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { onChildAdded, ref } from "firebase/database";
+import { database } from "../helper/Firebase";
 
 export default function QuestionPage() {
   const { user } = useUserStore();
   const [ShowSpinner, SetShowSpinner] = useState(false)
+
   const {
     isOpen: SingleIsOpen,
     onOpen: SingleOnOpen,
     onClose: SingleOnClose,
   } = useDisclosure();
+
   const {
     isOpen: BatchIsOpen,
     onOpen: BatchOnOpen,
@@ -34,6 +38,7 @@ export default function QuestionPage() {
   const [Questions, SetQuestions] = useState([]);
 
   useEffect(() => {
+
     const FetchAllQuestions = async () => {
       await axios
         .post(
@@ -49,12 +54,20 @@ export default function QuestionPage() {
     };
 
     FetchAllQuestions();
+
+    const logRef = ref(database, "/logs");
+
+    const unsubscribe = onChildAdded(logRef, () => {
+      FetchAllQuestions()
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
 
   return (
     <Stack>
       {ShowSpinner && <LoadingSpinner />}
-
+      
       <CreateQuestionForm
         onClose={SingleOnClose}
         isOpen={SingleIsOpen}

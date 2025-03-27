@@ -11,19 +11,21 @@ import {
   Checkbox,
   HStack,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 import PropTypes from "prop-types";
 import useUserStore from "../helper/useUserStore";
 
 EditQuestionForm.propTypes = {
+  QuestionData: PropTypes.object.isRequired,
+  SetUpdatedQuestionData: PropTypes.func.isRequired,
   category: PropTypes.string,
   options: PropTypes.array,
 };
 
+
 export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData }) {
-  const hasFetched = useRef(false)
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
   const [SelectedOption, SetSelectedOption] = useState(QuestionData.category);
@@ -72,7 +74,6 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   const handleChangeClassification = (e) => {
     const classification = e.target.value;
     SetSelectedClassification(classification);
-    console.log(classification)
   };
 
   const RenderSubject = () => {

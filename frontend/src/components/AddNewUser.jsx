@@ -44,8 +44,6 @@ export default function AddNewUserForm({ isOpen, onClose }) {
   };
 
   useEffect(() => {
-    console.log(UserSubjects);
-  
     if (Role === "Coordinator") {
       SetUserSubjects(["None"]);
     } else {
@@ -75,8 +73,6 @@ export default function AddNewUserForm({ isOpen, onClose }) {
     axios
       .post("http://localhost/exam-bank/api/UserRoute.php?action=create", data)
       .then((response) => {
-        console.log(response.data);
-
         toast({
           title: "User Created!",
           description: response.data.message,

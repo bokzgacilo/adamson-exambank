@@ -12,11 +12,8 @@ export default function UserPage() {
   useEffect(() => {
     axios.get(`http://localhost/exam-bank/api/UserRoute.php?action=viewAll`)
       .then(response => {
-        console.log(response.data)
         SetUsers(response.data)
       });
-
-    
   }, []);
 
   return (
@@ -28,7 +25,7 @@ export default function UserPage() {
             <Flex direction="row" alignItems="center" justifyContent="space-between">
               <Heading size="md">USER MANAGEMENT</Heading>
               <Flex direction="row" gap={2}>
-                <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen}>Add User</Button>
+                <Button leftIcon={<BiPlus />} colorScheme="green" size="sm" onClick={onOpen}>Add User</Button>
               </Flex>
             </Flex>
           </CardHeader>

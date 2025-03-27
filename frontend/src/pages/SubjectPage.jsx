@@ -4,17 +4,47 @@ import { useEffect, useState } from "react";
 import { BiPlus } from "react-icons/bi";
 import SubjectDataTable from "../components/SubjectDataTable";
 import { TbCheck } from "react-icons/tb";
+import useUserStore from "../helper/useUserStore";
+import { database } from "../helper/Firebase";
+import { onChildAdded, ref, set } from "firebase/database";
 
 export default function SubjectPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [Subjects, SetSubjects] = useState([])
+  const [SubjectName, SetSubjectName] = useState("")
+  const {user} = useUserStore();
+
+  const fetchSubjects = async (setSubjects) => {
+    try {
+      const response = await axios.get("http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll");
+      setSubjects(response.data);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+    }
+  };
   
   useEffect(() => {
-    axios.get(`http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll`)
-      .then(response => {
-        SetSubjects(response.data);
-      });
+    fetchSubjects(SetSubjects)
+    const logRef = ref(database, "/logs");
+    const unsubscribe = onChildAdded(logRef, () => {
+      fetchSubjects(SetSubjects)
+    });
+    return () => unsubscribe();
   }, []);
+
+  const HandleCreateSubject = () => {
+    axios
+    .post("http://localhost/exam-bank/api/SubjectRoute.php?action=create", {
+      subject_name: SubjectName,
+    })
+    .then((response) => {
+      if (response.data) {
+        set(ref(database, `logs/${Date.now()}`), { action: "Subject Created", timestamp: Date.now(), target: SubjectName, actor: user.fullname });
+        SetSubjectName("")
+        onClose();
+      }
+    });
+  }
 
   return (
     <Stack>
@@ -23,16 +53,16 @@ export default function SubjectPage() {
           <ModalContent>
             <ModalCloseButton />
             <ModalHeader>
-              <Heading size="lg">New Subject</Heading>
+              <Heading size="md">CREATE SUBJECT</Heading>
             </ModalHeader>
             <ModalBody>
               <Stack>
                 <Text fontWeight="semibold">SUBJECT NAME</Text>
-                <Input type="text" placeholder="Subject Name" />
+                <Input size="sm" value={SubjectName} onChange={(e) => SetSubjectName(e.currentTarget.value)} type="text" placeholder="Subject Name" />
               </Stack>
             </ModalBody>
             <ModalFooter>
-              <Button leftIcon={<TbCheck />} colorScheme="green">Create</Button>
+              <Button disabled={SubjectName === "" ? true : false} leftIcon={<TbCheck />} size="sm" colorScheme="green" onClick={HandleCreateSubject}>Create</Button>
             </ModalFooter>
           </ModalContent>
         </ModalOverlay>
@@ -43,7 +73,7 @@ export default function SubjectPage() {
             <Flex direction="row" alignItems="center" justifyContent="space-between">
               <Heading size="md">SUBJECTS LIST</Heading>
               <Flex direction="row" gap={2}>
-                <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen}>New Subject</Button>
+                <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen} size="sm">New Subject</Button>
               </Flex>
             </Flex>
           </CardHeader>

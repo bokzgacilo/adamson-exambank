@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import useUserStore from "./useUserStore";
 
 const useAuthStore = create((set) => ({
   userId: localStorage.getItem("userid") || null, // Persist on reload
@@ -9,6 +10,9 @@ const useAuthStore = create((set) => ({
   logout: () => {
     localStorage.removeItem("userid");
     set({ userId: null });
+
+    const userStore = useUserStore.getState();
+    userStore.clearUser();
   },
 }));
 

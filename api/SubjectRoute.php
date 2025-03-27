@@ -12,44 +12,54 @@ $subjects = new Subject($conn);
 $action = $_GET['action'] ?? '';
 
 switch ($action) {
-    case "create":
-        if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-            echo json_encode(["message" => "Invalid request method"]);
-            exit;
-        }
+  case "create":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
 
-        $data = json_decode(file_get_contents("php://input"), true);
+    $data = json_decode(file_get_contents("php://input"), true);
 
-        if (!$data || !isset($data["name"])) {
-            echo json_encode(["message" => "Invalid input"]);
-            exit;
-        }
+    if (!$data || !isset($data["subject_name"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
 
-        $result = $subjects->create($data["name"]);
+    $result = $subjects->create($data["subject_name"]);
 
-        echo json_encode(["message" => $result ? "Subject created successfully" : "Failed to create new subject"]);
-        break;
-    case "viewAll":
-        if ($_SERVER["REQUEST_METHOD"] !== "GET") {
-            echo json_encode(["message" => "Invalid request method"]);
-            exit;
-        }
-        $subjects = $subjects->viewAll();
+    echo json_encode(["message" => $result ? "Subject created successfully" : "Failed to create new subject"]);
+    break;
+  case "viewAll":
+    if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+    $subjects = $subjects->viewAll();
 
-        echo json_encode($subjects);
-        break;
+    echo json_encode($subjects);
+    break;
+  case "delete":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
 
-    case "GetAllSubjects":
-        if ($_SERVER["REQUEST_METHOD"] !== "GET") {
-            echo json_encode(["message" => "Invalid request method"]);
-            exit;
-        }
-        
-        $subjects = $subjects->GetAllSubjects($_GET['type']);
+    $data = json_decode(file_get_contents("php://input"), true);
+    $subjects = $subjects->delete($data["subject_name"]);
 
-        echo json_encode($subjects);
-        break;
+    echo json_encode($subjects);
+    break;
+  case "GetAllSubjects":
+    if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
 
-    default:
-        echo json_encode(["message" => "Invalid action"]);
+    $subjects = $subjects->GetAllSubjects($_GET['type']);
+
+    echo json_encode($subjects);
+    break;
+
+  default:
+    echo json_encode(["message" => "Invalid action"]);
 }
