@@ -30,8 +30,12 @@ export default function QuestionDetail({ QuestionData }) {
     }
   });
 
+  console.log(MultipleChoices);
+
   const renderFormElement = () => {
     switch (QuestionData.category) {
+      case "Numeric":
+        return <Input size="sm" disabled type="number" value={MultipleChoices[0].option} />;
       case "Identification":
         return <Input size="sm" disabled type="text" value={MultipleChoices[0].option} />;
       case "Enumeration":
@@ -121,6 +125,7 @@ export default function QuestionDetail({ QuestionData }) {
         <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>
         <option value="Multiple">Multiple Choice</option>
+        <option value="Numeric">Numeric</option>
       </Select>
 
       <Text fontWeight="semibold">OPTIONS / CORRECT ANSWER</Text>

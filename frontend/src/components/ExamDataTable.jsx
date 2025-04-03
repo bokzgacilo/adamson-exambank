@@ -146,10 +146,12 @@ export default function ExamDataTable({ data }) {
 
   const HandleDelete = () => {
     axios
-    .post("http://localhost/exam-bank/api/QuestionRoute.php?action=delete", {
+    .post("http://localhost/exam-bank/api/ExamRoute.php?action=delete", {
       id: SelectedExam.id,
     })
     .then((response) => {
+      console.log(response)
+
       if (response.data) {
         toast({
           title: "Exam Deleted!",

@@ -108,10 +108,11 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             </Select>
             <Text fontWeight="semibold">CATEGORY</Text>
             <Select size="sm" value={selectedOption} onChange={(e) => { setSelectedOption(e.target.value); updateMultipleChoices(e.target.value); }}>
-              {["Identification", "Enumeration", "True/False", "Multiple"].map(type => <option key={type} value={type}>{type}</option>)}
+              {["Identification", "Enumeration", "True/False", "Multiple", "Numeric"].map(type => <option key={type} value={type}>{type}</option>)}
             </Select>
             <Text fontWeight="semibold">OPTIONS</Text>
             {selectedOption === "Identification" && <Input size="sm" placeholder="Enter answer" onChange={(e) => setMultipleChoices([{ id: 1, option: e.target.value, is_correct: true }])} />}
+            {selectedOption === "Numeric" && <Input size="sm" type="number" placeholder="Enter answer" onChange={(e) => setMultipleChoices([{ id: 1, option: e.target.value, is_correct: true }])} />}
             {selectedOption === "Enumeration" && <Textarea size="sm" placeholder="Enter answers" onChange={(e) => setMultipleChoices(e.target.value.split("\n").filter(val => val.trim()).map((val, i) => ({ id: i + 1, option: val, is_correct: true })))} />}
             {selectedOption === "True/False" && <RadioGroup onChange={(val) => setMultipleChoices(multipleChoices.map(opt => ({ ...opt, is_correct: opt.option.toLowerCase() === val })))}>
               <Stack>{multipleChoices.map(opt => <Radio key={opt.id} value={opt.option.toLowerCase()}>{opt.option}</Radio>)}</Stack>

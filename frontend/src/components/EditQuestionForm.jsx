@@ -24,12 +24,16 @@ EditQuestionForm.propTypes = {
   options: PropTypes.array,
 };
 
-
-export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData }) {
+export default function EditQuestionForm({
+  QuestionData,
+  SetUpdatedQuestionData,
+}) {
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
   const [SelectedOption, SetSelectedOption] = useState(QuestionData.category);
-  const [SelectedClassification, SetSelectedClassification] = useState(QuestionData.classification);
+  const [SelectedClassification, SetSelectedClassification] = useState(
+    QuestionData.classification
+  );
   const [MultipleChoices, SetMultipleChoices] = useState(
     QuestionData.options ? JSON.parse(QuestionData.options) : []
   );
@@ -39,7 +43,9 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   const [Question, SetQuestion] = useState(QuestionData.question);
   const [Subjects, SetSubjects] = useState([]);
   const [SelectedSubject, SetSelectedSubject] = useState("");
-  const [SelectedTerms, SetSelectedTerms] = useState(JSON.parse(QuestionData.terms));
+  const [SelectedTerms, SetSelectedTerms] = useState(
+    JSON.parse(QuestionData.terms)
+  );
 
   const data = {
     id: QuestionData.id,
@@ -50,21 +56,35 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
     created_by: user.fullname,
     terms: SelectedTerms,
     subject: SelectedSubject,
-    classification: SelectedClassification
+    classification: SelectedClassification,
   };
 
   useEffect(() => {
-    SetUpdatedQuestionData(data)
+    SetUpdatedQuestionData(data);
 
     if (parsedSubjects.includes("None")) {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: user.usertype } })
-        .then(({ data }) => { SetSubjects(data); SetSelectedSubject(data[0]?.name || ""); })
+      axios
+        .get("http://localhost/exam-bank/api/SubjectRoute.php", {
+          params: { action: "GetAllSubjects", type: user.usertype },
+        })
+        .then(({ data }) => {
+          SetSubjects(data);
+          SetSelectedSubject(data[0]?.name || "");
+        })
         .catch(console.error);
     } else {
       SetSubjects(parsedSubjects);
       SetSelectedSubject(parsedSubjects[0]);
     }
-  }, [Question, MultipleChoices, SelectedOption, SelectedTerms, SelectedClassification]);
+
+    console.log(MultipleChoices);
+  }, [
+    Question,
+    MultipleChoices,
+    SelectedOption,
+    SelectedTerms,
+    SelectedClassification,
+  ]);
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
@@ -111,6 +131,9 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
       case "Identification":
         SetMultipleChoices([{ id: 1, option: "", is_correct: true }]);
         break;
+      case "Numeric":
+        SetMultipleChoices([{ id: 1, option: "", is_correct: true }]);
+        break;
       case "True/False":
         SetMultipleChoices([
           { id: 1, option: "True", is_correct: false },
@@ -140,12 +163,19 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   };
 
   const handleRadioChange = (selectedId) => {
+    // SetMultipleChoices((prev) =>
+    //   prev.map((option) =>
+    //     option.id === selectedId
+    //       ? { ...option, is_correct: !option.is_correct }
+    //       : option
+    //   )
+    // );
+    console.log(selectedId);
     SetMultipleChoices((prev) =>
-      prev.map((option) =>
-        option.id === selectedId
-          ? { ...option, is_correct: !option.is_correct }
-          : option
-      )
+      prev.map((option) => ({
+        ...option,
+        is_correct: option.id === selectedId, // Ensure only one is selected
+      }))
     );
   };
 
@@ -183,7 +213,23 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
   const renderFormElement = () => {
     switch (SelectedOption) {
       case "Identification":
-        return <Input size="sm" type="text" onChange={(e) => handleInputChange(1, e.target.value)} value={MultipleChoices[0].option} />;
+        return (
+          <Input
+            size="sm"
+            type="text"
+            onChange={(e) => handleInputChange(1, e.target.value)}
+            value={MultipleChoices[0].option}
+          />
+        );
+      case "Numeric":
+        return (
+          <Input
+            size="sm"
+            type="number"
+            onChange={(e) => handleInputChange(1, e.target.value)}
+            value={MultipleChoices[0].option}
+          />
+        );
       case "Enumeration":
         return (
           <>
@@ -198,15 +244,18 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
         );
       case "True/False":
         return (
-          <RadioGroup onChange={(val) => handleRadioChange(val === "true" ? 1 : 2)}>
-            <Stack spacing={2}>
-              {MultipleChoices.map((option) => (
-                <Radio key={option.id} value={option.option.toLowerCase()} isChecked={option.is_correct}>
-                  {option.option}
-                </Radio>
-              ))}
-            </Stack>
-          </RadioGroup>
+          <RadioGroup
+  value={MultipleChoices.find((option) => option.is_correct)?.id || ""}
+  onChange={(val) => handleRadioChange(Number(val))}
+>
+  <Stack spacing={2}>
+    {MultipleChoices.map((option) => (
+      <Radio key={option.id} value={option.id}>
+        {option.option}
+      </Radio>
+    ))}
+  </Stack>
+</RadioGroup>
         );
       case "Multiple":
         return (
@@ -292,11 +341,17 @@ export default function EditQuestionForm({ QuestionData, SetUpdatedQuestionData 
         <option value="Evaluation">Evaluation</option>
       </Select>
       <Text fontWeight="semibold">CATEGORY</Text>
-      <Select size="sm" value={SelectedOption} onChange={handleChangeOption} mb={4}>
+      <Select
+        size="sm"
+        value={SelectedOption}
+        onChange={handleChangeOption}
+        mb={4}
+      >
         <option value="Identification">Identification</option>
         <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>
         <option value="Multiple">Multiple Choice</option>
+        <option value="Numeric">Numeric</option>
       </Select>
       <Text fontWeight="semibold">OPTIONS</Text>
       {renderFormElement()}

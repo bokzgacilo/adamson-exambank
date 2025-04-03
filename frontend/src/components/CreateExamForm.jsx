@@ -58,6 +58,11 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
           <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
         );
       }
+      case "Numeric": {
+        return (
+          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
+        );
+      }
       case "Enumeration": {
         const TextAreaValue = JSON.parse(options)
           .map((item) => item.option)

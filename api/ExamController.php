@@ -101,12 +101,13 @@ class Exam
             }
           }
           $correctAnswersText = $correctOption;
-          $points = "1";
-          $categoryLabel = "True/False";
+          $categoryLabel = "TF";
         } elseif ($category === "Identification") {
           $correctAnswersText = $options[0]['option'] ?? "N/A";
-          $points = "5";
-          $categoryLabel = "Short Answer";
+          $categoryLabel = "FIB";
+        } elseif ($category === "Numeric") {
+          $correctAnswersText = $options[0]['option'] ?? "N/A";
+          $categoryLabel = "NUM";
         } elseif ($category === "Enumeration") {
           $correctAnswers = [];
           foreach ($options as $option) {
@@ -115,22 +116,25 @@ class Exam
             }
           }
           $correctAnswersText = implode("; ", $correctAnswers);
-          $points = "3";
           $categoryLabel = "Enumeration";
         } else { // Multiple Choice
           $correctAnswers = [];
+          $correctCount = 0; // Track number of correct answers
+
           foreach ($options as $option) {
+            $status = $option['is_correct'] ? "Correct" : "Incorrect";
+            $correctAnswers[] = "{$option['option']}\t$status";
+
             if ($option['is_correct']) {
-              $correctAnswers[] = $option['option'];
+              $correctCount++; // Count correct answers
             }
           }
-          $correctAnswersText = implode(", ", $correctAnswers);
-          $points = "3";
-          $categoryLabel = "Multiple";
+
+          $correctAnswersText = implode("\t", $correctAnswers);
+          $categoryLabel = $correctCount >= 2 ? "MA" : "MC"; // Set label based on correct count
         }
 
-        // Format the output as a CSV-style export (with double quotes)
-        $line = "\"$categoryLabel\",\"$questionText\",\"$correctAnswersText\",\"$points\",\"$subject\"";
+        $line = "$categoryLabel\t$questionText\t$correctAnswersText";
 
         fwrite($file, $line . "\n");
       }
@@ -144,7 +148,7 @@ class Exam
 
   public function edit($id, $title, $description, $date)
   {
-    $query = "UPDATE exams SET title = ?, description = ?, exam_date = ? WHERE id = ?";
+    $query = "UPDATE exam SET title = ?, description = ?, exam_date = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("sssi", $title, $description, $date, $id);
     return $stmt->execute();
@@ -152,7 +156,7 @@ class Exam
 
   public function delete($id)
   {
-    $query = "DELETE FROM exams WHERE id = ?";
+    $query = "DELETE FROM exam WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
     return $stmt->execute();

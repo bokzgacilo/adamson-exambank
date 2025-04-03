@@ -1,30 +1,6 @@
-"Short Answer","How many ears does cat have?","2","5","Mathematics"
-"Short Answer","34 + 45","79","5","Mathematics"
-"Short Answer","1+1","2","5","Mathematics"
-"Short Answer","What is CPU stands for?","Central Process Unit","5","Mathematics"
-"Short Answer","What CPU stands for?","Central Processing Unit","5","Mathematics"
-"Multiple","Who is the main protagonist of the anime Bleach?","Ichigo","3","Mathematics"
-"True/False","Rectangle is a square","True","1","Mathematics"
-"Short Answer","Comprehension 1","22","5","Mathematics"
-"Short Answer","Comprehension 2","22","5","Mathematics"
-"Short Answer","Comprehension 3","22","5","Mathematics"
-"Enumeration","Give atleast 5 names from Naruto Anime","Sasuke, Naruto, Sakura, Kakashi, Monkey D. Luffy","3","Mathematics"
-"Short Answer","PHASE 1","22","5","Mathematics"
-"Short Answer","PHASE 2","22","5","Mathematics"
-"Short Answer","PHASE 3","22","5","Mathematics"
-"Short Answer","PHASE 4","22","5","Mathematics"
-"True/False","SELECT * FROM question","","1","Mathematics"
-"True/False","SELECT * FROM question","True","1","Mathematics"
-"Short Answer","Evaluation 1","22","5","Mathematics"
-"Short Answer","Evaluation 2","22","5","Mathematics"
-"Short Answer","Evaluation 3","22","5","Mathematics"
-"Short Answer","Analysis 1","22","5","Mathematics"
-"Short Answer","Analysis 4","22","5","Mathematics"
-"Short Answer","Analysis 2","22","5","Mathematics"
-"Short Answer","Analysis 3","22","5","Mathematics"
-"Short Answer","Analysis 5","22","5","Mathematics"
-"Short Answer","Synthesis 1","22","5","Mathematics"
-"Short Answer","Synthesis 2","22","5","Mathematics"
-"Short Answer","Synthesis 4","22","5","Mathematics"
-"Short Answer","Synthesis 3","22","5","Mathematics"
-"Short Answer","Synthesis 5","22","5","Mathematics"
+MC	Who is current president of The Philippines?	BBM	Correct	Duterte	Incorrect	Robredo	Incorrect	Juan Manuel Marquez	Incorrect
+NUM	This is sample Numeric question 123	0.56
+MA	What is AI??	Chatgpt	Correct	Gemine	Incorrect	DeepSeek	Correct	Nova	Incorrect
+FIB	What is the 3rd planet in our solar system?	Earth
+TF	Our sun is hot?	False
+TF	SELECT * FROM question	True

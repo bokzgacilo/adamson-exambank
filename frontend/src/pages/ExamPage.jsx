@@ -55,13 +55,15 @@ export default function ExamPage() {
   const toast = useToast();
 
   const [TOS, SetTOS] = useState({
-    Knowledge : 5,
-    Comprehension: 5,
-    Application: 5,
-    Analysis: 5,
-    Synthesis: 5,
-    Evaluation: 5
+    Knowledge : 1,
+    Comprehension: 1,
+    Application: 1,
+    Analysis: 1,
+    Synthesis: 1,
+    Evaluation: 1
   })
+
+  const minVal = 1;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +124,7 @@ export default function ExamPage() {
             </Flex>
             <Text fontSize="12px">Accepted files (.CSV, .XLSX, .JPG)</Text>
             <Text fontSize="12px" fontWeight="semibold" mt={4}>Knowledge</Text>
-            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -130,7 +132,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Comprehension</Text>
-            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -138,7 +140,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Application</Text>
-            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -146,7 +148,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Analysis</Text>
-            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -154,7 +156,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Synthesis</Text>
-            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -162,7 +164,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Evaluation</Text>
-            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -176,7 +178,7 @@ export default function ExamPage() {
           <>
             <Text fontWeight="semibold">SET CATEGORY ITEMS</Text>
             <Text fontSize="12px" fontWeight="semibold" mt={4}>Knowledge</Text>
-            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Knowledge} onChange={(value) => SetTOS({...TOS, Knowledge : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -184,7 +186,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Comprehension</Text>
-            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Comprehension} onChange={(value) => SetTOS({...TOS, Comprehension : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -192,7 +194,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Application</Text>
-            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Application} onChange={(value) => SetTOS({...TOS, Application : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -200,7 +202,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Analysis</Text>
-            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Analysis} onChange={(value) => SetTOS({...TOS, Analysis : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -208,7 +210,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Synthesis</Text>
-            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Synthesis} onChange={(value) => SetTOS({...TOS, Synthesis : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -216,7 +218,7 @@ export default function ExamPage() {
               </NumberInputStepper>
             </NumberInput>
             <Text fontSize="12px" fontWeight="semibold">Evaluation</Text>
-            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={5} max={25} allowMouseWheel>
+            <NumberInput value={TOS.Evaluation} onChange={(value) => SetTOS({...TOS, Evaluation : value})} size="sm" min={minVal} max={25} allowMouseWheel>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
