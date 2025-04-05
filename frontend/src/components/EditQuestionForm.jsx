@@ -61,6 +61,7 @@ export default function EditQuestionForm({
 
   useEffect(() => {
     SetUpdatedQuestionData(data)
+    console.log(Subjects)
   }, [
     Question,
     MultipleChoices,
@@ -71,7 +72,7 @@ export default function EditQuestionForm({
   ])
 
   useEffect(() => {
-    if (parsedSubjects.includes("None")) {
+    if (parsedSubjects.includes("None") || parsedSubjects.length === 0) {
       axios
         .get("http://localhost/exam-bank/api/SubjectRoute.php", {
           params: { action: "GetAllSubjects", type: user.usertype },
@@ -99,7 +100,7 @@ export default function EditQuestionForm({
   };
 
   const RenderSubject = () => {
-    return user.usertype === "Instructor" ? (
+    return user.usertype === "Instructor" || user.usertype === "Coordinator" ? (
       <Select
         value={SelectedSubject}
         onChange={handleChangeSelectedSubject}

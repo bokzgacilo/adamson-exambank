@@ -5,11 +5,10 @@ import { useState } from "react";
 const minVal = 1;
 
 export default function RENDERTOS ({mode, TOS, SetTOS}) {
-  
   const DownloadFormat = () => {
     const link = document.createElement("a");
     link.href = "http://localhost/exam-bank/TOS_FORMAT.xlsx";
-    link.download = "http://localhost/exam-bank/TOS_FORMAT.xlsx";
+    link.download = "TOS_FORMAT.xlsx";
     link.click();
   };
 

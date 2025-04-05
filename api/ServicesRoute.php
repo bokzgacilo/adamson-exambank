@@ -216,12 +216,12 @@ switch ($action) {
       $sheet = $spreadsheet->getActiveSheet();
 
       $columns = [
-        "Knowledge" => "A2",
-        "Comprehension" => "B2",
-        "Application" => "C2",
-        "Analysis" => "D2",
-        "Synthesis" => "E2",
-        "Evaluation" => "F2"
+        "Knowledge" => "B2",
+        "Comprehension" => "C2",
+        "Application" => "D2",
+        "Analysis" => "E2",
+        "Synthesis" => "F2",
+        "Evaluation" => "G2"
       ];
 
       $data = [];

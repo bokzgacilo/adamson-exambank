@@ -30,8 +30,6 @@ export default function QuestionDetail({ QuestionData }) {
     }
   });
 
-  console.log(MultipleChoices);
-
   const renderFormElement = () => {
     switch (QuestionData.category) {
       case "Numeric":

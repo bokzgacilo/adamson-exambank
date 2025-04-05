@@ -129,7 +129,7 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = "http://localhost/exam-bank/BATCH_QUESTION.xlsx";
-    link.download = "http://localhost/exam-bank/BATCH_QUESTION.xlsx";
+    link.download = "BATCH_QUESTION.xlsx";
     link.click();
   };
 
