@@ -85,6 +85,7 @@ export default function QuestionDataTable({ data }) {
           isClosable: true,
         });
         // FIREBASE UPDATE QUESTION
+        set(ref(database, `logs/${Date.now()}`), { action: "Question Updated", timestamp: Date.now(), target: selectedQuestion.question, actor: user.fullname });
         onClose();
       });
   };

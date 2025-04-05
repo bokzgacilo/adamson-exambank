@@ -33,7 +33,7 @@ export default function SidebarComponent() {
       ? [
           { to: "users", label: "User Management", pathname: "/dashboard/users", icon: TbUsers },
           { to: "subjects", label: "Subjects", pathname: "/dashboard/subjects", icon: TbList },
-          { to: "statistics", label: "Statistics", pathname: "/dashboard/statistics", icon: TbChartDots }
+          { to: "statistics", label: "Dashboard", pathname: "/dashboard/statistics", icon: TbChartDots }
         ]
       : [])
   ];

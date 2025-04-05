@@ -1,6 +1,6 @@
-MC	Who is current president of The Philippines?	BBM	Correct	Duterte	Incorrect	Robredo	Incorrect	Juan Manuel Marquez	Incorrect
-NUM	This is sample Numeric question 123	0.56
 MA	What is AI??	Chatgpt	Correct	Gemine	Incorrect	DeepSeek	Correct	Nova	Incorrect
 FIB	What is the 3rd planet in our solar system?	Earth
 TF	Our sun is hot?	False
-TF	SELECT * FROM question	True
+NUM	20 + 3	23
+TF	SELECT * FROM question	
+FIB	Synthesis 10	22

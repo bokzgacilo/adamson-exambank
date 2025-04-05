@@ -57,6 +57,21 @@ export default function LoginPage() {
             <Formik
               initialValues={{ username: "", password: "" }}
               onSubmit={(values, actions) => {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@adamson\.edu\.ph$/;
+
+                if (!emailPattern.test(values.username)) {
+                  toast({
+                    title: "Invalid Email",
+                    description: "Please use your Adamson associated email to login (e.g. john@adamson.edu.ph).",
+                    status: "warning",
+                    duration: 4000,
+                    isClosable: true,
+                  });
+
+                  actions.setSubmitting(false);
+                  return; // stop login if invalid
+                }
+
                 axios
                   .post(
                     "http://localhost/exam-bank/api/UserRoute.php?action=login",
@@ -69,7 +84,7 @@ export default function LoginPage() {
                       const userData = {
                         id: response.data.user.id,
                         fullname: response.data.user.name,
-                        username: response.data.user.username,
+                        email: response.data.user.email,
                         password: response.data.user.password,
                         avatar: "http://localhost/exam-bank/api/" + response.data.user.avatar,
                         usertype: response.data.user.type,
@@ -115,12 +130,12 @@ export default function LoginPage() {
               {({ handleSubmit }) => (
                 <Form onSubmit={handleSubmit}>
                   <FormControl isRequired>
-                    <FormLabel fontWeight="semibold">USERNAME</FormLabel>
+                    <FormLabel fontWeight="semibold">EMAIL</FormLabel>
                     <Field
                       as={Input}
                       name="username"
-                      type="text"
-                      placeholder="juandelacruz"
+                      type="email"
+                      placeholder="juandelacruz@adamson.edu.ph"
                       required
                     />
                   </FormControl>

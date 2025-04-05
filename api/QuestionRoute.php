@@ -97,7 +97,7 @@ switch ($action) {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $questions = $question->viewAll($data["subject"]);
+        $questions = $question->viewAll($data["subject"], $data['type']);
 
         print_r($questions);
         break;

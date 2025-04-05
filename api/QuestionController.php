@@ -67,35 +67,45 @@ class Question
     return false;
   }
 
-  public function viewAll($subjects)
-  {
+  public function viewAll($subjects, $type)
+{
+    // Decode the JSON string to an array
     $subject_array = json_decode($subjects, true);
 
+    // If decoding failed
     if (!is_array($subject_array)) {
-      return json_encode(["error" => "Invalid subject format"]);
+        return json_encode(["error" => "Invalid subject format"]);
     }
 
-    if (count($subject_array) === 1 && $subject_array[0] === "None") {
-      $query = "SELECT * FROM question";
-      $stmt = $this->conn->query($query);
-      return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
+    // ✅ If user is Admin, return all questions
+    if ($type === "Admin") {
+        $query = "SELECT * FROM question";
+        $stmt = $this->conn->query($query);
+        return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
     }
+
+    // ✅ If subject list is empty or contains "None", return empty
+    if (empty($subject_array) || in_array("None", $subject_array, true)) {
+        return json_encode([]); // Return empty array
+    }
+
+    // ✅ Else: Filter based on subjects
     $placeholders = implode(',', array_fill(0, count($subject_array), '?'));
     $query = "SELECT * FROM question WHERE subject IN ($placeholders)";
-
+    
     $stmt = $this->conn->prepare($query);
     if (!$stmt) {
-      return json_encode(["error" => "Query preparation failed"]);
+        return json_encode(["error" => "Query preparation failed"]);
     }
 
     $types = str_repeat("s", count($subject_array));
     $stmt->bind_param($types, ...$subject_array);
-
     $stmt->execute();
     $result = $stmt->get_result();
 
     return json_encode($result->fetch_all(MYSQLI_ASSOC));
-  }
+}
+
 
   public function QuestionForBank($subject)
   {

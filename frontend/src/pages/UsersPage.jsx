@@ -1,24 +1,28 @@
 import { Button, Heading, Stack, Flex, useDisclosure, Card, CardHeader, CardBody, Divider } from "@chakra-ui/react";
-import axios from 'axios';
-import { useEffect, useState } from "react";
 import { BiPlus } from "react-icons/bi";
 import UserDataTable from "../components/UserDataTable";
 import AddNewUserForm from "../components/AddNewUser";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function UserPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [Users, SetUsers] = useState([]);
+  const [MasterData, SetMasterData] = useState([]);
 
-  useEffect(() => {
-    axios.get(`http://localhost/exam-bank/api/UserRoute.php?action=viewAll`)
-      .then(response => {
-        SetUsers(response.data)
-      });
-  }, []);
+  const fetchMasterData = async () => {
+    await axios.get(`http://localhost/exam-bank/api/UserRoute.php?action=viewAll`)
+    .then(response => {
+      SetMasterData(response.data)
+    });
+
+    console.log("fetch")
+  }
+
+  useEffect(() => {fetchMasterData()}, [])
 
   return (
     <Stack>
-      <AddNewUserForm onClose={onClose} isOpen={isOpen} onOpen={onOpen}  />
+      <AddNewUserForm fetchMasterData={fetchMasterData} onClose={onClose} isOpen={isOpen} onOpen={onOpen}  />
       <Stack p={4}>
         <Card>
           <CardHeader backgroundColor="#2b2b2b" color="#fff">
@@ -31,10 +35,9 @@ export default function UserPage() {
           </CardHeader>
           <Divider />
           <CardBody p={4}>
-            <UserDataTable data={Users}/>
+            <UserDataTable data={MasterData} fetchMasterData={fetchMasterData} />
           </CardBody>
         </Card>
-        
       </Stack>
     </Stack>
   );

@@ -24,14 +24,17 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import axios from "axios";
-import PropTypes from "prop-types";
 import { TbPlus, TbX } from "react-icons/tb";
+import PropTypes from "prop-types";
+
 UserDataTable.propTypes = {
-  data: PropTypes.any.isRequired,
+  data: PropTypes.object.isRequired,
+  fetchMasterData: PropTypes.func.isRequired,
 };
 
-export default function UserDataTable({ data }) {
+export default function UserDataTable({ data, fetchMasterData }) {
   const [globalFilter, setGlobalFilter] = useState("");
+
   const {
     isOpen: isSecondOpen,
     onOpen: onSecondOpen,
@@ -43,18 +46,17 @@ export default function UserDataTable({ data }) {
     onClose: onThirdClose,
   } = useDisclosure();
   const [SelectedCredential, SetSelectedCredential] = useState(null);
-  const [SelectedSubject, SetSelectedSubject] = useState("")
+  const [SelectedSubject, SetSelectedSubject] = useState("");
   const [SelectUserSubject, SetSelectUserSubject] = useState([]);
-  const [AvailableSubjects, SetAvailableSubjects] = useState([])
-  
+  const [AvailableSubjects, SetAvailableSubjects] = useState([]);
   const [NewPassword, SetNewPassword] = useState();
   const toast = useToast();
 
   const handleStatusChange = (id, newStatus) => {
     const data = {
       id: id,
-      status: newStatus
-    }
+      status: newStatus,
+    };
 
     axios
       .post(
@@ -70,34 +72,53 @@ export default function UserDataTable({ data }) {
             isClosable: true,
           });
 
-          location.reload()
+          fetchMasterData();
         }
       });
   };
 
-  const StatusTemplate = (rowData) => <Select size="sm" onChange={(e) => handleStatusChange(rowData.id, e.target.value)} value={rowData.status === "1" ? "1" : "0"}>
-    <option value="1">True</option>
-    <option value="0">False</option>
-  </Select>
+  const StatusTemplate = (rowData) => (
+    <Select
+      size="sm"
+      onChange={(e) => handleStatusChange(rowData.id, e.target.value)}
+      value={rowData.status === "1" ? "1" : "0"}
+    >
+      <option value="1">True</option>
+      <option value="0">False</option>
+    </Select>
+  );
 
   const renderSummary = (rowData) => {
-    if (rowData.role === "Coordinator") {
-      return <Text>N/A</Text>;
+    let items = [];
+
+    try {
+      items = JSON.parse(rowData.assigned_subject) || [];
+    } catch (e) {
+      console.error("Invalid JSON in assigned_subject", e);
     }
 
-    const items = JSON.parse(rowData.assigned_subject) || [];
+    const length = items.length;
+    let label = "";
 
-    if (items.length === 0) return <Text>No subjects assigned</Text>;
-    if (items.length === 1) return <Text>{items[0]}</Text>;
-    if (items.length === 2) return <Text>{items.join(", ")}</Text>;
+    if (length === 0) {
+      label = "No Assigned Subject";
+    } else if (length === 1) {
+      label = items[0];
+    } else if (length === 2) {
+      label = `${items[0]}, ${items[1]}`;
+    } else {
+      label = `${items[0]}, ${items[1]}, ${length - 2} more`;
+    }
 
     return (
-      <Text cursor="pointer" onClick={() => HandleShowSubjects(rowData)}>
-        {`${items[0]}, ${items[1]}, ${items.length - 2} more`}
-      </Text>
+      <Button
+        variant="ghost"
+        onClick={() => HandleShowSubjects(rowData)}
+      >
+        {label}
+      </Button>
     );
   };
-
 
   const CredentialTemplate = (rowData) => (
     <Button size="sm" onClick={() => HandleViewCredential(rowData)}>
@@ -107,6 +128,7 @@ export default function UserDataTable({ data }) {
 
   const HandleShowSubjects = (data) => {
     SetSelectUserSubject(JSON.parse(data.assigned_subject));
+    SetSelectedCredential(data);
     onThirdOpen();
   };
 
@@ -116,9 +138,41 @@ export default function UserDataTable({ data }) {
     onSecondOpen();
   };
 
-  const ImageTemplate = (rowData) => <Avatar src={"http://localhost/exam-bank/api/" + rowData.avatar} />;
+  const ImageTemplate = (rowData) => (
+    <Avatar src={"http://localhost/exam-bank/api/" + rowData.avatar} />
+  );
+
+  const HandleUpdateSubjects = () => {
+    console.log(SelectUserSubject);
+
+    const data = {
+      id: SelectedCredential.id,
+      userSubjects: SelectUserSubject,
+    };
+
+    axios
+      .post(
+        `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
+        data
+      )
+      .then((response) => {
+        if (response.data) {
+          toast({
+            title: "User subjects updated",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+
+          onThirdClose();
+          fetchMasterData();
+        }
+      });
+  };
 
   const HandleUpdatePassword = () => {
+    console.log(SelectUserSubject);
+
     const data = {
       id: SelectedCredential.id,
       password: NewPassword,
@@ -141,20 +195,22 @@ export default function UserDataTable({ data }) {
 
           onSecondClose();
 
-          location.reload()
+          fetchMasterData();
         }
       });
   };
 
   useEffect(() => {
+    fetchMasterData();
+
     axios
-    .get(`http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll`)
-    .then((response) => {
-      SetAvailableSubjects(response.data);
-      SetSelectedSubject(response.data[0]?.name || "");
-    })
-    .catch((error) => console.error("Error fetching subjects:", error));
-  }, [])
+      .get(`http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll`)
+      .then((response) => {
+        SetAvailableSubjects(response.data);
+        SetSelectedSubject(response.data[0]?.name || "");
+      })
+      .catch((error) => console.error("Error fetching subjects:", error));
+  }, []);
 
   const HandleAddSubject = () => {
     if (SelectUserSubject && !SelectUserSubject.includes(SelectedSubject)) {
@@ -163,7 +219,9 @@ export default function UserDataTable({ data }) {
   };
 
   const HandleRemoveSubject = (indexToRemove) => {
-    SetSelectUserSubject((prev) => prev.filter((_, index) => index !== indexToRemove));
+    SetSelectUserSubject((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   return (
@@ -201,13 +259,22 @@ export default function UserDataTable({ data }) {
               ) : (
                 <Stack mb={4}>
                   {SelectUserSubject.map((item, index) => (
-                    <Flex key={index} direction="row" alignItems="center" justifyContent="space-between">
-                    <Text >
-                      {index + 1}. {item}
-                    </Text>
-                    <Button onClick={() => HandleRemoveSubject(index)} size="xs"><Icon as={TbX} /></Button>
+                    <Flex
+                      key={index}
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Text>
+                        {index + 1}. {item}
+                      </Text>
+                      <Button
+                        onClick={() => HandleRemoveSubject(index)}
+                        size="xs"
+                      >
+                        <Icon as={TbX} />
+                      </Button>
                     </Flex>
-                    
                   ))}
                 </Stack>
               )}
@@ -215,7 +282,11 @@ export default function UserDataTable({ data }) {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="green" size="sm" onClick={HandleUpdatePassword}>
+            <Button
+              colorScheme="green"
+              size="sm"
+              onClick={HandleUpdateSubjects}
+            >
               Update
             </Button>
           </ModalFooter>
@@ -281,7 +352,11 @@ export default function UserDataTable({ data }) {
           body={renderSummary}
         ></Column>
         <Column header="Credential" body={CredentialTemplate}></Column>
-        <Column field="status" header="Is Active?" body={StatusTemplate}></Column>
+        <Column
+          field="status"
+          header="Is Active?"
+          body={StatusTemplate}
+        ></Column>
       </DataTable>
     </PrimeReactProvider>
   );

@@ -20,12 +20,12 @@ switch ($action) {
 
     $data = json_decode(file_get_contents("php://input"), true);
 
-    if (!$data || !isset($data["exam_name"], $data["subject"], $data["access_code"], $data["questions"], $data["created_by"])) {
+    if (!$data || !isset($data["exam_name"], $data["subject"], $data["access_code"], $data["tos"], $data["questions"], $data["created_by"])) {
       echo json_encode(["message" => "Invalid input"]);
       exit;
     }
 
-    $result = $exam->create($data["exam_name"], $data["subject"], $data["access_code"], $data["questions"], $data["created_by"]);
+    $result = $exam->create($data["exam_name"], $data["subject"], $data["access_code"], $data["tos"], $data["questions"], $data["created_by"]);
 
     echo json_encode(["message" => $result ? "Exam created successfully" : "Failed to create exam"]);
     break;
@@ -48,7 +48,6 @@ switch ($action) {
       exit;
     }
 
-    // Check if 'tos' parameter is provided
     if (!isset($_GET['TOS']) || empty($_GET['TOS'])) {
       echo json_encode(["success" => false, "message" => "TOS parameter is required"]);
       exit;
@@ -71,9 +70,10 @@ switch ($action) {
       echo json_encode(["message" => "Invalid request method"]);
       exit;
     }
-    $subject = $_GET['subject'];
 
-    $exams = $exam->viewAll($subject);
+    $subjects = $_GET['subjects'];
+    $type = $_GET['type'];
+    $exams = $exam->viewAll($subjects, $type);
 
     echo json_encode($exams);
     break;
@@ -85,6 +85,18 @@ switch ($action) {
 
     $data = json_decode(file_get_contents("php://input"), true);
     $exams = $exam->delete($data["id"]);
+
+    echo json_encode($exams);
+    break;
+  case "update":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $exams = $exam -> update($data["examid"], $data["questions"]);
 
     echo json_encode($exams);
     break;

@@ -45,6 +45,16 @@ class User
     return $stmt->execute();
   }
 
+  public function update_subjects($id, $usersubjects)
+  {
+    $assigned_subjects = json_encode($usersubjects); // Convert array to JSON string
+    $query = "UPDATE user SET assigned_subject = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $assigned_subjects, $id);
+    
+    return $stmt->execute();
+  }
+
   public function get_user_data($id)
   {
     $stmt = $this->conn->prepare("SELECT * FROM user WHERE id = ?");

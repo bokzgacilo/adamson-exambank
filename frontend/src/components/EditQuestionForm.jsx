@@ -60,8 +60,17 @@ export default function EditQuestionForm({
   };
 
   useEffect(() => {
-    SetUpdatedQuestionData(data);
+    SetUpdatedQuestionData(data)
+  }, [
+    Question,
+    MultipleChoices,
+    SelectedOption,
+    SelectedTerms,
+    SelectedClassification,
+    SelectedSubject
+  ])
 
+  useEffect(() => {
     if (parsedSubjects.includes("None")) {
       axios
         .get("http://localhost/exam-bank/api/SubjectRoute.php", {
@@ -76,18 +85,11 @@ export default function EditQuestionForm({
       SetSubjects(parsedSubjects);
       SetSelectedSubject(parsedSubjects[0]);
     }
-
-    console.log(MultipleChoices);
-  }, [
-    Question,
-    MultipleChoices,
-    SelectedOption,
-    SelectedTerms,
-    SelectedClassification,
-  ]);
+  }, []);
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
+    console.log(subject)
     SetSelectedSubject(subject);
   };
 
@@ -163,14 +165,6 @@ export default function EditQuestionForm({
   };
 
   const handleRadioChange = (selectedId) => {
-    // SetMultipleChoices((prev) =>
-    //   prev.map((option) =>
-    //     option.id === selectedId
-    //       ? { ...option, is_correct: !option.is_correct }
-    //       : option
-    //   )
-    // );
-    console.log(selectedId);
     SetMultipleChoices((prev) =>
       prev.map((option) => ({
         ...option,
@@ -348,7 +342,6 @@ export default function EditQuestionForm({
         mb={4}
       >
         <option value="Identification">Identification</option>
-        <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>
         <option value="Multiple">Multiple Choice</option>
         <option value="Numeric">Numeric</option>

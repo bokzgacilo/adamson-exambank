@@ -23,7 +23,7 @@ import PropTypes from "prop-types";
 import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 CreateExamForm.propTypes = {
-  TOS: PropTypes.string.isRequired,
+  TOS: PropTypes.array.isRequired,
   SelectedSubject: PropTypes.string.isRequired, 
   QuestionSet: PropTypes.array.isRequired, 
   SetQuestionSet: PropTypes.func.isRequired, 
@@ -33,11 +33,19 @@ CreateExamForm.propTypes = {
 export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, QuestionSet, SetQuestionSet }) {
   const [Questions, SetQuestions] = useState([]);
   const [filteredClassification, setFilteredClassification] = useState("");
-  const filteredQuestions = Questions.filter(
-    (q) =>
-      !filteredClassification || q.classification === filteredClassification
-  );
+  const [filteredCategory, setFilteredCategory] = useState('');
+
+  const filteredQuestions = Questions.filter((q) => {
+    const matchClassification = filteredClassification === '' || q.classification === filteredClassification;
+    const matchCategory = filteredCategory === '' || q.category === filteredCategory;
+    return matchClassification && matchCategory;
+  });
+
   const [, SetSubjects] = useState([]);
+
+  useEffect(() => {
+    console.log(TOS)
+  }, [])
 
   const handleCheckboxChange = (id) => {
     SetQuestionSet((prevItems) => {
@@ -178,6 +186,8 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
     }
   }
 
+ 
+
   return (
     <SimpleGrid templateColumns="40% 1fr 1fr" gap={4}>
       <Stack
@@ -262,6 +272,19 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
           <option value="Evaluation">Evaluation</option>
           <option value="Analysis">Analysis</option>
           <option value="Synthesis">Synthesis</option>
+        </Select>
+        <Text fontWeight="semibold">SORT BY CATEGORY</Text>
+        <Select
+          size="sm"
+          value={filteredCategory}
+          onChange={(e) => setFilteredCategory(e.target.value)}
+          mb={4}
+        >
+          <option value="">All</option>
+          <option value="Multiple">Multiple Choice</option>
+          <option value="Numeric">Numeric</option>
+          <option value="Identification">Identification</option>
+          <option value="True/False">True/False</option>
         </Select>
 
         <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">

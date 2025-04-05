@@ -30,10 +30,12 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
   const [File, SetFile] = useState(null);
+
   const reconstructedArray = parsedSubjects.map((name, index) => ({
     id: index + 1,
     name: name,    
   }));
+
   const toast = useToast();
   const [Subjects, SetSubjects] = useState([]);
   const [SelectedSubject, SetSelectedSubject] = useState("");
@@ -65,7 +67,13 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
   };
 
   useEffect(() => {
-    if (reconstructedArray[0].name === "None") {
+    console.log(reconstructedArray)
+    if (
+      !Array.isArray(reconstructedArray) || // not an array
+      reconstructedArray.length === 0 || // empty array
+      !reconstructedArray[0]?.name || // name is undefined, null, or falsy
+      reconstructedArray[0].name === "None"
+    ) {
       axios
         .get("http://localhost/exam-bank/api/SubjectRoute.php", {
           params: { action: "GetAllSubjects", type: user.usertype },

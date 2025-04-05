@@ -35,3 +35,6 @@ Statistic
 ✅ 8. pwede mag drag ng csv para by batch po yung questions
 ✅ 9. EXPORT (bug)
 ✅ 10. Classifcation of question
+
+Stastics label change to Dashboard
+Remove Enumeration change to Numeric

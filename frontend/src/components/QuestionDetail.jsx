@@ -122,7 +122,6 @@ export default function QuestionDetail({ QuestionData }) {
       <Text fontWeight="semibold">CATEGORY</Text>
       <Select size="sm" value={QuestionData.category} isDisabled mb={4}>
         <option value="Identification">Identification</option>
-        <option value="Enumeration">Enumeration</option>
         <option value="True/False">True/False</option>
         <option value="Multiple">Multiple Choice</option>
         <option value="Numeric">Numeric</option>

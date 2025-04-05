@@ -23,9 +23,10 @@ import { TbPlus, TbX } from "react-icons/tb";
 AddNewUserForm.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  fetchMasterData: PropTypes.func.isRequired,
 };
 
-export default function AddNewUserForm({ isOpen, onClose }) {
+export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
   const [FullName, SetFullName] = useState("");
   const [Role, SetRole] = useState("Instructor");
   const [Username, SetUsername] = useState("");
@@ -68,7 +69,6 @@ export default function AddNewUserForm({ isOpen, onClose }) {
     SetUserSubjects((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
   
-
   const HandleAddUser = () => {
     axios
       .post("http://localhost/exam-bank/api/UserRoute.php?action=create", data)
@@ -80,9 +80,11 @@ export default function AddNewUserForm({ isOpen, onClose }) {
           duration: 3000,
           isClosable: true,
         });
-
+        
+        fetchMasterData()
         onClose();
       });
+
   };
 
   return (
@@ -157,14 +159,18 @@ export default function AddNewUserForm({ isOpen, onClose }) {
                 </>
               )}
 
-              <Text fontWeight="semibold">SET USERNAME</Text>
+              <Text fontWeight="semibold">SET EMAIL</Text>
               <Input
                 size="sm"
                 value={Username}
                 onChange={(e) => SetUsername(e.currentTarget.value)}
-                type="text"
-                mb={4}
+                type="email"
               />
+              {Username && !/^[a-zA-Z0-9._%+-]+@adamson\.edu\.ph$/.test(Username) && (
+                <Text fontSize="xs" mb={4} color="red.500">
+                  Please use an Adamson associated email (e.g., user@adamson.edu.ph)
+                </Text>
+              )}
               <Text fontWeight="semibold">SET PASSWORD</Text>
               <Input
                 size="sm"

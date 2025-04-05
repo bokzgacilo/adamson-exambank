@@ -8,36 +8,53 @@ class Exam
     $this->conn = $db;
   }
 
-  public function create($exam_name, $subject, $access_code, $questions, $created_by)
+  public function create($exam_name, $subject, $access_code, $tos, $questions, $created_by)
   {
     $questionJSON = json_encode($questions);
-    $query = "INSERT INTO exam (exam_name, subject, access_code, questions, created_by) VALUES (?, ?, ?, ?, ?)";
+    $tosJSON = json_encode($tos);
+
+    $query = "INSERT INTO exam (exam_name, subject, access_code, tos, questions, created_by) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("sssss", $exam_name, $subject, $access_code, $questionJSON, $created_by);
+    $stmt->bind_param("ssssss", $exam_name, $subject, $access_code, $tosJSON, $questionJSON, $created_by);
     return $stmt->execute();
   }
 
-  public function viewAll($assigned_subject)
+  public function viewAll($subjects, $type)
   {
-    $assigned_subjects = json_decode($assigned_subject, true);
-
-    if (!is_array($assigned_subjects) || in_array("None", $assigned_subjects, true)) {
-      $query = "SELECT * FROM exam";
-      $stmt = $this->conn->query($query);
-    } else {
-
-      $placeholders = implode(',', array_fill(0, count($assigned_subjects), '?'));
-      $query = "SELECT * FROM exam WHERE subject IN ($placeholders)";
-      $stmt = $this->conn->prepare($query);
-
-      $types = str_repeat("s", count($assigned_subjects));
-      $stmt->bind_param($types, ...$assigned_subjects);
-      $stmt->execute();
-      $stmt = $stmt->get_result();
+    // If type is ADMIN, return all exams
+    if ($type === 'Admin') {
+        $query = "SELECT * FROM exam";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    // Else: decode and sanitize subjects
+    $subjects = trim($subjects, '"');
+    $subjects = stripslashes($subjects);
+    $subjectsArray = json_decode($subjects, true);
+
+    // If subjects is empty, return empty result
+    if (empty($subjectsArray)) {
+        return [];
+    }
+
+    // Prepare placeholders and query
+    $placeholders = implode(',', array_fill(0, count($subjectsArray), '?'));
+    $query = "SELECT * FROM exam WHERE subject IN ($placeholders)";
+    $stmt = $this->conn->prepare($query);
+
+    // Bind parameters dynamically
+    $types = str_repeat("s", count($subjectsArray));
+    $stmt->bind_param($types, ...$subjectsArray);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
   }
+
+
 
   public function getAllQuestion($assigned_subject)
   {
@@ -146,11 +163,12 @@ class Exam
     }
   }
 
-  public function edit($id, $title, $description, $date)
+  public function update($id, $question)
   {
-    $query = "UPDATE exam SET title = ?, description = ?, exam_date = ? WHERE id = ?";
+    $stringedQuestion = json_encode($question);
+    $query = "UPDATE exam SET questions = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("sssi", $title, $description, $date, $id);
+    $stmt->bind_param("si", $stringedQuestion, $id);
     return $stmt->execute();
   }
 
