@@ -96,7 +96,7 @@ switch ($action) {
           ]];
         }
 
-        if (isset($rowData["B"]) && strtoupper($rowData["B"]) === "ID") {
+        if (isset($rowData["B"]) && in_array(strtoupper($rowData["B"]), ["ID", "NUM"])) {
           $option = [[
             "id" => 1,
             "option" => $rowData["D"] ?? null,
@@ -147,8 +147,8 @@ switch ($action) {
         $category = "";
 
         switch ($rowData["B"]) {
-          case "EN":
-            $category = "Enumeration";
+          case "NUM":
+            $category = "Numeric";
             break;
           case "TF":
             $category = "True/False";
