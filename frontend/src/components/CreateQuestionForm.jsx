@@ -41,7 +41,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
 
   useEffect(() => {
     updateMultipleChoices(selectedOption);
-    if (parsedSubjects.includes("None")) {
+    if (parsedSubjects.includes("None") || parsedSubjects.length === 0) {
       axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: usertype } })
         .then(({ data }) => { setSubjects(data); setSelectedSubject(data[0]?.name || ""); })
         .catch(console.error);

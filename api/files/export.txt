@@ -1,6 +1,6 @@
-MA	What is AI??	Chatgpt	Correct	Gemine	Incorrect	DeepSeek	Correct	Nova	Incorrect
-FIB	What is the 3rd planet in our solar system?	Earth
-TF	Our sun is hot?	False
-NUM	20 + 3	23
-TF	SELECT * FROM question	
-FIB	Synthesis 10	22
+FIB	asdasdsad	asdasd
+FIB	asdasd	asdasd
+FIB	asdas	dasdasd
+FIB	asdsad	asdasd
+NUM	1212	12121
+TF	ASDASDASD	True
