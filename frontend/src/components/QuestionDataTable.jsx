@@ -248,6 +248,20 @@ export default function QuestionDataTable({ data }) {
           sortable
         ></Column>
         <Column field="category" header="Type" filter sortable></Column>
+        <Column 
+          field="terms" 
+          header="Terms" 
+          sortable
+          filter 
+          filterField="terms"
+          body={(rowData) => {
+            let terms = JSON.parse(rowData.terms)
+            return terms.join(', ')
+          }}
+          filterFunction={(value, filter) =>
+            value ? value.some(term => term.toLowerCase().includes(filter.toLowerCase())) : false
+          }
+        ></Column>
         <Column
           showFilterMenu={true}
           field="subject"
@@ -258,6 +272,11 @@ export default function QuestionDataTable({ data }) {
         <Column
           field="classification"
           header="Classification"
+          sortable
+        ></Column>
+        <Column
+          field="created_by"
+          header="Created By"
           sortable
         ></Column>
         <Column

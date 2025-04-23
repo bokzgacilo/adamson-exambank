@@ -163,6 +163,14 @@ class Exam
     }
   }
 
+  public function change_status($id, $status)
+  {
+    $query = "UPDATE exam SET status = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $status, $id);
+    return $stmt->execute();
+  }
+
   public function update($id, $question)
   {
     $stringedQuestion = json_encode($question);

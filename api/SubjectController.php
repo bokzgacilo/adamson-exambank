@@ -41,6 +41,36 @@ class Subject
     return $stmt->fetch_all(MYSQLI_ASSOC);
   }
 
+  public function change_status($id, $status)
+  {
+    // Step 1: Get subject name by ID
+    $query = "SELECT name FROM subjects WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if (!$row) {
+      return false; // Subject not found
+    }
+
+    $subjectName = $row['name'];
+
+     // Step 2: Update questions where subject matches
+    $query = "UPDATE question SET status = ? WHERE subject = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("ss", $status, $subjectName);
+    $stmt->execute(); // Optional: check $stmt->affected_rows
+
+    // Step 3: Update subject status
+    $query = "UPDATE subjects SET status = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $status, $id);
+
+    return $stmt->execute();
+
+  }
 
   public function delete($subject_name)
   {

@@ -41,12 +41,12 @@ export default function ExamBuilder({refreshData, isOpen, onClose }) {
   const [Subjects, SetSubjects] = useState([]);
   const [mode, setMode] = useState("upload");
   const [TOS, SetTOS] = useState({
-    Knowledge: 1,
-    Comprehension: 1,
-    Application: 1,
-    Analysis: 1,
-    Synthesis: 1,
-    Evaluation: 1,
+    Knowledge: 0,
+    Comprehension: 0,
+    Application: 0,
+    Analysis: 0,
+    Synthesis: 0,
+    Evaluation: 0,
   });
   const [StepOne, SetStepOne] = useState(false);
 

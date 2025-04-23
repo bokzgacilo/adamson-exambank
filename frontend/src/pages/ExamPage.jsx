@@ -80,7 +80,7 @@ export default function ExamPage() {
           </CardHeader>
           <Divider />
           <CardBody p={4}>
-            <ExamDataTable onOpen={detailOnOpen} SetSelectedExam={SetSelectedExam} data={Exams} />
+            <ExamDataTable getAllExams={getAllExams} onOpen={detailOnOpen} SetSelectedExam={SetSelectedExam} data={Exams} />
           </CardBody>
         </Card>
       </Stack>

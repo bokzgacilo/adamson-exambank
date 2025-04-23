@@ -7,10 +7,12 @@ import {
   Heading,
   Input,
   Stack,
-  Tag,
+  Select,
   Text,
+  useToast,
   Button
 } from "@chakra-ui/react";
+import axios from "axios"
 
 import PropTypes from "prop-types";
 import useUserStore from "../helper/useUserStore";
@@ -18,16 +20,50 @@ import useUserStore from "../helper/useUserStore";
 ExamDataTable.propTypes = {
   data: PropTypes.any.isRequired,
   SetSelectedExam: PropTypes.func.isRequired,
-  onOpen: PropTypes.func.isRequired
+  onOpen: PropTypes.func.isRequired,
+  getAllExams: PropTypes.func.isRequired
 };
 
-export default function ExamDataTable({ data, SetSelectedExam, onOpen }) {
+export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOpen }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const {user} = useUserStore();
+  const toast = useToast()
 
-  const StatusTemplate = (rowData) => {
-    return <Tag size="sm" colorScheme={rowData.status === 1 ? "green" : "red"}>{rowData.status === 1 ? "Active" : "Inactive"}</Tag>
-  }
+  const handleStatusChange = (id, newStatus) => {
+      const data = {
+        id: id,
+        status: newStatus,
+      };
+  
+      axios
+        .post(
+          `http://localhost/exam-bank/api/ExamRoute.php?action=change_status`,
+          data
+        )
+        .then((response) => {
+          if (response.data) {
+            toast({
+              title: `Exam ${id} updated`,
+              status: "success",
+              duration: 3000,
+              isClosable: true,
+            });
+
+            getAllExams();
+          }
+        });
+    };
+
+  const StatusTemplate = (rowData) => (
+      <Select
+        size="sm"
+        onChange={(e) => handleStatusChange(rowData.id, e.target.value)}
+        value={rowData.status === 1 ? 1 : 0}
+      >
+        <option value="1">True</option>
+        <option value="0">False</option>
+      </Select>
+    );
 
   const NumberOfItems = (rowData) => {
     const counts = JSON.parse(rowData.questions);
@@ -80,7 +116,11 @@ export default function ExamDataTable({ data, SetSelectedExam, onOpen }) {
         {user.usertype !== "Instructor" && <Column field="access_code" header="Access Code" sortable></Column>
         }
         <Column field="created_by" header="Created By" sortable></Column>
-        <Column field="status" header="Status" body={StatusTemplate}></Column>
+        <Column
+          field="status"
+          header="Is Active?"
+          body={StatusTemplate}
+        ></Column>
       </DataTable>
     </PrimeReactProvider>
   );

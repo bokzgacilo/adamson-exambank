@@ -66,7 +66,7 @@ switch ($action) {
       $sheet = $spreadsheet->getSheetByName("INPUT SHEET");
 
       if (!$sheet) {
-        echo json_encode(["message" => "Sheet2 not found"]);
+        echo json_encode(["status" => "not-found", "message" => "INPUT SHEET not found", "description" => "You are using wrong/incompatible template, please download the template from this website."]);
         exit;
       }
 

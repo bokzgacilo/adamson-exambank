@@ -14,8 +14,6 @@ export default function UserPage() {
     .then(response => {
       SetMasterData(response.data)
     });
-
-    console.log("fetch")
   }
 
   useEffect(() => {fetchMasterData()}, [])

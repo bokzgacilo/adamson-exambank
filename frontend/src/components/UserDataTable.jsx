@@ -1,6 +1,6 @@
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PrimeReactProvider } from "primereact/api";
 import {
   Avatar,
@@ -22,6 +22,12 @@ import {
   Select,
   Flex,
   Icon,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter
 } from "@chakra-ui/react";
 import axios from "axios";
 import { TbPlus, TbX } from "react-icons/tb";
@@ -45,28 +51,39 @@ export default function UserDataTable({ data, fetchMasterData }) {
     onOpen: onThirdOpen,
     onClose: onThirdClose,
   } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [SelectedCredential, SetSelectedCredential] = useState(null);
   const [SelectedSubject, SetSelectedSubject] = useState("");
   const [SelectUserSubject, SetSelectUserSubject] = useState([]);
   const [AvailableSubjects, SetAvailableSubjects] = useState([]);
   const [NewPassword, SetNewPassword] = useState();
   const toast = useToast();
+  const onClose = () => setIsOpen(false);
+  const cancelRef = useRef()
+  
 
-  const handleStatusChange = (id, newStatus) => {
+  const [selectedUserId, setSelectedUserId] = useState("")
+  const [newStatusValue, setNewStatusValue] = useState("")
+
+  const PrepareStatusChange = (userid, status_value) => {
+    setIsOpen(true)
+    setSelectedUserId(userid)
+    setNewStatusValue(status_value)
+  }
+
+  const handeChangeStatus = () => {
     const data = {
-      id: id,
-      status: newStatus,
+      id: selectedUserId,
+      status: newStatusValue,
     };
 
     axios
-      .post(
-        `http://localhost/exam-bank/api/UserRoute.php?action=change_status`,
-        data
-      )
+      .post(`http://localhost/exam-bank/api/UserRoute.php?action=change_status`, data)
       .then((response) => {
         if (response.data) {
           toast({
             title: "User Updated",
+            description: `User ${selectedUserId} status changed to ${newStatusValue === "0" ? "Inactive" : "Active"}`,
             status: "success",
             duration: 3000,
             isClosable: true,
@@ -75,16 +92,18 @@ export default function UserDataTable({ data, fetchMasterData }) {
           fetchMasterData();
         }
       });
-  };
+
+    onClose();
+  }
 
   const StatusTemplate = (rowData) => (
     <Select
       size="sm"
-      onChange={(e) => handleStatusChange(rowData.id, e.target.value)}
+      onChange={(e) => PrepareStatusChange(rowData.id, e.target.value)}
       value={rowData.status === "1" ? "1" : "0"}
     >
-      <option value="1">True</option>
-      <option value="0">False</option>
+      <option value="1">Active</option>
+      <option value="0">Inactive</option>
     </Select>
   );
 
@@ -216,6 +235,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
     if (SelectUserSubject && !SelectUserSubject.includes(SelectedSubject)) {
       SetSelectUserSubject((prev) => [...prev, SelectedSubject]);
     }
+
   };
 
   const HandleRemoveSubject = (indexToRemove) => {
@@ -226,6 +246,33 @@ export default function UserDataTable({ data, fetchMasterData }) {
 
   return (
     <PrimeReactProvider>
+       <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Confirm Status Change
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to change this user's status to <b>{newStatusValue === "0" ? "Inactive" : "Active"}</b>?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                No
+              </Button>
+              <Button colorScheme="blue" onClick={handeChangeStatus} ml={3}>
+                Yes
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
       <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
         <ModalOverlay />
         <ModalContent>
@@ -240,11 +287,13 @@ export default function UserDataTable({ data, fetchMasterData }) {
                   onChange={(e) => SetSelectedSubject(e.target.value)}
                   mb={4}
                 >
-                  {AvailableSubjects.map((subject) => (
-                    <option key={subject.id} value={subject.name}>
-                      {subject.name}
-                    </option>
-                  ))}
+                  {AvailableSubjects
+                    .filter(subject => !SelectUserSubject.includes(subject.name)) 
+                    .map((subject) => (
+                      <option key={subject.id} value={subject.name}>
+                        {subject.name}
+                      </option>
+                    ))}
                 </Select>
                 <Button
                   colorScheme="green"

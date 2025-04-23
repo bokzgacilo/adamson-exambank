@@ -2,7 +2,8 @@ import { Button, Flex, Input, NumberDecrementStepper, NumberIncrementStepper, Nu
 import axios from "axios";
 import { useState } from "react";
 
-const minVal = 1;
+const minVal = 0;
+const maxVal = 100;
 
 export default function RENDERTOS ({mode, TOS, SetTOS}) {
   const DownloadFormat = () => {
@@ -56,7 +57,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
       return (
         <>
           <Text fontWeight="semibold">SET CATEGORY ITEMS</Text>
-          <Text fontSize="12px" fontWeight="semibold" mt={4}>
+          <Text fontSize="12px" fontWeight="semibold">
             Knowledge
           </Text>
           <NumberInput
@@ -64,7 +65,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Knowledge: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />
@@ -81,7 +82,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Comprehension: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />
@@ -98,7 +99,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Application: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />
@@ -115,7 +116,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Analysis: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />
@@ -132,7 +133,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Synthesis: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />
@@ -149,7 +150,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
             onChange={(value) => SetTOS({ ...TOS, Evaluation: value })}
             size="sm"
             min={minVal}
-            max={25}
+            max={maxVal}
             allowMouseWheel
           >
             <NumberInputField />

@@ -12,38 +12,37 @@ export default function SubjectPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [Subjects, SetSubjects] = useState([])
   const [SubjectName, SetSubjectName] = useState("")
-  const {user} = useUserStore();
+  const { user } = useUserStore();
 
-  const fetchSubjects = async (setSubjects) => {
-    try {
-      const response = await axios.get("http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll");
-      setSubjects(response.data);
-    } catch (error) {
-      console.error("Error fetching subjects:", error);
-    }
+  const fetchSubjects = async () => {
+    await axios.get("http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll")
+      .then(response => {
+        SetSubjects(response.data)
+      });
   };
-  
+
   useEffect(() => {
-    fetchSubjects(SetSubjects)
+    fetchSubjects()
+    
     const logRef = ref(database, "/logs");
     const unsubscribe = onChildAdded(logRef, () => {
-      fetchSubjects(SetSubjects)
+      fetchSubjects()
     });
     return () => unsubscribe();
   }, []);
 
   const HandleCreateSubject = () => {
     axios
-    .post("http://localhost/exam-bank/api/SubjectRoute.php?action=create", {
-      subject_name: SubjectName,
-    })
-    .then((response) => {
-      if (response.data) {
-        set(ref(database, `logs/${Date.now()}`), { action: "Subject Created", timestamp: Date.now(), target: SubjectName, actor: user.fullname });
-        SetSubjectName("")
-        onClose();
-      }
-    });
+      .post("http://localhost/exam-bank/api/SubjectRoute.php?action=create", {
+        subject_name: SubjectName,
+      })
+      .then((response) => {
+        if (response.data) {
+          set(ref(database, `logs/${Date.now()}`), { action: "Subject Created", timestamp: Date.now(), target: SubjectName, actor: user.fullname });
+          SetSubjectName("")
+          onClose();
+        }
+      });
   }
 
   return (
@@ -79,7 +78,7 @@ export default function SubjectPage() {
           </CardHeader>
           <Divider />
           <CardBody p={4}>
-            <SubjectDataTable data={Subjects}/>
+            <SubjectDataTable fetchSubjects={fetchSubjects} data={Subjects} />
           </CardBody>
         </Card>
       </Stack>

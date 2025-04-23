@@ -12,6 +12,7 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -33,7 +34,7 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
 
   const reconstructedArray = parsedSubjects.map((name, index) => ({
     id: index + 1,
-    name: name,    
+    name: name,
   }));
 
   const toast = useToast();
@@ -50,16 +51,21 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
       return;
     }
     spinner(true)
-    
-    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=ProcessQuestionBatch",  {
+
+    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=ProcessQuestionBatch", {
       subject: SelectedSubject,
-      excel_data : File,
+      excel_data: File,
       creator: user.fullname
     }, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
+      headers: { "Content-Type": "multipart/form-data" },
+    })
       .then(response => {
-        toast({ title: "Batch Uploaded!", description: `${response.data.data.length} questions successfully created`, status: "success", duration: 3000, isClosable: true });
+        if (response.data.status === "not-found") {
+          toast({ title: response.data.message, description: response.data.description, status: "error", duration: 10000, isClosable: true, position: "center" });
+        } else {
+          toast({ title: "Batch Uploaded!", description: `${response.data.data.length} questions successfully created`, status: "success", duration: 3000, isClosable: true });
+        }
+
         spinner(false)
         onClose()
         SetFile(null)
@@ -67,7 +73,6 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
   };
 
   useEffect(() => {
-    console.log(reconstructedArray)
     if (
       !Array.isArray(reconstructedArray) || // not an array
       reconstructedArray.length === 0 || // empty array
@@ -85,7 +90,7 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
         .catch((error) => {
           console.error("Error fetching subjects:", error);
         });
-    }else {
+    } else {
       SetSubjects(reconstructedArray)
       SetSelectedSubject(reconstructedArray[0].name)
     }
@@ -134,41 +139,43 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay>
-        <ModalContent>
-          <ModalCloseButton />
-          <ModalHeader>
-            <Text fontWeight="semibold">UPLOAD CSV or XLSX</Text>
-          </ModalHeader>
-          <ModalBody>
-            <Stack>
-              <Text fontWeight="semibold">SUBJECT</Text>
-              {RenderSubject()}
-              <Text fontWeight="semibold">SELECT FILE TO UPLOAD</Text>
-              <Input size="sm" type="file" accept=".csv, .xlsx" onChange={HandeFileChange} />
-            </Stack>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              leftIcon={<TbDownload />}
-              size="sm"
-              mr={2}
-              onClick={handleDownload}
-            >
-              Template
-            </Button>
-            <Button
-              colorScheme="green"
-              size="sm"
-              leftIcon={<TbCheck />}
-              onClick={HandleCreate}
-            >
-              Upload File
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </ModalOverlay>
-    </Modal>
+    <>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay>
+          <ModalContent>
+            <ModalCloseButton />
+            <ModalHeader>
+              <Text fontWeight="semibold">UPLOAD CSV or XLSX</Text>
+            </ModalHeader>
+            <ModalBody>
+              <Stack>
+                <Text fontWeight="semibold">SUBJECT</Text>
+                {RenderSubject()}
+                <Text fontWeight="semibold">SELECT FILE TO UPLOAD</Text>
+                <Input size="sm" type="file" accept=".csv, .xlsx" onChange={HandeFileChange} />
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                leftIcon={<TbDownload />}
+                size="sm"
+                mr={2}
+                onClick={handleDownload}
+              >
+                Template
+              </Button>
+              <Button
+                colorScheme="green"
+                size="sm"
+                leftIcon={<TbCheck />}
+                onClick={HandleCreate}
+              >
+                Upload File
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
+    </>
   );
 }

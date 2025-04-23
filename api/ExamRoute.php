@@ -88,6 +88,15 @@ switch ($action) {
 
     echo json_encode($exams);
     break;
+    case "change_status":
+      if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        echo json_encode(["message" => "Invalid request method"]);
+        exit;
+      }
+      $data = json_decode(file_get_contents("php://input"), true);
+      $exams = $exam->change_status($data['id'], $data['status']);
+      echo json_encode($exams);
+      break;
   case "update":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
