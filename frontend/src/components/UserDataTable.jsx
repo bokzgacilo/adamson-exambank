@@ -2,6 +2,7 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { useEffect, useRef, useState } from "react";
 import { PrimeReactProvider } from "primereact/api";
+import Swal from 'sweetalert2'
 import {
   Avatar,
   Divider,
@@ -162,31 +163,43 @@ export default function UserDataTable({ data, fetchMasterData }) {
   );
 
   const HandleUpdateSubjects = () => {
-    console.log(SelectUserSubject);
+    onThirdClose();
 
     const data = {
       id: SelectedCredential.id,
       userSubjects: SelectUserSubject,
     };
 
-    axios
-      .post(
-        `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
-        data
-      )
-      .then((response) => {
-        if (response.data) {
-          toast({
-            title: "User subjects updated",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
+    Swal.fire({
+      title: "Adding Subjects",
+      text: "Are you sure you want to assigned these subjects?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, confirm changes"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+        .post(
+          `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
+          data
+        )
+        .then((response) => {
+          if (response.data) {
+            toast({
+              title: "User subjects updated",
+              status: "success",
+              duration: 3000,
+              isClosable: true,
+            });
 
-          onThirdClose();
-          fetchMasterData();
-        }
-      });
+            onThirdClose();
+            fetchMasterData();
+          }
+        });
+      }
+    });
   };
 
   const HandleUpdatePassword = () => {
@@ -276,7 +289,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
       <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>ASSIGNED SUBJECTS</ModalHeader>
+          <ModalHeader>Assigned Subjects</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
@@ -351,10 +364,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
             <Stack spacing={4}>
               {SelectedCredential !== null && (
                 <>
-                  <Heading size="md">Username</Heading>
+                  <Heading size="sm">Username</Heading>
                   <Input value={SelectedCredential.username} isReadOnly />
-                  <Heading size="md">Password</Heading>
+                  <Heading size="sm">Password</Heading>
                   <Input
+                    type="password"
                     value={NewPassword}
                     onChange={(e) => SetNewPassword(e.currentTarget.value)}
                   />

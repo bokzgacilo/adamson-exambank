@@ -32,7 +32,7 @@ ExamBuilder.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
-export default function ExamBuilder({refreshData, isOpen, onClose }) {
+export default function ExamBuilder({ refreshData, isOpen, onClose }) {
   const toast = useToast();
   const user = useUserStore((state) => state.user);
   const [ExamName, SetExamName] = useState("");
@@ -80,14 +80,16 @@ export default function ExamBuilder({refreshData, isOpen, onClose }) {
 
     if (mode === "upload") {
       axios
-        .get(
-          `http://localhost/exam-bank/api/ExamRoute.php?action=GenerateTOSQuestion&Subject=${SelectedSubject}&TOS=${JSON.stringify(
-            TOS
-          )}`
-        )
+        .post('http://localhost/exam-bank/api/ExamRoute.php?action=GenerateTOSQuestion', {
+          subject: SelectedSubject,
+          tos: TOS,
+          mode: mode,
+        })
         .then((response) => {
           SetQuestionSet(response.data.data);
+          SetTOS(response.data.tos)
           SetStepOne(false);
+          // console.log(response.data)
         });
     } else {
       SetQuestionSet([]);
@@ -95,7 +97,7 @@ export default function ExamBuilder({refreshData, isOpen, onClose }) {
     }
   };
 
- 
+
   const HandleCreateExam = () => {
     const totalSum = Object.values(TOS)
       .map(Number)
@@ -174,7 +176,7 @@ export default function ExamBuilder({refreshData, isOpen, onClose }) {
                     justifyContent="space-evenly"
                   >
                     <Radio value="upload">
-                      <Heading size="sm">Upload TOS</Heading>
+                      <Heading size="sm">Exam Generator</Heading>
                     </Radio>
                     <Radio value="manual">
                       <Heading size="sm">Manual TOS</Heading>
@@ -223,7 +225,7 @@ export default function ExamBuilder({refreshData, isOpen, onClose }) {
           </Button>
         </ModalFooter>
       </ModalContent>
-      {}
+      { }
     </Modal>
   );
 }

@@ -23,11 +23,11 @@ class Exam
   {
     // If type is ADMIN, return all exams
     if ($type === 'Admin') {
-        $query = "SELECT * FROM exam";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
+      $query = "SELECT * FROM exam";
+      $stmt = $this->conn->prepare($query);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     // Else: decode and sanitize subjects
@@ -37,7 +37,7 @@ class Exam
 
     // If subjects is empty, return empty result
     if (empty($subjectsArray)) {
-        return [];
+      return [];
     }
 
     // Prepare placeholders and query
@@ -79,23 +79,50 @@ class Exam
 
   public function GenerateTOSQuestion($tos, $subject)
   {
-    $final_questions = [];
+    $question_list = [];
 
-    foreach ($tos as $classification => $count) {
-      $query = "SELECT * FROM question WHERE classification = ? AND subject = ? ORDER BY RAND() LIMIT ?";
-      $stmt = $this->conn->prepare($query);
-      $stmt->bind_param("ssi", $classification, $subject, $count);
-      $stmt->execute();
-      $result = $stmt->get_result();
+    // Assuming you have a PDO connection stored in $this->conn
+    $pdo = $this->conn;
 
-      while ($row = $result->fetch_assoc()) {
-        $final_questions[] = $row;
+    foreach ($tos as $entry) {
+      $classification = $entry['classification'];
+      $categories = $entry['categories'];
+
+      foreach ($categories as $category => $limit) {
+        if ($limit > 0) {
+          // Prepare SQL query
+          $query = "
+            SELECT * FROM question
+            WHERE subject = ? 
+            AND classification = ? 
+            AND category = ? 
+            ORDER BY RAND()
+            LIMIT ?
+          ";
+
+          if ($stmt = $this->conn->prepare($query)) {
+            // Bind parameters
+            $stmt->bind_param('sssi', $subject, $classification, $category, $limit);
+
+            // Execute query
+            $stmt->execute();
+
+            // Fetch results
+            $result = $stmt->get_result();
+            $results = $result->fetch_all(MYSQLI_ASSOC);
+
+            // Merge results
+            $question_list = array_merge($question_list, $results);
+
+            // Close statement
+            $stmt->close();
+          }
+        }
       }
     }
 
-    return $final_questions;
+    return $question_list;
   }
-
 
   public function Export($data, $subject)
   {

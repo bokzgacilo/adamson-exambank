@@ -27,7 +27,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-
+      console.log(response.data)
       SetTOS(response.data);
     } catch (error) {
       console.error("Error uploading file:", error);

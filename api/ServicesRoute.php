@@ -6,40 +6,43 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 require './vendor/autoload.php';
 require_once './config/database.php';
+require_once './service/mailer.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 $action = $_GET['action'] ?? '';
 
-function insertQuestion($question, $options, $category, $classification, $created_by, $subject, $terms) {
+function insertQuestion($question, $options, $category, $classification, $created_by, $subject, $terms)
+{
   global $conn;
 
   $sql = "INSERT INTO question (question, options, category, classification, created_by, subject, terms) 
           VALUES (?, ?, ?, ?, ?, ?, ?)";
 
   if ($stmt = $conn->prepare($sql)) {
-      $jsonOptions = json_encode($options); // Convert array to JSON
+    $jsonOptions = json_encode($options); // Convert array to JSON
 
-      $stmt->bind_param("sssssss", $question, $jsonOptions, $category, $classification, $created_by, $subject, $terms);
-      
-      if ($stmt->execute()) {
-          $insertedId = $stmt->insert_id; // Get last inserted ID
-          $stmt->close();
-          return $insertedId;
-      } else {
-          return "Error: " . $stmt->error;
-      }
+    $stmt->bind_param("sssssss", $question, $jsonOptions, $category, $classification, $created_by, $subject, $terms);
+
+    if ($stmt->execute()) {
+      $insertedId = $stmt->insert_id; // Get last inserted ID
+      $stmt->close();
+      return $insertedId;
+    } else {
+      return "Error: " . $stmt->error;
+    }
   } else {
-      return "Error: " . $conn->error;
+    return "Error: " . $conn->error;
   }
 }
 
 
-function convertToLegendArray($baseString) {
+function convertToLegendArray($baseString)
+{
   $legend = [
-      "1" => "Prelims",
-      "2" => "Midterms",
-      "3" => "Finals"
+    "1" => "Prelims",
+    "2" => "Midterms",
+    "3" => "Finals"
   ];
   $keys = explode(",", $baseString);
   $result = array_map(function ($key) use ($legend) {
@@ -89,19 +92,23 @@ switch ($action) {
         }
 
         if (isset($rowData["B"]) && strtoupper($rowData["B"]) === "EN") {
-          $option = [[
-            "id" => 1,
-            "option" => $rowData["D"] ?? null,
-            "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
-          ]];
+          $option = [
+            [
+              "id" => 1,
+              "option" => $rowData["D"] ?? null,
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ]
+          ];
         }
 
         if (isset($rowData["B"]) && in_array(strtoupper($rowData["B"]), ["ID", "NUM"])) {
-          $option = [[
-            "id" => 1,
-            "option" => $rowData["D"] ?? null,
-            "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
-          ]];
+          $option = [
+            [
+              "id" => 1,
+              "option" => $rowData["D"] ?? null,
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ]
+          ];
         }
 
         if (isset($rowData["B"]) && strtoupper($rowData["B"]) === "TF") {
@@ -109,7 +116,7 @@ switch ($action) {
             [
               "id" => 1,
               "option" => "True",
-              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" 
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : ""
             ],
             [
               "id" => 2,
@@ -204,6 +211,35 @@ switch ($action) {
       echo json_encode(["message" => "Error processing file", "error" => $e->getMessage()]);
     }
     break;
+  case "reset_password":
+    $email = $_POST['email'];
+
+    $newPassword = generateRandomPassword();
+
+    $query = "SELECT name FROM user WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $email);
+    $stmt->execute(); // Optional: check $stmt->affected_rows
+    $stmt->bind_result($name);
+    if ($stmt->fetch()) {
+      $stmt->close();
+      $client_name = $name;
+      $updateQuery = "UPDATE user SET password = ? WHERE username = ?";
+      $updateStmt = $conn->prepare($updateQuery);
+      $updateStmt->bind_param("ss", $newPassword, $email);
+      $updateStmt->execute();
+
+      if (sendPasswordResetEmail($newPassword, $email, $client_name)) {
+        echo json_encode(["status" => "success", "message" => "Password Reset", "description" => "User password successfully reset. New password was sent to their email"]);
+      } else {
+        echo json_encode(["error" => "Resetting password error"]);
+        exit();
+      }
+    } else {
+      echo json_encode(["status" => "no-user-found", "message" => "Email is not registerd", "description" => "Email provided is not registered to exam bank. Please contact Administrator for more details."]);
+      exit();
+    }
+    break;
   case "upload_tos":
     $fileTmpPath = $_FILES["file"]["tmp_name"];
 
@@ -215,28 +251,93 @@ switch ($action) {
       $spreadsheet = IOFactory::load($fileTmpPath);
       $sheet = $spreadsheet->getActiveSheet();
 
-      $columns = [
-        "Knowledge" => "B2",
-        "Comprehension" => "C2",
-        "Application" => "D2",
-        "Analysis" => "E2",
-        "Synthesis" => "F2",
-        "Evaluation" => "G2"
+      $fields = [
+        [
+          'classification' => 'Knowledge',
+          'categories' => [
+            'Identification' => 'B3',
+            'True/False' => 'B4',
+            'Multiple' => 'B5',
+            'Numeric' => 'B6'
+          ],
+        ],
+        [
+          'classification' => 'Comprehension',
+          'categories' => [
+            'Identification' => 'C3',
+            'True/False' => 'C4',
+            'Multiple' => 'C5',
+            'Numeric' => 'C6'
+          ],
+        ],
+        [
+          'classification' => 'Application',
+          'categories' => [
+            'Identification' => 'D3',
+            'True/False' => 'D4',
+            'Multiple' => 'D5',
+            'Numeric' => 'D6'
+          ],
+        ],
+        [
+          'classification' => 'Analysis',
+          'categories' => [
+            'Identification' => 'E3',
+            'True/False' => 'E4',
+            'Multiple' => 'E5',
+            'Numeric' => 'E6'
+          ],
+        ],
+        [
+          'classification' => 'Synthesis',
+          'categories' => [
+            'Identification' => 'F3',
+            'True/False' => 'F4',
+            'Multiple' => 'F5',
+            'Numeric' => 'F6'
+          ],
+        ],
+        [
+          'classification' => 'Evaluation',
+          'categories' => [
+            'Identification' => 'G3',
+            'True/False' => 'G4',
+            'Multiple' => 'G5',
+            'Numeric' => 'G6'
+          ],
+        ]
       ];
 
-      $data = [];
-
-      foreach ($columns as $key => $cellRef) {
-        $cellValue = $sheet->getCell($cellRef)->getValue();
-
-        $data[$key] = (is_numeric($cellValue)) ? intval($cellValue) : 0;
+      foreach ($fields as &$field) {
+        foreach ($field['categories'] as $category => $cellRef) {
+          if (is_string($cellRef) && !empty($cellRef)) {
+            $value = $sheet->getCell($cellRef)->getValue();
+            $field['categories'][$category] = is_numeric($value) ? $value : 0;
+          } else {
+            $field['categories'][$category] = 0;
+          }
+        }
       }
+      unset($field); // avoid accidental reference bugs
 
-      echo json_encode($data);
+      echo json_encode($fields);
     } catch (Exception $e) {
       echo json_encode(["error" => "Error processing file: " . $e->getMessage()]);
     }
     break;
   default:
     echo json_encode(["message" => "Invalid action"]);
+}
+
+function generateRandomPassword($length = 12)
+{
+  $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+  $password = '';
+  $maxIndex = strlen($chars) - 1;
+
+  for ($i = 0; $i < $length; $i++) {
+    $password .= $chars[random_int(0, $maxIndex)];
+  }
+
+  return $password;
 }

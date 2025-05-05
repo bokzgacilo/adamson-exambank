@@ -29,6 +29,8 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
 
   const QuestionLabel = useRef(null)
   const QuestionInput = useRef(null)
+  const TermsLabel = useRef(null)
+  const TermsInput = useRef(null)
   const OptionLabel = useRef(null)
   const OptionInput = useRef(null)
 
@@ -69,6 +71,15 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
 
     const hasEmptyOption = multipleChoices.some(item => item.option.trim() === "");
     const hasCorrectAnswer = multipleChoices.some(item => item.is_correct === true);
+
+    if(selectedTerms.length === 0){
+      TermsLabel.current.style.display = "block"; // to show
+      TermsInput.current.style.backgroundColor = "red"; // Chakra accepts normal CSS values here
+      return; // Stop further execution
+    }else {
+      TermsLabel.current.style.display = "none"; // to show
+      TermsInput.current.style.backgroundColor = "#fff"; // Chakra accepts normal CSS values here
+    }
 
     if (hasEmptyOption || !hasCorrectAnswer || multipleChoices.length === 0) {
       OptionLabel.current.style.display = "block"; // to show
@@ -122,13 +133,15 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             <Text fontWeight="semibold" mt={4}>Question (required)</Text>
             <Input ref={QuestionInput} size="sm" placeholder="Enter question" value={question} onChange={(e) => setQuestion(e.target.value)} />
             <Text ref={QuestionLabel} display="none" color="red" fontSize="12px">This is required field</Text>
-            <Text fontWeight="semibold" mt={4} >Terms</Text>
-
-            <CheckboxGroup colorScheme="blue" value={selectedTerms} onChange={setSelectedTerms}>
-              <HStack justifyContent="space-evenly">
-                {["Prelims", "Midterms", "Finals"].map(term => <Checkbox key={term} value={term}>{term}</Checkbox>)}
-              </HStack>
-            </CheckboxGroup>
+            <Stack ref={TermsInput} mt={4}>
+              <Text fontWeight="semibold" >Terms (required)</Text>
+              <CheckboxGroup colorScheme="blue" value={selectedTerms} onChange={setSelectedTerms}>
+                <HStack justifyContent="space-evenly">
+                  {["Prelims", "Midterms", "Finals"].map(term => <Checkbox key={term} value={term}>{term}</Checkbox>)}
+                </HStack>
+              </CheckboxGroup>
+              <Text ref={TermsLabel} display="none" fontSize="12px">This is required field</Text>
+            </Stack>
             <Text mt={4} fontWeight="semibold">Classification</Text>
             <Select size="sm" value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
               {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val) => (

@@ -43,28 +43,37 @@ switch ($action) {
     echo json_encode($exams);
     break;
   case "GenerateTOSQuestion":
-    if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["success" => false, "message" => "Invalid request method"]);
       exit;
     }
+    $input = json_decode(file_get_contents('php://input'), true);
 
-    if (!isset($_GET['TOS']) || empty($_GET['TOS'])) {
+    if (!isset($input['tos']) || empty($input['tos'])) {
       echo json_encode(["success" => false, "message" => "TOS parameter is required"]);
       exit;
     }
 
-    $tos = json_decode($_GET['TOS'], true);
+    $tos = $input['tos'];
 
     if (!is_array($tos)) {
       echo json_encode(["success" => false, "message" => "Invalid TOS format"]);
       exit;
     }
+    $full_tos = [];
 
-    $exams = $exam->GenerateTOSQuestion($tos, $_GET['Subject']);
+    // Iterate through each classification in the input
+    foreach ($input['tos'] as $tos_item) {
+      // Sum all the values in the categories array
+      $category_sum = array_sum($tos_item['categories']);
+      // Add the classification and its summed category value to the full_tos array
+      $full_tos[$tos_item['classification']] = $category_sum;
+    }
 
-    echo json_encode(["success" => true, "data" => $exams]);
+    $exams = $exam->GenerateTOSQuestion($tos, $input['subject']);
+
+    echo json_encode(["success" => true, "data" => $exams, "tos" => $full_tos]);
     break;
-
   case "viewAll":
     if ($_SERVER["REQUEST_METHOD"] !== "GET") {
       echo json_encode(["message" => "Invalid request method"]);

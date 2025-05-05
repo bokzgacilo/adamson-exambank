@@ -28,7 +28,7 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
   const [globalFilter, setGlobalFilter] = useState("");
   const {user} = useUserStore();
   const toast = useToast()
-
+  
   const handleStatusChange = (id, newStatus) => {
       const data = {
         id: id,
@@ -59,9 +59,10 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
         size="sm"
         onChange={(e) => handleStatusChange(rowData.id, e.target.value)}
         value={rowData.status === 1 ? 1 : 0}
+        disabled={user.usertype === "Instructor" ? true : false}
       >
-        <option value="1">True</option>
-        <option value="0">False</option>
+        <option value="1">Active</option>
+        <option value="0">Inactive</option>
       </Select>
     );
 
@@ -118,7 +119,7 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
         <Column field="created_by" header="Created By" sortable></Column>
         <Column
           field="status"
-          header="Is Active?"
+          header="Status"
           body={StatusTemplate}
         ></Column>
       </DataTable>
