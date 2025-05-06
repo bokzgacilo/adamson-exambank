@@ -79,7 +79,7 @@ class Question
 
     // ✅ If user is Admin, return all questions
     if ($type === "Admin") {
-        $query = "SELECT * FROM question WHERE status=true";
+        $query = "SELECT * FROM question WHERE status=1";
         $stmt = $this->conn->query($query);
         return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
     }
@@ -91,7 +91,7 @@ class Question
 
     // ✅ Else: Filter based on subjects
     $placeholders = implode(',', array_fill(0, count($subject_array), '?'));
-    $query = "SELECT * FROM question WHERE subject IN ($placeholders)";
+    $query = "SELECT * FROM question WHERE subject IN ($placeholders) AND status = 1";
     
     $stmt = $this->conn->prepare($query);
     if (!$stmt) {

@@ -42,7 +42,7 @@ class Exam
 
     // Prepare placeholders and query
     $placeholders = implode(',', array_fill(0, count($subjectsArray), '?'));
-    $query = "SELECT * FROM exam WHERE subject IN ($placeholders)";
+    $query = "SELECT * FROM exam WHERE subject IN ($placeholders) AND status = 1";
     $stmt = $this->conn->prepare($query);
 
     // Bind parameters dynamically
@@ -53,8 +53,6 @@ class Exam
     $result = $stmt->get_result();
     return $result->fetch_all(MYSQLI_ASSOC);
   }
-
-
 
   public function getAllQuestion($assigned_subject)
   {

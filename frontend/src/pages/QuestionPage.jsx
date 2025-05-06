@@ -37,28 +37,27 @@ export default function QuestionPage() {
   } = useDisclosure();
   const [Questions, SetQuestions] = useState([]);
 
+  const FetchAllQuestions = async () => {
+    await axios
+      .post(
+        `http://localhost/exam-bank/api/QuestionRoute.php?action=viewAll`,
+        {
+          subject: user.user_assigned_subject,
+          type: user.usertype,
+        }
+      )
+      .then((response) => {
+        SetQuestions(response.data);
+      });
+  };
+
   useEffect(() => {
-
-    const FetchAllQuestions = async () => {
-      await axios
-        .post(
-          `http://localhost/exam-bank/api/QuestionRoute.php?action=viewAll`,
-          {
-            subject: user.user_assigned_subject,
-            type: user.usertype,
-          }
-        )
-        .then((response) => {
-          SetQuestions(response.data);
-        });
-    };
-
     FetchAllQuestions();
 
     const logRef = ref(database, "/logs");
 
     const unsubscribe = onChildAdded(logRef, () => {
-      FetchAllQuestions()
+      // FetchAllQuestions()
     });
 
     return () => unsubscribe(); // Cleanup listener on unmount
