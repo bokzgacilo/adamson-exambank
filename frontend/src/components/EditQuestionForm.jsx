@@ -61,7 +61,6 @@ export default function EditQuestionForm({
 
   useEffect(() => {
     SetUpdatedQuestionData(data)
-    console.log(Subjects)
   }, [
     Question,
     MultipleChoices,
@@ -90,7 +89,6 @@ export default function EditQuestionForm({
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
-    console.log(subject)
     SetSelectedSubject(subject);
   };
 

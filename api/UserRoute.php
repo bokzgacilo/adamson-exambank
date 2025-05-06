@@ -59,6 +59,15 @@ switch ($action) {
     $users = $user->change_password($data['id'], $data['password']);
     echo json_encode($users);
     break;
+  case "delete":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    $users = $user->delete($data['id']);
+    echo json_encode($users);
+    break;
 
   case "change_avatar":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {

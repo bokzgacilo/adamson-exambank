@@ -45,7 +45,6 @@ export default function SubjectDataTable({ data, fetchSubjects }) {
 
 
   const RenderActionButtons = (rowData) => {
-
     return (
       <Button colorScheme="red" size="sm" leftIcon={<TbTrash />} onClick={() => SetDeleteSubject(rowData.name)}>
         Delete

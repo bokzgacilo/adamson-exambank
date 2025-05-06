@@ -89,7 +89,6 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
           SetQuestionSet(response.data.data);
           SetTOS(response.data.tos)
           SetStepOne(false);
-          // console.log(response.data)
         });
     } else {
       SetQuestionSet([]);
@@ -119,7 +118,6 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
           data
         )
         .then((response) => {
-          console.log(response.data);
           // FIREBASE CREATE EXAM
         })
         .catch((error) => {

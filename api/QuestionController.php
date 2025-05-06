@@ -79,7 +79,7 @@ class Question
 
     // ✅ If user is Admin, return all questions
     if ($type === "Admin") {
-        $query = "SELECT * FROM question";
+        $query = "SELECT * FROM question WHERE status=true";
         $stmt = $this->conn->query($query);
         return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
     }
@@ -109,7 +109,7 @@ class Question
 
   public function QuestionForBank($subject)
   {
-    $query = "SELECT id, question, options, category, classification 
+    $query = "SELECT id, question, options, category, classification,terms
           FROM question 
           WHERE subject = ? AND status <> 0";
 

@@ -31,8 +31,11 @@ import {
   AlertDialogFooter
 } from "@chakra-ui/react";
 import axios from "axios";
-import { TbPlus, TbX } from "react-icons/tb";
+import { TbPlus, TbTrash, TbX } from "react-icons/tb";
 import PropTypes from "prop-types";
+import { ref, set } from "firebase/database";
+import { database } from "../helper/Firebase";
+import useUserStore from "../helper/useUserStore";
 
 UserDataTable.propTypes = {
   data: PropTypes.object.isRequired,
@@ -41,17 +44,26 @@ UserDataTable.propTypes = {
 
 export default function UserDataTable({ data, fetchMasterData }) {
   const [globalFilter, setGlobalFilter] = useState("");
+  const {user} = useUserStore()
 
   const {
     isOpen: isSecondOpen,
     onOpen: onSecondOpen,
     onClose: onSecondClose,
   } = useDisclosure();
+
   const {
     isOpen: isThirdOpen,
     onOpen: onThirdOpen,
     onClose: onThirdClose,
   } = useDisclosure();
+
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+
   const [isOpen, setIsOpen] = useState(false);
   const [SelectedCredential, SetSelectedCredential] = useState(null);
   const [SelectedSubject, SetSelectedSubject] = useState("");
@@ -61,7 +73,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const toast = useToast();
   const onClose = () => setIsOpen(false);
   const cancelRef = useRef()
-  
+
 
   const [selectedUserId, setSelectedUserId] = useState("")
   const [newStatusValue, setNewStatusValue] = useState("")
@@ -181,23 +193,23 @@ export default function UserDataTable({ data, fetchMasterData }) {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-        .post(
-          `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
-          data
-        )
-        .then((response) => {
-          if (response.data) {
-            toast({
-              title: "User subjects updated",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
+          .post(
+            `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
+            data
+          )
+          .then((response) => {
+            if (response.data) {
+              toast({
+                title: "User subjects updated",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
 
-            onThirdClose();
-            fetchMasterData();
-          }
-        });
+              onThirdClose();
+              fetchMasterData();
+            }
+          });
       }
     });
   };
@@ -257,9 +269,70 @@ export default function UserDataTable({ data, fetchMasterData }) {
     );
   };
 
+  const [selectedUser, setSelectedUser] = useState("")
+
+  const RenderActionButtons = (rowData) => {
+    return (
+      <Button colorScheme="red" size="sm" leftIcon={<TbTrash />} onClick={() => SetSelectedUserToDelete(rowData.id)}>
+        Delete
+      </Button>
+    )
+  }
+
+  const SetSelectedUserToDelete = (user_id) => {
+    setSelectedUser(user_id)
+    onDeleteOpen()
+  }
+
+  const handleDelete = () => {
+    axios
+      .post("http://localhost/exam-bank/api/UserRoute.php?action=delete", {
+        id: selectedUser,
+      })
+      .then((response) => {
+        if (response) {
+          set(ref(database, `logs/${Date.now()}`), {
+            action: "User Deleted",
+            timestamp: Date.now(),
+            target: selectedUser,
+            actor: user.fullname,
+          });
+        }
+
+        fetchMasterData();
+      });
+    onDeleteClose();
+  };
+
   return (
     <PrimeReactProvider>
-       <AlertDialog
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Confirm Delete
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this user?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button size="sm" onClick={onDeleteClose}>
+                No
+              </Button>
+              <Button size="sm" colorScheme="blue" onClick={handleDelete} ml={3}>
+                Yes
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      <AlertDialog
         isOpen={isOpen}
         leastDestructiveRef={cancelRef}
         onClose={onClose}
@@ -301,7 +374,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
                   mb={4}
                 >
                   {AvailableSubjects
-                    .filter(subject => !SelectUserSubject.includes(subject.name)) 
+                    .filter(subject => !SelectUserSubject.includes(subject.name))
                     .map((subject) => (
                       <option key={subject.id} value={subject.name}>
                         {subject.name}
@@ -419,6 +492,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
           field="status"
           header="Is Active?"
           body={StatusTemplate}
+        ></Column>
+        <Column
+          field="id"
+          header="Action"
+          body={RenderActionButtons}
         ></Column>
       </DataTable>
     </PrimeReactProvider>

@@ -34,19 +34,33 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
   const [Questions, SetQuestions] = useState([]);
   const [filteredClassification, setFilteredClassification] = useState("");
   const [filteredCategory, setFilteredCategory] = useState('');
+  const [filteredTerm, setFilteredTerm] = useState("")
 
   const filteredQuestions = Questions.filter((q) => {
-    const matchClassification = filteredClassification === '' || q.classification === filteredClassification;
-    const matchCategory = filteredCategory === '' || q.category === filteredCategory;
-    return matchClassification && matchCategory;
+    const matchClassification =
+      filteredClassification === '' || q.classification === filteredClassification;
+  
+    const matchCategory =
+      filteredCategory === '' || q.category === filteredCategory;
+  
+    let matchTerm = true;
+    if (filteredTerm !== '') {
+      if (q.terms && q.terms.startsWith('[')) {
+        try {
+          const termArray = JSON.parse(q.terms);
+          matchTerm = termArray.includes(filteredTerm);
+        } catch (e) {
+          matchTerm = false;
+        }
+      } else {
+        matchTerm = false;
+      }
+    }
+  
+    return matchClassification && matchCategory && matchTerm;
   });
 
   const [, SetSubjects] = useState([]);
-
-  useEffect(() => {
-    console.log(TOS)
-  }, [])
-
   const handleCheckboxChange = (id) => {
     SetQuestionSet((prevItems) => {
       const isAlreadySelected = prevItems.some((item) => item.id === id);
@@ -263,7 +277,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
         <Select
           size="sm"
           onChange={(e) => setFilteredClassification(e.target.value)}
-          mb={4}
+          mb={2}
         >
           <option value="">All</option>
           <option value="Knowledge">Knowledge</option>
@@ -278,13 +292,25 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
           size="sm"
           value={filteredCategory}
           onChange={(e) => setFilteredCategory(e.target.value)}
-          mb={4}
+          mb={2}
         >
           <option value="">All</option>
           <option value="Multiple">Multiple Choice</option>
           <option value="Numeric">Numeric</option>
           <option value="Identification">Identification</option>
           <option value="True/False">True/False</option>
+        </Select>
+        <Text fontWeight="semibold">SORT BY TERM</Text>
+        <Select
+          size="sm"
+          value={filteredTerm}
+          onChange={(e) => setFilteredTerm(e.target.value)}
+          mb={2}
+        >
+          <option value="">All</option>
+          <option value="Prelims">Prelims</option>
+          <option value="Midterms">Midterms</option>
+          <option value="Finals">Finals</option>
         </Select>
 
         <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">
