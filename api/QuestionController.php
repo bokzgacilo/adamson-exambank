@@ -8,11 +8,11 @@ class Question
     $this->conn = $db;
   }
 
-  public function create($question, $options, $answer, $category, $name, $subject, $term, $classification)
+  public function create($question, $options, $department, $answer, $category, $name, $subject, $term, $classification)
   {
-    $query = "INSERT INTO question (question, options, answer, category, created_by, subject, terms, classification) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO question (question, options, department, answer, category, created_by, subject, terms, classification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("ssssssss", $question, $options, $answer, $category, $name, $subject, $term, $classification);
+    $stmt->bind_param("sssssssss", $question, $options, $department, $answer, $category, $name, $subject, $term, $classification);
 
     if ($stmt->execute()) {
       $last_id = $this->conn->insert_id;
@@ -29,10 +29,11 @@ class Question
     return false;
   }
 
-  public function update($id, $question, $options, $answer, $category, $name, $subject, $term, $classification)
+  public function update($id, $question, $department, $options, $answer, $category, $name, $subject, $term, $classification)
   {
     $query = "UPDATE question 
       SET question = ?, 
+          department = ?,
           options = ?, 
           answer = ?, 
           category = ?, 
@@ -48,7 +49,7 @@ class Question
       die("Prepare failed: " . $this->conn->error);
     }
 
-    $stmt->bind_param("ssssssssi", $question, $options, $answer, $category, $name, $subject, $term, $classification, $id);
+    $stmt->bind_param("sssssssssi", $question,  $department, $options, $answer, $category, $name, $subject, $term, $classification, $id);
 
     if ($stmt->execute()) {
       $fetch_query = "SELECT * FROM question WHERE id = ?";
@@ -104,8 +105,7 @@ class Question
     $result = $stmt->get_result();
 
     return json_encode($result->fetch_all(MYSQLI_ASSOC));
-}
-
+  }
 
   public function QuestionForBank($subject)
   {

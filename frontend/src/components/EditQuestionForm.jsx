@@ -30,6 +30,9 @@ export default function EditQuestionForm({
 }) {
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
+  const parsedDepartments = JSON.parse(user.user_assigned_department) || [];
+
+
   const [SelectedOption, SetSelectedOption] = useState(QuestionData.category);
   const [SelectedClassification, SetSelectedClassification] = useState(
     QuestionData.classification
@@ -41,8 +44,14 @@ export default function EditQuestionForm({
     MultipleChoices.map((choice) => choice.option).join("\n")
   );
   const [Question, SetQuestion] = useState(QuestionData.question);
+
   const [Subjects, SetSubjects] = useState([]);
   const [SelectedSubject, SetSelectedSubject] = useState("");
+
+  const [Departments, SetDepartments] = useState([]);
+  const [SelectedDepartment, SetSelectedDepartment] = useState("");
+
+
   const [SelectedTerms, SetSelectedTerms] = useState(
     JSON.parse(QuestionData.terms)
   );
@@ -55,6 +64,7 @@ export default function EditQuestionForm({
     category: SelectedOption,
     created_by: user.fullname,
     terms: SelectedTerms,
+    department: SelectedDepartment,
     subject: SelectedSubject,
     classification: SelectedClassification,
   };
@@ -71,7 +81,7 @@ export default function EditQuestionForm({
   ])
 
   useEffect(() => {
-    if (parsedSubjects.includes("None") || parsedSubjects.length === 0) {
+    if (user.usertype === "Admin") {
       axios
         .get("http://localhost/exam-bank/api/SubjectRoute.php", {
           params: { action: "GetAllSubjects", type: user.usertype },
@@ -85,12 +95,31 @@ export default function EditQuestionForm({
       SetSubjects(parsedSubjects);
       SetSelectedSubject(parsedSubjects[0]);
     }
+    if (user.usertype === "Admin") {
+      axios
+        .get("http://localhost/exam-bank/api/SubjectRoute.php", {
+          params: { action: "GetAllDepartments", type: user.usertype },
+        })
+        .then(({ data }) => {
+          SetDepartments(data);
+          SetSelectedDepartment(data[0]?.name || "");
+        })
+        .catch(console.error);
+    } else {
+      SetDepartments(parsedDepartments);
+      SetSelectedDepartment(parsedDepartments[0]);
+    }
   }, []);
 
   const handleChangeSelectedSubject = (e) => {
     const subject = e.target.value;
     SetSelectedSubject(subject);
   };
+
+  const handleChangeSelectedDepartment = (e) => {
+     const department = e.target.value;
+    SetSelectedDepartment(department);
+  }
 
   const handleChangeClassification = (e) => {
     const classification = e.target.value;
@@ -121,6 +150,36 @@ export default function EditQuestionForm({
         {Subjects.map((subject, index) => (
           <option key={index} value={subject.name}>
             {subject.name}
+          </option>
+        ))}
+      </Select>
+    );
+  };
+
+  const RenderDepartment = () => {
+    return user.usertype === "Instructor" || user.usertype === "Coordinator" ? (
+      <Select
+        value={SelectedDepartment}
+        onChange={handleChangeSelectedDepartment}
+        mb={4}
+        size="sm"
+      >
+        {Departments.map((department, index) => (
+          <option key={index} value={department}>
+            {department}
+          </option>
+        ))}
+      </Select>
+    ) : (
+      <Select
+        value={SelectedDepartment}
+        onChange={handleChangeSelectedDepartment}
+        mb={4}
+        size="sm"
+      >
+        {Departments.map((department, index) => (
+          <option key={index} value={department.name}>
+            {department.name}
           </option>
         ))}
       </Select>
@@ -296,6 +355,8 @@ export default function EditQuestionForm({
         placeholder="Enter question"
         onChange={(e) => SetQuestion(e.currentTarget.value)}
       />
+      <Text fontWeight="semibold">DEPARTMENT</Text>
+      {RenderDepartment()}
       <Text fontWeight="semibold">TERMS</Text>
       <CheckboxGroup colorScheme="blue">
         <HStack justifyContent="space-evenly" mb={4}>

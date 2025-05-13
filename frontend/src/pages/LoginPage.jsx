@@ -164,6 +164,8 @@ export default function LoginPage() {
                           usertype: response.data.user.type,
                           user_assigned_subject:
                             response.data.user.assigned_subject || [],
+                          user_assigned_department:
+                            response.data.user.assigned_department || [],
                         };
 
                         useUserStore.getState().setUser(userData)

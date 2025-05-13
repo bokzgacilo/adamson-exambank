@@ -40,6 +40,17 @@ class Subject
 
     return $stmt->fetch_all(MYSQLI_ASSOC);
   }
+  public function GetAllDepartments($type)
+  {
+    if ($type === "Admin" || $type === "Coordinator") {
+      $query = "SELECT * FROM department";
+      $stmt = $this->conn->query($query);
+    } else {
+      return [];
+    }
+
+    return $stmt->fetch_all(MYSQLI_ASSOC);
+  }
 
   public function change_status($id, $status)
   {

@@ -175,10 +175,12 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
               value={AccessCode}
               onChange={(e) => SetAccessCode(e.currentTarget.value)}
               type="text"
+              size="sm"
               placeholder="Access Code"
             ></Input>
             {DLink !== "" ? (
               <Button
+              size="sm"
                 onClick={() =>
                   window.open(
                     `http://localhost/exam-bank/api/${DLink}`,
@@ -189,21 +191,16 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
                 Download
               </Button>
             ) : (
-              <Button colorScheme="blue" onClick={HandleExportToBlackboard}>
+              <Button size="sm" colorScheme="blue" onClick={HandleExportToBlackboard}>
                 Export
               </Button>
             )}
             {user.usertype !== "Instructor" && (
-              <Button colorScheme="yellow" onClick={HandleEdit}>
+              <Button size="sm" colorScheme="yellow" onClick={HandleEdit}>
                 Edit
               </Button>
             )}
-            {user.usertype !== "Instructor" && (
-              <Button colorScheme="red" onClick={HandleDelete}>
-                Delete
-              </Button>
-            )}
-            <Button onClick={onClose}>Close</Button>
+            <Button size="sm" onClick={onClose}>Close</Button>
           </Flex>
         </ModalFooter>
       </ModalContent>

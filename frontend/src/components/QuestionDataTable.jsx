@@ -32,7 +32,7 @@ QuestionDataTable.propTypes = {
   data: PropTypes.any.isRequired,
 };
 
-export default function QuestionDataTable({ data }) {
+export default function QuestionDataTable({ data, refreshTable }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [IsEditing, SetIsEditing] = useState(false);
   const [UpdatedQuestionData, SetUpdatedQuestionData] = useState([]);
@@ -77,6 +77,7 @@ export default function QuestionDataTable({ data }) {
         UpdatedQuestionData
       )
       .then((response) => {
+        refreshTable()
         toast({
           title: "Question Updated!",
           description: `Question ${UpdatedQuestionData.id} updated`,
@@ -261,6 +262,13 @@ export default function QuestionDataTable({ data }) {
           filterFunction={(value, filter) =>
             value ? value.some(term => term.toLowerCase().includes(filter.toLowerCase())) : false
           }
+        ></Column>
+        <Column
+          showFilterMenu={true}
+          field="department"
+          filter
+          header="Department"
+          sortable
         ></Column>
         <Column
           showFilterMenu={true}

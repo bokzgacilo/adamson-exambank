@@ -13,9 +13,10 @@ import {
   Button
 } from "@chakra-ui/react";
 import axios from "axios"
-
+import Swal from 'sweetalert2'
 import PropTypes from "prop-types";
 import useUserStore from "../helper/useUserStore";
+import { TbTrash } from "react-icons/tb";
 
 ExamDataTable.propTypes = {
   data: PropTypes.any.isRequired,
@@ -81,6 +82,45 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
       {rowData.exam_name}
     </Button>
   );
+
+  const actionTemplate = (rowData) => {
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e53e3e', // Chakra red.500
+      cancelButtonColor: '#a0aec0',  // Chakra gray.400
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.post(`http://localhost/exam-bank/api/ExamRoute.php?action=delete`, {
+          id: rowData.id
+        });
+        Swal.fire('Deleted!', 'The record has been deleted.', 'success');
+        getAllExams();
+      } catch (error) {
+        Swal.fire('Error!', 'Failed to delete.', 'error');
+        console.error('Delete failed:', error);
+      }
+    }
+  };
+
+  return (
+    <Button
+      leftIcon={<TbTrash />}
+      colorScheme="red"
+      size="sm"
+      onClick={handleDelete}
+    >
+      Delete
+    </Button>
+  );
+};
   
   return (
     <PrimeReactProvider>
@@ -122,6 +162,13 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
           header="Status"
           body={StatusTemplate}
         ></Column>
+        {user.usertype !== 'Instructor' && (
+          <Column
+            field="status"
+            header="Action"
+            body={actionTemplate}
+          />
+        )}
       </DataTable>
     </PrimeReactProvider>
   );

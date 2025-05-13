@@ -107,6 +107,25 @@ switch ($action) {
     $users = $user->update_subjects($id, $usersubjects);
     echo json_encode(["success" => $users]);
     break;
+  case "update_departments":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($input['id']) || !is_array($input['userDepartments'])) {
+      echo json_encode(["message" => "Missing or invalid required fields"]);
+      exit;
+    }
+
+    $id = (int) $input['id'];
+    $usersubjects = $input['userDepartments'];
+
+    $users = $user->update_departments($id, $usersubjects);
+    echo json_encode(["success" => $users]);
+    break;
   case "get_user_data":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);

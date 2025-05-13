@@ -44,7 +44,7 @@ UserDataTable.propTypes = {
 
 export default function UserDataTable({ data, fetchMasterData }) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const {user} = useUserStore()
+  const { user } = useUserStore()
 
   const {
     isOpen: isSecondOpen,
@@ -59,16 +59,26 @@ export default function UserDataTable({ data, fetchMasterData }) {
   } = useDisclosure();
 
   const {
+    isOpen: isDepartmentOpen,
+    onOpen: onDepartmentOpen,
+    onClose: onDepartmentClose,
+  } = useDisclosure();
+
+  const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [IsLoading, SetIsLoading] = useState(false)
   const [SelectedCredential, SetSelectedCredential] = useState(null);
   const [SelectedSubject, SetSelectedSubject] = useState("");
+  const [SelectedDepartment, SetSelectedDepartment] = useState("");
   const [SelectUserSubject, SetSelectUserSubject] = useState([]);
+  const [SelectUserDepartment, SetSelectUserDepartment] = useState([]);
   const [AvailableSubjects, SetAvailableSubjects] = useState([]);
+  const [AvailableDepartment, SetAvailableDepartment] = useState([]);
   const [NewPassword, SetNewPassword] = useState();
   const toast = useToast();
   const onClose = () => setIsOpen(false);
@@ -145,7 +155,41 @@ export default function UserDataTable({ data, fetchMasterData }) {
     return (
       <Button
         variant="ghost"
+         size="sm"
         onClick={() => HandleShowSubjects(rowData)}
+      >
+        {label}
+      </Button>
+    );
+  };
+  const renderDepartments = (rowData) => {
+    console.log(rowData)
+    let items = [];
+
+    try {
+      items = JSON.parse(rowData.assigned_department) || [];
+    } catch (e) {
+      console.error("Invalid JSON in assigned_subject", e);
+    }
+
+    const length = items.length;
+    let label = "";
+
+    if (length === 0) {
+      label = "No Assigned Department";
+    } else if (length === 1) {
+      label = items[0];
+    } else if (length === 2) {
+      label = `${items[0]}, ${items[1]}`;
+    } else {
+      label = `${items[0]}, ${items[1]}, ${length - 2} more`;
+    }
+
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => HandleShowDepartments(rowData)}
       >
         {label}
       </Button>
@@ -164,6 +208,12 @@ export default function UserDataTable({ data, fetchMasterData }) {
     onThirdOpen();
   };
 
+  const HandleShowDepartments = (data) => {
+    SetSelectUserDepartment(JSON.parse(data.assigned_department));
+    SetSelectedCredential(data);
+    onDepartmentOpen();
+  };
+
   const HandleViewCredential = (data) => {
     SetSelectedCredential(data);
     SetNewPassword(data.password);
@@ -173,6 +223,46 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const ImageTemplate = (rowData) => (
     <Avatar src={"http://localhost/exam-bank/api/" + rowData.avatar} />
   );
+
+  const HandleUpdateDepartment = () => {
+    onDepartmentClose();
+
+    const data = {
+      id: SelectedCredential.id,
+      userDepartments: SelectUserDepartment,
+    };
+
+    Swal.fire({
+      title: "Adding Departments",
+      text: "Are you sure you want to assigned these departments?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, confirm changes"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .post(
+            `http://localhost/exam-bank/api/UserRoute.php?action=update_departments`,
+            data
+          )
+          .then((response) => {
+            if (response.data) {
+              toast({
+                title: "User department updated",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
+
+              onDepartmentClose();
+              fetchMasterData();
+            }
+          });
+      }
+    });
+  };
 
   const HandleUpdateSubjects = () => {
     onThirdClose();
@@ -214,35 +304,32 @@ export default function UserDataTable({ data, fetchMasterData }) {
     });
   };
 
-  const HandleUpdatePassword = () => {
-    console.log(SelectUserSubject);
+  const handleResetPassword = async () => {
+    SetIsLoading(true)
 
-    const data = {
-      id: SelectedCredential.id,
-      password: NewPassword,
-    };
+    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=reset_password", {
+      email: SelectedCredential.username,
+    }, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+      .then(response => {
+        let status = "warning";
 
-    axios
-      .post(
-        `http://localhost/exam-bank/api/UserRoute.php?action=change_password`,
-        data
-      )
-      .then((response) => {
-        if (response.data) {
-          toast({
-            title: "Password Updated",
-            description: "User can now user newly created password",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-
-          onSecondClose();
-
-          fetchMasterData();
+        if (response.data.status === "success") {
+          status = "success";
         }
-      });
-  };
+
+        toast({
+          title: response.data.message,
+          description: response.data.description,
+          status: status,
+          duration: 4000,
+          isClosable: true,
+        });
+
+        SetIsLoading(false)
+      })
+  }
 
   useEffect(() => {
     fetchMasterData();
@@ -254,13 +341,32 @@ export default function UserDataTable({ data, fetchMasterData }) {
         SetSelectedSubject(response.data[0]?.name || "");
       })
       .catch((error) => console.error("Error fetching subjects:", error));
+
+    axios
+      .get(`http://localhost/exam-bank/api/ServicesRoute.php?action=get_all_departments`)
+      .then((response) => {
+        SetAvailableDepartment(response.data);
+        SetSelectedDepartment(response.data[0]?.name || "");
+      })
+      .catch((error) => console.error("Error fetching subjects:", error));
   }, []);
 
   const HandleAddSubject = () => {
     if (SelectUserSubject && !SelectUserSubject.includes(SelectedSubject)) {
       SetSelectUserSubject((prev) => [...prev, SelectedSubject]);
     }
+  };
 
+  const HandleAddDepartment = () => {
+    if (SelectUserDepartment && !SelectUserDepartment.includes(SelectedDepartment)) {
+      SetSelectUserDepartment((prev) => [...prev, SelectedDepartment]);
+    }
+  };
+
+  const HandleRemoveDepartment = (indexToRemove) => {
+    SetSelectUserDepartment((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const HandleRemoveSubject = (indexToRemove) => {
@@ -359,6 +465,75 @@ export default function UserDataTable({ data, fetchMasterData }) {
         </AlertDialogOverlay>
       </AlertDialog>
 
+      <Modal isOpen={isDepartmentOpen} onClose={onDepartmentClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Assigned Department</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Stack spacing={4}>
+              <Flex direction="row" gap={4}>
+                <Select
+                  size="sm"
+                  value={SelectedDepartment}
+                  onChange={(e) => SetSelectedDepartment(e.target.value)}
+                  mb={4}
+                >
+                  {AvailableDepartment
+                    .filter(department => !SelectUserDepartment.includes(department.name))
+                    .map((department) => (
+                      <option key={department.id} value={department.name}>
+                        {department.name}
+                      </option>
+                    ))}
+                </Select>
+                <Button
+                  colorScheme="green"
+                  size="sm"
+                  onClick={HandleAddDepartment}
+                >
+                  <Icon as={TbPlus} />
+                </Button>
+              </Flex>
+              {SelectUserDepartment.length === 0 ? (
+                <Text>No Selected Department</Text>
+              ) : (
+                <Stack mb={4}>
+                  {SelectUserDepartment.map((item, index) => (
+                    <Flex
+                      key={index}
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Text>
+                        {index + 1}. {item}
+                      </Text>
+                      <Button
+                        onClick={() => HandleRemoveDepartment(index)}
+                        size="xs"
+                      >
+                        <Icon as={TbX} />
+                      </Button>
+                    </Flex>
+                  ))}
+                </Stack>
+              )}
+            </Stack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              colorScheme="green"
+              size="sm"
+              onClick={HandleUpdateDepartment}
+            >
+              Update
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
         <ModalOverlay />
         <ModalContent>
@@ -451,10 +626,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="green" mr={2} onClick={HandleUpdatePassword}>
-              Update Password
+            <Button size="sm" mr={2} onClick={onSecondClose}>Close</Button>
+            <Button  isLoading={IsLoading}
+              loadingText="Resetting..." size="sm" colorScheme="green" onClick={handleResetPassword}>
+              Reset Password
             </Button>
-            <Button onClick={onSecondClose}>Close</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -486,6 +662,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
           field="assigned_subject"
           header="Assigned Subject"
           body={renderSummary}
+        ></Column>
+        <Column
+          field="assigned_department"
+          header="Assigned Department"
+          body={renderDepartments}
         ></Column>
         <Column header="Credential" body={CredentialTemplate}></Column>
         <Column

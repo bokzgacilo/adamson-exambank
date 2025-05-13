@@ -13,9 +13,11 @@ import app from "../helper/Firebase";
 
 CreateQuestionForm.propTypes = { isOpen: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired };
 
-export default function CreateQuestionForm({ isOpen, onClose }) {
-  const { fullname, user_assigned_subject, usertype } = useUserStore((state) => state.user);
+export default function CreateQuestionForm({ isOpen, onClose, refreshTable }) {
+  const { fullname, user_assigned_subject, usertype, user_assigned_department } = useUserStore((state) => state.user);
   const parsedSubjects = JSON.parse(user_assigned_subject) || [];
+  const parsedDepartments = JSON.parse(user_assigned_department) || [];
+
   const firebaseDB = getDatabase(app);
   const toast = useToast();
 
@@ -23,8 +25,12 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
   const [selectedOption, setSelectedOption] = useState("Identification");
   const [multipleChoices, setMultipleChoices] = useState([]);
   const [selectedClassification, setSelectedClassification] = useState("Knowledge");
+
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+
   const [selectedTerms, setSelectedTerms] = useState([]);
 
   const QuestionLabel = useRef(null)
@@ -49,9 +55,24 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
 
   useEffect(() => {
     updateMultipleChoices(selectedOption);
-    if (parsedSubjects.includes("None") || parsedSubjects.length === 0) {
+    if (usertype === "Admin") {
+      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllDepartments", type: usertype } })
+        .then(({ data }) => {
+          setDepartments(data);
+          setSelectedDepartment(data[0].name);
+        })
+        .catch(console.error);
+    } else {
+      setDepartments(parsedDepartments);
+      setSelectedDepartment(parsedDepartments[0]);
+    }
+
+    if (usertype === "Admin") {
       axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: usertype } })
-        .then(({ data }) => { setSubjects(data); setSelectedSubject(data[0]?.name || ""); })
+        .then(({ data }) => {
+          setSubjects(data);
+          setSelectedSubject(data[0].name);
+        })
         .catch(console.error);
     } else {
       setSubjects(parsedSubjects);
@@ -60,11 +81,11 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
   }, []);
 
   const handleCreate = () => {
-    if (!question.trim()){
+    if (!question.trim()) {
       QuestionLabel.current.style.display = "block"; // to show
       QuestionInput.current.style.backgroundColor = "red"; // Chakra accepts normal CSS values here
       return;
-    }else {
+    } else {
       QuestionLabel.current.style.display = "none"; // to show
       QuestionInput.current.style.backgroundColor = "#fff"; // Chakra accepts normal CSS values here
     }
@@ -72,11 +93,11 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
     const hasEmptyOption = multipleChoices.some(item => item.option.trim() === "");
     const hasCorrectAnswer = multipleChoices.some(item => item.is_correct === true);
 
-    if(selectedTerms.length === 0){
+    if (selectedTerms.length === 0) {
       TermsLabel.current.style.display = "block"; // to show
       TermsInput.current.style.backgroundColor = "red"; // Chakra accepts normal CSS values here
       return; // Stop further execution
-    }else {
+    } else {
       TermsLabel.current.style.display = "none"; // to show
       TermsInput.current.style.backgroundColor = "#fff"; // Chakra accepts normal CSS values here
     }
@@ -85,11 +106,11 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
       OptionLabel.current.style.display = "block"; // to show
       OptionInput.current.style.backgroundColor = "red"; // Chakra accepts normal CSS values here
       return; // Stop further execution
-    }else {
+    } else {
       OptionLabel.current.style.display = "none"; // to show
       OptionInput.current.style.backgroundColor = "#fff";
     }
-    
+
     const data = {
       question,
       options: multipleChoices,
@@ -98,14 +119,16 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
       created_by: fullname,
       terms: selectedTerms,
       subject: selectedSubject,
+      department: selectedDepartment,
       classification: selectedClassification
     };
 
     axios.post("http://localhost/exam-bank/api/QuestionRoute.php?action=create", data).then(({ data }) => {
       if (data) {
+        refreshTable()
         toast({ title: "Question Created!", description: `Question: ${question} successfully created`, status: "success", duration: 3000, isClosable: true });
         set(ref(firebaseDB, `logs/${Date.now()}`), { action: "Question Added", timestamp: Date.now(), target: question, actor: fullname });
-        
+
         setSelectedTerms([])
         setQuestion("")
         setMultipleChoices([])
@@ -132,6 +155,12 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             </Select>
             <Text fontWeight="semibold" mt={4}>Question (required)</Text>
             <Input ref={QuestionInput} size="sm" placeholder="Enter question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+            <Text fontWeight="semibold" mt={4}>Department (required)</Text>
+            <Select size="sm" value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
+              {departments.map((department, index) => (
+                <option key={index} value={department.name || department}>{department.name || department}</option>
+              ))}
+            </Select>
             <Text ref={QuestionLabel} display="none" color="red" fontSize="12px">This is required field</Text>
             <Stack ref={TermsInput} mt={4}>
               <Text fontWeight="semibold" >Terms (required)</Text>
@@ -148,7 +177,7 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
                 <option key={val} value={val}>{val}</option>
               ))}
             </Select>
-            <Text mt={4}  fontWeight="semibold">Category</Text>
+            <Text mt={4} fontWeight="semibold">Category</Text>
             <Select size="sm" value={selectedOption} onChange={(e) => { setSelectedOption(e.target.value); updateMultipleChoices(e.target.value); }}>
               {["Identification", "True/False", "Multiple", "Numeric"].map(type => <option key={type} value={type}>{type}</option>)}
             </Select>
@@ -156,8 +185,8 @@ export default function CreateQuestionForm({ isOpen, onClose }) {
             {selectedOption === "Identification" && <Input ref={OptionInput} size="sm" placeholder="Enter answer" onChange={(e) => setMultipleChoices([{ id: 1, option: e.target.value, is_correct: true }])} />}
             {selectedOption === "Numeric" && <Input ref={OptionInput} size="sm" type="number" placeholder="Enter answer" onChange={(e) => setMultipleChoices([{ id: 1, option: e.target.value, is_correct: true }])} />}
             {/* {selectedOption === "Enumeration" && <Textarea ref={OptionInput} size="sm" placeholder="Enter answers" onChange={(e) => setMultipleChoices(e.target.value.split("\n").filter(val => val.trim()).map((val, i) => ({ id: i + 1, option: val, is_correct: true })))} />} */}
-            {selectedOption === "True/False" && <RadioGroup  onChange={(val) => setMultipleChoices(multipleChoices.map(opt => ({ ...opt, is_correct: opt.option.toLowerCase() === val })))}>
-              <Stack ref={OptionInput}>{multipleChoices.map(opt => <Radio  key={opt.id} value={opt.option.toLowerCase()}>{opt.option}</Radio>)}</Stack>
+            {selectedOption === "True/False" && <RadioGroup onChange={(val) => setMultipleChoices(multipleChoices.map(opt => ({ ...opt, is_correct: opt.option.toLowerCase() === val })))}>
+              <Stack ref={OptionInput}>{multipleChoices.map(opt => <Radio key={opt.id} value={opt.option.toLowerCase()}>{opt.option}</Radio>)}</Stack>
             </RadioGroup>}
             {selectedOption === "Multiple" && <Stack ref={OptionInput}>{multipleChoices.map(opt => <Flex key={opt.id} alignItems="center" gap={4}><Checkbox isChecked={opt.is_correct} onChange={() => setMultipleChoices(multipleChoices.map(o => o.id === opt.id ? { ...o, is_correct: !o.is_correct } : o))} /><Input size="sm" value={opt.option} onChange={(e) => setMultipleChoices(multipleChoices.map(o => o.id === opt.id ? { ...o, option: e.target.value } : o))} /></Flex>)}</Stack>}
             <Text ref={OptionLabel} display="none" color="red" fontSize="12px">This is required field</Text>

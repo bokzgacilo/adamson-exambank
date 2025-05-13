@@ -22,7 +22,7 @@ class Exam
   public function viewAll($subjects, $type)
   {
     // If type is ADMIN, return all exams
-    if ($type === 'Admin') {
+    if ($type === 'Admin' || $type === 'Coordinator') {
       $query = "SELECT * FROM exam";
       $stmt = $this->conn->prepare($query);
       $stmt->execute();

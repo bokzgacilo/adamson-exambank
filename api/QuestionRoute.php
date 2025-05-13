@@ -32,6 +32,7 @@ switch ($action) {
         $newQuestion = $question->create(
             $data["question"],
             $optionsJson,
+            $data["department"],
             $answerJson,
             $data["category"],
             $data["created_by"],
@@ -69,6 +70,7 @@ switch ($action) {
         $newQuestion = $question->update(
             $data["id"],
             $data["question"],
+            $data['department'],
             $optionsJson,
             $answerJson,
             $data["category"],

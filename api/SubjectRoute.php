@@ -68,6 +68,16 @@ switch ($action) {
 
     echo json_encode($subjects);
     break;
+  case "GetAllDepartments":
+    if ($_SERVER["REQUEST_METHOD"] !== "GET") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $subjects = $subjects->GetAllDepartments($_GET['type']);
+
+    echo json_encode($subjects);
+    break;
 
   default:
     echo json_encode(["message" => "Invalid action"]);

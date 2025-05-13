@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-import { TbArrowDown, TbArrowUp } from "react-icons/tb";
+import { TbArrowDown, TbArrowUp, TbTrash } from "react-icons/tb";
 
 CreateExamForm.propTypes = {
   TOS: PropTypes.array.isRequired,
@@ -61,6 +61,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
   });
 
   const [, SetSubjects] = useState([]);
+
   const handleCheckboxChange = (id) => {
     SetQuestionSet((prevItems) => {
       const isAlreadySelected = prevItems.some((item) => item.id === id);
@@ -192,6 +193,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
       return newItems;
     });
   };
+
   const CheckIfSelected = (qid) => {
     if(QuestionSet.some((q) => q.id === qid)){
       return true;
@@ -200,7 +202,9 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
     }
   }
 
- 
+  const handleDelete = (id) => {
+    SetQuestionSet((prevSet) => prevSet.filter((item) => item.id !== id));
+  };
 
   return (
     <SimpleGrid templateColumns="40% 1fr 1fr" gap={4}>
@@ -233,10 +237,18 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
                   </Button>
                   <Button
                     size="xs"
+                    mr={1}
                     onClick={() => moveItem(index, 1)}
                     isDisabled={index === QuestionSet.length - 1}
                   >
                     <Icon as={TbArrowDown} />
+                  </Button>
+                  <Button
+                    size="xs"
+                    colorScheme="red"
+                    onClick={() => handleDelete(item.id)}
+                  >
+                    <Icon as={TbTrash} />
                   </Button>
                 </Flex>
                 {renderFormElement(item.options, item.category)}
@@ -321,7 +333,10 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
                 mr={4}
                 onChange={() => handleCheckboxChange(item.id)}
                 isChecked={CheckIfSelected(item.id)}
-                isDisabled={categoryCounts[item.classification] >= TOS[item.classification] && !CheckIfSelected(item.id)}
+                isDisabled={
+                  TOS[item.classification] === 0 || 
+                  (categoryCounts[item.classification] >= TOS[item.classification] && !CheckIfSelected(item.id))
+                }
               />
               <Text fontWeight="semibold">{item.question}</Text>
               <Tag ml="auto" size="sm">

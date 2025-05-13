@@ -54,6 +54,15 @@ class User
     
     return $stmt->execute();
   }
+  public function update_departments($id, $usersubjects)
+  {
+    $assigned_departments = json_encode($usersubjects); // Convert array to JSON string
+    $query = "UPDATE user SET assigned_department = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $assigned_departments, $id);
+    
+    return $stmt->execute();
+  }
 
   public function get_user_data($id)
   {

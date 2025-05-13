@@ -28,7 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-import { TbArrowDown, TbArrowUp } from "react-icons/tb";
+import { TbArrowDown, TbArrowUp, TbTrash } from "react-icons/tb";
 
 EditExamForm.propTypes = {
   data: PropTypes.array.isRequired,
@@ -46,10 +46,30 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
   const [Questions, SetQuestions] = useState(JSON.parse(data.questions));
   const [filteredClassification, setFilteredClassification] = useState("");
   const [filteredCategory, setFilteredCategory] = useState('');
+const [filteredTerm, setFilteredTerm] = useState("")
+
   const filteredQuestions = Questions.filter((q) => {
-    const matchClassification = filteredClassification === '' || q.classification === filteredClassification;
-    const matchCategory = filteredCategory === '' || q.category === filteredCategory;
-    return matchClassification && matchCategory;
+    const matchClassification =
+      filteredClassification === '' || q.classification === filteredClassification;
+  
+    const matchCategory =
+      filteredCategory === '' || q.category === filteredCategory;
+  
+    let matchTerm = true;
+    if (filteredTerm !== '') {
+      if (q.terms && q.terms.startsWith('[')) {
+        try {
+          const termArray = JSON.parse(q.terms);
+          matchTerm = termArray.includes(filteredTerm);
+        } catch (e) {
+          matchTerm = false;
+        }
+      } else {
+        matchTerm = false;
+      }
+    }
+  
+    return matchClassification && matchCategory && matchTerm;
   });
 
   const handleCheckboxChange = (id) => {
@@ -211,6 +231,10 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
     }
   };
 
+  const handleDelete = (id) => {
+    SetQuestionSet((prevSet) => prevSet.filter((item) => item.id !== id));
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="full">
       <ModalOverlay />
@@ -249,11 +273,19 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
                           <Icon as={TbArrowUp} />
                         </Button>
                         <Button
+                          mr={1}
                           size="xs"
                           onClick={() => moveItem(index, 1)}
                           isDisabled={index === QuestionSet.length - 1}
                         >
                           <Icon as={TbArrowDown} />
+                        </Button>
+                         <Button
+                          size="xs"
+                          colorScheme="red"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <Icon as={TbTrash} />
                         </Button>
                       </Flex>
                       {renderFormElement(item.options, item.category)}
@@ -316,6 +348,18 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
                 <option value="Numeric">Numeric</option>
                 <option value="Identification">Identification</option>
                 <option value="True/False">True/False</option>
+              </Select>
+              <Text fontWeight="semibold">SORT BY TERM</Text>
+              <Select
+                size="sm"
+                value={filteredTerm}
+                onChange={(e) => setFilteredTerm(e.target.value)}
+                mb={2}
+              >
+                <option value="">All</option>
+                <option value="Prelims">Prelims</option>
+                <option value="Midterms">Midterms</option>
+                <option value="Finals">Finals</option>
               </Select>
               <Stack
                 spacing={2}

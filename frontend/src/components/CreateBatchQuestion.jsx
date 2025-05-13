@@ -12,11 +12,10 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import Swal from "sweetalert2"
 import PropTypes from "prop-types";
 import useUserStore from "../helper/useUserStore";
 import { TbCheck, TbDownload } from "react-icons/tb";
@@ -60,11 +59,28 @@ export default function CreateBatchQuestion({ isOpen, onClose, spinner }) {
       headers: { "Content-Type": "multipart/form-data" },
     })
       .then(response => {
+        console.log(response)
+
         if (response.data.status === "not-found") {
-          toast({ title: response.data.message, description: response.data.description, status: "error", duration: 10000, isClosable: true, position: "center" });
+          Swal.fire({
+            title: response.data.message,
+            text: response.data.description,
+            icon: "error",
+            confirmButtonColor: "#e53e3e", // Chakra's red.500
+            confirmButtonText: "OK"
+          });
         } else {
-          toast({ title: "Batch Uploaded!", description: `${response.data.data.length} questions successfully created`, status: "success", duration: 3000, isClosable: true });
+          Swal.fire({
+            title: "Batch Uploaded!",
+            text: `${response.data.data.length} questions successfully created`,
+            icon: "success",
+            timer: 3000,
+            showConfirmButton: false,
+            position: "center",
+            toast: false // you can set this to true if you want a top-right mini-alert
+          });
         }
+
 
         spinner(false)
         onClose()

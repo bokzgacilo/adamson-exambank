@@ -94,6 +94,8 @@ export default function QuestionDetail({ QuestionData }) {
       <Text fontWeight="semibold">QUESTION</Text>
       <Input size="sm" value={QuestionData.question} readOnly name="question" mb={4} />
 
+      <Text fontWeight="semibold">DEPARTMENT</Text>
+      <Input size="sm"  value={QuestionData.department} readOnly name="department" mb={4} />
       <Text fontWeight="semibold">TERMS</Text>
       <HStack justifyContent="space-evenly" mb={4}>
         <Checkbox isChecked={QuestionData.terms.includes("Prelims")}>

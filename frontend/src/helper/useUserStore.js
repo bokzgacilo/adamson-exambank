@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 const useUserStore = create((set) => ({
   user: JSON.parse(localStorage.getItem("userjson")) || { 
-    id: null, fullname: "", username: "", password: "", avatar: "", usertype: "", user_assigned_subject: [] 
+    id: null, fullname: "", username: "", password: "", avatar: "", usertype: "", user_assigned_subject: [], user_assigned_department: []
   },
 
   setUser: (userData) => {
@@ -24,6 +24,7 @@ const useUserStore = create((set) => ({
         avatar: "",
         usertype: "",
         user_assigned_subject: [],
+        user_assigned_department: [],
       },
     }),
 }));

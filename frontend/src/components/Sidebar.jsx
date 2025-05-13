@@ -32,6 +32,7 @@ export default function SidebarComponent() {
     ...(UserData.type === "Admin"
       ? [
           { to: "users", label: "User Management", pathname: "/dashboard/users", icon: TbUsers },
+          { to: "department", label: "Department", pathname: "/dashboard/department", icon: TbUsers },
           { to: "subjects", label: "Subjects", pathname: "/dashboard/subjects", icon: TbList },
           { to: "statistics", label: "Dashboard", pathname: "/dashboard/statistics", icon: TbChartDots }
         ]

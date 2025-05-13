@@ -72,6 +72,7 @@ export default function QuestionPage() {
         isOpen={SingleIsOpen}
         onOpen={SingleOnOpen}
         spinner={SetShowSpinner}
+        refreshTable={FetchAllQuestions}
       />
       <CreateBatchQuestion
         onClose={BatchOnClose}
@@ -110,7 +111,7 @@ export default function QuestionPage() {
           </CardHeader>
           <Divider />
           <CardBody p={4}>
-            <QuestionDataTable data={Questions} />
+            <QuestionDataTable data={Questions} refreshTable={FetchAllQuestions} />
           </CardBody>
         </Card>
       </Stack>

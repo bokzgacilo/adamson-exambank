@@ -14,6 +14,7 @@ import useUserStore from "./helper/useUserStore";
 import { useEffect, useRef } from "react";
 import { database } from "./helper/Firebase";
 import { onChildAdded, ref } from "firebase/database";
+import DepartmentPage from "./pages/DepartmentPage";
 
 function DashboardLayout() {
   return (
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="users" element={<UserPage />} />
           <Route path="subjects" element={<SubjectPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
+          <Route path="department" element={<DepartmentPage />} />
         </Route>
       </Routes>
     </Router>

@@ -51,6 +51,71 @@ function convertToLegendArray($baseString)
   return array_filter($result);
 }
 
+function create_department($name)
+{
+  global $conn;
+
+  $sql = "INSERT INTO department (name) VALUES (?)";
+  $stmt = $conn->prepare($sql);
+
+  if (!$stmt) {
+    return false;
+  }
+
+  $stmt->bind_param("s", $name);
+  $result = $stmt->execute();
+  $stmt->close();
+
+  return $result;
+}
+
+function get_all_departments()
+{
+  global $conn;
+
+  $sql = "SELECT * FROM department ORDER BY id DESC";
+  $result = $conn->query($sql);
+
+  $departments = [];
+  while ($row = $result->fetch_assoc()) {
+    $departments[] = $row;
+  }
+
+  return $departments;
+}
+
+function delete_department($id)
+{
+  global $conn;
+
+  $sql = "DELETE FROM department WHERE id = ?";
+  $stmt = $conn->prepare($sql);
+  if (!$stmt)
+    return false;
+
+  $stmt->bind_param("i", $id);
+  $result = $stmt->execute();
+  $stmt->close();
+
+  return $result;
+}
+
+function update_department($id, $name)
+{
+  global $conn;
+
+  $sql = "UPDATE department SET name = ? WHERE id = ?";
+  $stmt = $conn->prepare($sql);
+  if (!$stmt)
+    return false;
+
+  $stmt->bind_param("si", $name, $id);
+  $result = $stmt->execute();
+  $stmt->close();
+
+  return $result;
+}
+
 switch ($action) {
   case "ProcessQuestionBatch":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -324,6 +389,58 @@ switch ($action) {
     } catch (Exception $e) {
       echo json_encode(["error" => "Error processing file: " . $e->getMessage()]);
     }
+    break;
+  case "create_department":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!$data || !isset($data["name"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
+
+    $result = create_department(trim($data["name"]));
+    echo json_encode(["message" => $result ? "Department created successfully" : "Failed to create department"]);
+    break;
+
+  case "get_all_departments":
+    $departments = get_all_departments();
+    echo json_encode($departments);
+    break;
+
+  case "delete_department":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!$data || !isset($data["id"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
+
+    $result = delete_department((int) $data["id"]);
+    echo json_encode(["message" => $result ? "Department deleted successfully" : "Failed to delete department"]);
+    break;
+
+  case "update_department":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!$data || !isset($data["id"]) || !isset($data["name"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
+
+    $result = update_department((int) $data["id"], trim($data["name"]));
+    echo json_encode(["message" => $result ? "Department updated successfully" : "Failed to update department"]);
     break;
   default:
     echo json_encode(["message" => "Invalid action"]);
