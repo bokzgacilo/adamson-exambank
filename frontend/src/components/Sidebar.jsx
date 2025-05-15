@@ -45,12 +45,12 @@ export default function SidebarComponent() {
   useEffect(() => {
     const FetchUserData = async () => {
       try {
-        const response = await axios.post("http://localhost/exam-bank/api/UserRoute.php?action=get_user_data", {
+        const response = await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=get_user_data`, {
           id: user.id
         });
         SetUserData(response.data);
         SetPassword(response.data.password);
-        SetPreview(`http://localhost/exam-bank/api/${response.data.avatar}`);
+        SetPreview(`${import.meta.env.VITE_API_HOST}${response.data.avatar}`);
       } catch (error) {
         console.error("Error fetching user data", error);
       }
@@ -92,7 +92,7 @@ export default function SidebarComponent() {
     if (ImageFile) formData.append("avatar", ImageFile);
 
     try {
-      await axios.post("http://localhost/exam-bank/api/UserRoute.php?action=change_avatar", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       toast({ title: "Profile Updated", status: "success", duration: 3000, isClosable: true });
       setUser({ ...user, password: Password });
       onCloseProfileModal();

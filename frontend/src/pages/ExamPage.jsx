@@ -28,7 +28,7 @@ export default function ExamPage() {
 
   const getAllExams = async () => {
     const examsResponse = await axios.get(
-      "http://localhost/exam-bank/api/ExamRoute.php?action=viewAll",
+      `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=viewAll`,
       {
         params: {
           subjects: JSON.stringify(user.user_assigned_subject),

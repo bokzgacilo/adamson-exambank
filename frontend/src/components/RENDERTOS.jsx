@@ -8,7 +8,7 @@ const maxVal = 100;
 export default function RENDERTOS ({mode, TOS, SetTOS}) {
   const DownloadFormat = () => {
     const link = document.createElement("a");
-    link.href = "http://localhost/exam-bank/TOS_FORMAT.xlsx";
+    link.href = `${import.meta.env.VITE_HOST}TOS_FORMAT.xlsx`;
     link.download = "TOS_FORMAT.xlsx";
     link.click();
   };
@@ -21,7 +21,7 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
 
     try {
       const response = await axios.post(
-        "http://localhost/exam-bank/api/ServicesRoute.php?action=upload_tos",
+        `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=upload_tos`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

@@ -85,7 +85,7 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
 
   const HandleDelete = () => {
     axios
-      .post("http://localhost/exam-bank/api/ExamRoute.php?action=delete", {
+      .post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=delete`, {
         id: selectedExam.id,
       })
       .then((response) => {
@@ -124,7 +124,7 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
         isClosable: true,
       })
 
-      axios.post(`http://localhost/exam-bank/api/ExamRoute.php?action=export`, { data: JSON.parse(selectedExam.questions), subject: selectedExam.subject })
+      axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`, { data: JSON.parse(selectedExam.questions), subject: selectedExam.subject })
         .then(response => {
           SetLink(response.data)
         });
@@ -183,7 +183,7 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
               size="sm"
                 onClick={() =>
                   window.open(
-                    `http://localhost/exam-bank/api/${DLink}`,
+                    `${import.meta.env.VITE_API_HOST}${DLink}`,
                     "_blank"
                   )
                 }

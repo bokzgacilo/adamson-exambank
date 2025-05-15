@@ -77,7 +77,7 @@ export default function QuizPage() {
 
   // get datatable quiz data
   const fetchQuizzes = () => {
-    axios.get("http://localhost/exam-bank/api/QuizRoute.php", {
+    axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
       params: {
         action: "get_quizzes",
         usertype: usertype,
@@ -101,7 +101,7 @@ export default function QuizPage() {
   //populate subject and department select element
   useEffect(() => {
     if (usertype === "Admin") {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: usertype } })
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: usertype } })
         .then(({ data }) => {
           const subjects = data.map(subject => subject.name);
           setSubjects(subjects);
@@ -114,7 +114,7 @@ export default function QuizPage() {
     }
 
     if (usertype === "Admin") {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllDepartments", type: usertype } })
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: usertype } })
         .then(({ data }) => {
           const departments = data.map(department => department.name);
           setDepartments(departments);
@@ -129,7 +129,7 @@ export default function QuizPage() {
 
   // change available quiz based on selected department and subject
   useEffect(() => {
-    axios.get("http://localhost/exam-bank/api/QuizRoute.php", {
+    axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
       params: {
         action: "get_available_questions",
         department: selectedDepartment,
@@ -269,7 +269,7 @@ export default function QuizPage() {
           created_by: fullname
         };
 
-        axios.post("http://localhost/exam-bank/api/QuizRoute.php?action=create", data, {
+        axios.post(`${import.meta.env.VITE_API_HOST}QuizRoute.php?action=create`, data, {
           headers: {
             'Content-Type': 'application/json'
           }

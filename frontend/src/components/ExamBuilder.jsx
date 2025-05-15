@@ -54,7 +54,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
     const fetchData = async () => {
       try {
         const subjectsResponse = await axios.get(
-          "http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll"
+          `${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`
         );
 
         SetSubjects(subjectsResponse.data);
@@ -80,7 +80,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
 
     if (mode === "upload") {
       axios
-        .post('http://localhost/exam-bank/api/ExamRoute.php?action=GenerateTOSQuestion', {
+        .post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=GenerateTOSQuestion`, {
           subject: SelectedSubject,
           tos: TOS,
           mode: mode,
@@ -114,7 +114,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
     if (totalSum === QuestionSet.length) {
       axios
         .post(
-          "http://localhost/exam-bank/api/ExamRoute.php?action=create",
+          `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=create`,
           data
         )
         .then((response) => {

@@ -13,7 +13,7 @@ export default function ExamsChart() {
 
   useEffect(() => {
     axios
-      .get("http://localhost/exam-bank/api/StatisticsRoute.php?action=all_users")
+      .get(`${import.meta.env.VITE_API_HOST}StatisticsRoute.php?action=all_users`)
       .then((response) => {
         SetData(response.data);
       })

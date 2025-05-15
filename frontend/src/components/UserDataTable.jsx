@@ -101,7 +101,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
     };
 
     axios
-      .post(`http://localhost/exam-bank/api/UserRoute.php?action=change_status`, data)
+      .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_status`, data)
       .then((response) => {
         if (response.data) {
           toast({
@@ -221,7 +221,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
   };
 
   const ImageTemplate = (rowData) => (
-    <Avatar src={"http://localhost/exam-bank/api/" + rowData.avatar} />
+    <Avatar src={import.meta.env.VITE_API_HOST + rowData.avatar} />
   );
 
   const HandleUpdateDepartment = () => {
@@ -244,7 +244,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
       if (result.isConfirmed) {
         axios
           .post(
-            `http://localhost/exam-bank/api/UserRoute.php?action=update_departments`,
+            `${import.meta.env.VITE_API_HOST}UserRoute.php?action=update_departments`,
             data
           )
           .then((response) => {
@@ -284,7 +284,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
       if (result.isConfirmed) {
         axios
           .post(
-            `http://localhost/exam-bank/api/UserRoute.php?action=update_subjects`,
+            `${import.meta.env.VITE_API_HOST}UserRoute.php?action=update_subjects`,
             data
           )
           .then((response) => {
@@ -307,7 +307,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const handleResetPassword = async () => {
     SetIsLoading(true)
 
-    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=reset_password", {
+    await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=reset_password`, {
       email: SelectedCredential.username,
     }, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -335,7 +335,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
     fetchMasterData();
 
     axios
-      .get(`http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll`)
+      .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`)
       .then((response) => {
         SetAvailableSubjects(response.data);
         SetSelectedSubject(response.data[0]?.name || "");
@@ -343,7 +343,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
       .catch((error) => console.error("Error fetching subjects:", error));
 
     axios
-      .get(`http://localhost/exam-bank/api/ServicesRoute.php?action=get_all_departments`)
+      .get(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=get_all_departments`)
       .then((response) => {
         SetAvailableDepartment(response.data);
         SetSelectedDepartment(response.data[0]?.name || "");
@@ -392,7 +392,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
 
   const handleDelete = () => {
     axios
-      .post("http://localhost/exam-bank/api/UserRoute.php?action=delete", {
+      .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=delete`, {
         id: selectedUser,
       })
       .then((response) => {
@@ -635,14 +635,17 @@ export default function UserDataTable({ data, fetchMasterData }) {
         </ModalContent>
       </Modal>
 
-      <Stack>
-        <Heading size="md">SEARCH</Heading>
+      <Stack
+        p={4}
+        backgroundColor="gray.200"
+      >
+        <Heading size="lg">Search</Heading>
         <Input
+          backgroundColor="#fff"
           type="text"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Search..."
-          mb={4}
+          placeholder="Search name, type, assigned subject, assigned department..."
         />
       </Stack>
       <Divider mb={4} />

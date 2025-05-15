@@ -8,7 +8,6 @@ import {
   Heading,
   Image,
   Input,
-  Text,
   Stack,
   useToast,
   Center,
@@ -35,8 +34,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem("userid") || null;
@@ -50,34 +47,6 @@ export default function LoginPage() {
 
   if (checkingAuth) {
     return null;
-  }
-
-  const handleResetPassword = async () => {
-    setIsLoading(true)
-    
-    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=reset_password", {
-      email: email,
-    }, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-      .then(response => {
-        let status = "warning";
-
-        if (response.data.status === "success") {
-          status = "success";
-        }
-
-        toast({
-          title: response.data.message,
-          description: response.data.description,
-          status: status,
-          duration: 4000,
-          isClosable: true,
-        });
-
-        setIsLoading(false)
-        setEmail("")
-      })
   }
 
   return (
@@ -116,7 +85,7 @@ export default function LoginPage() {
 
                   axios
                     .post(
-                      "http://localhost/exam-bank/api/UserRoute.php?action=login",
+                      `${import.meta.env.VITE_API_HOST}UserRoute.php?action=login`,
                       values
                     )
                     .then((response) => {
@@ -128,7 +97,7 @@ export default function LoginPage() {
                           fullname: response.data.user.name,
                           email: response.data.user.email,
                           password: response.data.user.password,
-                          avatar: "http://localhost/exam-bank/api/" + response.data.user.avatar,
+                          avatar: import.meta.env.VITE_API_HOST + response.data.user.avatar,
                           usertype: response.data.user.type,
                           user_assigned_subject:
                             response.data.user.assigned_subject || [],

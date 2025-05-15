@@ -66,7 +66,7 @@ export default function EditQuestionModal({
   useEffect(() => {
     if (user.usertype === "Admin") {
       axios
-        .get("http://localhost/exam-bank/api/SubjectRoute.php", {
+        .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, {
           params: { action: "GetAllSubjects", type: user.usertype },
         })
         .then(({ data }) => {
@@ -81,7 +81,7 @@ export default function EditQuestionModal({
 
     if (user.usertype === "Admin") {
       axios
-        .get("http://localhost/exam-bank/api/SubjectRoute.php", {
+        .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, {
           params: { action: "GetAllDepartments", type: user.usertype },
         })
         .then(({ data }) => {

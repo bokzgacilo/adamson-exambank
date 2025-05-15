@@ -60,7 +60,7 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
 
     axios
       .post(
-        "http://localhost/exam-bank/api/QuestionRoute.php?action=update",
+        `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=update`,
         updatedQuestionData
       )
       .then((response) => {
@@ -79,7 +79,7 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
 
   const HandleEnable = () => {
     axios
-      .post("http://localhost/exam-bank/api/QuestionRoute.php?action=enable", {
+      .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=enable`, {
         id: selectedQuestion.id,
       })
       .then((response) => {
@@ -99,7 +99,7 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
 
   const HandleDisable = () => {
     axios
-      .post("http://localhost/exam-bank/api/QuestionRoute.php?action=disable", {
+      .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=disable`, {
         id: selectedQuestion.id,
       })
       .then((response) => {
@@ -134,7 +134,7 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .post("http://localhost/exam-bank/api/QuestionRoute.php?action=delete", {
+          .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=delete`, {
             id: selectedQuestion.id,
           })
           .then((response) => {

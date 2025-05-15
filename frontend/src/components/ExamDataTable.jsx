@@ -38,7 +38,7 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
 
     axios
       .post(
-        `http://localhost/exam-bank/api/ExamRoute.php?action=change_status`,
+        `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=change_status`,
         data
       )
       .then((response) => {
@@ -98,7 +98,7 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
 
       if (result.isConfirmed) {
         try {
-          await axios.post(`http://localhost/exam-bank/api/ExamRoute.php?action=delete`, {
+          await axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=delete`, {
             id: rowData.id
           });
           Swal.fire('Deleted!', 'The record has been deleted.', 'success');

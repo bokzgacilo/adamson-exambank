@@ -15,7 +15,7 @@ export default function SubjectPage() {
   const { user } = useUserStore();
 
   const fetchSubjects = async () => {
-    await axios.get("http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll")
+    await axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`)
       .then(response => {
         SetSubjects(response.data)
       });
@@ -33,7 +33,7 @@ export default function SubjectPage() {
 
   const HandleCreateSubject = () => {
     axios
-      .post("http://localhost/exam-bank/api/SubjectRoute.php?action=create", {
+      .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=create`, {
         subject_name: SubjectName,
       })
       .then((response) => {

@@ -49,7 +49,7 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
       SetUserSubjects(["None"]);
     } else {
       axios
-        .get(`http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll`)
+        .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`)
         .then((response) => {
           SetAvailableSubjects(response.data);
           SetSelectedSubject(response.data[0]?.name || "");
@@ -71,7 +71,7 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
   
   const HandleAddUser = () => {
     axios
-      .post("http://localhost/exam-bank/api/UserRoute.php?action=create", data)
+      .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=create`, data)
       .then((response) => {
         toast({
           title: "User Created!",

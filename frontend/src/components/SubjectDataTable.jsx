@@ -65,7 +65,7 @@ export default function SubjectDataTable({ data, fetchSubjects }) {
 
   const handleDelete = () => {
     axios
-      .post("http://localhost/exam-bank/api/SubjectRoute.php?action=delete", {
+      .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=delete`, {
         subject_name: SelectedSubject,
       })
       .then((response) => {
@@ -88,7 +88,7 @@ export default function SubjectDataTable({ data, fetchSubjects }) {
       };
   
       axios
-        .post(`http://localhost/exam-bank/api/SubjectRoute.php?action=change_status`, data)
+        .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=change_status`, data)
         .then((response) => {
           if (response.data) {
             toast({

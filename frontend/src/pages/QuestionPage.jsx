@@ -38,7 +38,7 @@ export default function QuestionPage() {
 
   const fetchAllQuestions = async () => {
     await axios
-      .post(`http://localhost/exam-bank/api/QuestionRoute.php?action=viewAll`, {
+      .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=viewAll`, {
         subject: user.user_assigned_subject,
         type: user.usertype,
       }).then((response) => {

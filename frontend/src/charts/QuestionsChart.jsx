@@ -15,7 +15,7 @@ export default function QuestionCharts() {
 
   useEffect(() => {
     axios
-      .get("http://localhost/exam-bank/api/StatisticsRoute.php?action=all_questions")
+      .get(`${import.meta.env.VITE_API_HOST}StatisticsRoute.php?action=all_questions`)
       .then((response) => {
         SetData(response.data);
       })

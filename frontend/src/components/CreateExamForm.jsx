@@ -154,14 +154,14 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
     const GetAllSubjects = () =>
       fetchData(
         "GET",
-        "http://localhost/exam-bank/api/SubjectRoute.php?action=viewAll",
+        `${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`,
         SetSubjects
       );
 
     const GetAllQuestions = () => {
       axios
         .post(
-          `http://localhost/exam-bank/api/QuestionRoute.php?action=QuestionForBank`,
+          `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=QuestionForBank`,
           {
             subject: SelectedSubject
           }

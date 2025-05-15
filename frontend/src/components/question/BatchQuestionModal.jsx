@@ -29,7 +29,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = "http://localhost/exam-bank/BATCH_QUESTION.xlsx";
+    link.href = `${import.meta.env.VITE_HOST}BATCH_QUESTION.xlsx`;
     link.download = "BATCH_QUESTION.xlsx";
     link.click();
   };
@@ -40,7 +40,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
 
   useEffect(() => {
     if (user.usertype === "Admin") {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: user.usertype } })
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: user.usertype } })
         .then(({ data }) => {
           setSubjects(data);
           setSelectedSubject(data[0].name);
@@ -58,7 +58,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
       return;
     }
 
-    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=ProcessQuestionBatch", {
+    await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=ProcessQuestionBatch`, {
       subject: selectedSubject,
       excel_data: File,
       creator: user.fullname

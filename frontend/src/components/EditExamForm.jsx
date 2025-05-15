@@ -151,7 +151,7 @@ const [filteredTerm, setFilteredTerm] = useState("")
     const GetAllQuestions = () => {
       axios
         .post(
-          `http://localhost/exam-bank/api/QuestionRoute.php?action=QuestionForBank`,
+          `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=QuestionForBank`,
           {
             subject: SelectedSubject,
           }
@@ -204,7 +204,7 @@ const [filteredTerm, setFilteredTerm] = useState("")
     if (totalSum === QuestionSet.length) {
       axios
         .post(
-          "http://localhost/exam-bank/api/ExamRoute.php?action=update",
+          `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=update`,
           updateQuestions
         )
         .then((response) => {

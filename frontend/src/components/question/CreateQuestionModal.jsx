@@ -53,7 +53,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
     updateMultipleChoices(selectedCategory);
 
     if (user.usertype === "Admin") {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllDepartments", type: user.usertype } })
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: user.usertype } })
         .then(({ data }) => {
           setDepartments(data);
           setSelectedDepartment(data[0].name);
@@ -65,7 +65,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
     }
 
     if (user.usertype === "Admin") {
-      axios.get("http://localhost/exam-bank/api/SubjectRoute.php", { params: { action: "GetAllSubjects", type: user.usertype } })
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: user.usertype } })
         .then(({ data }) => {
           setSubjects(data);
           setSelectedSubject(data[0].name);
@@ -135,7 +135,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
           created_by: user.fullname
         };
 
-        axios.post("http://localhost/exam-bank/api/QuestionRoute.php?action=create", data, {
+        axios.post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=create`, data, {
           headers: {
             'Content-Type': 'application/json'
           }

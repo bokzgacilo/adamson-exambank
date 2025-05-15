@@ -21,7 +21,7 @@ const NewDepartmentModal = ({ isOpen, onClose, fetchMasterData }) => {
   const [DepartmentName, SetDepartmentName] = useState("");
 
   const handleCreateDepartment = async () => {
-    await axios.post("http://localhost/exam-bank/api/ServicesRoute.php?action=create_department", {
+    await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=create_department`, {
       name: DepartmentName
     })
       .then(response => {
@@ -59,7 +59,7 @@ export default function DepartmentPage() {
   const [MasterData, SetMasterData] = useState([]);
 
   const fetchMasterData = async () => {
-    await axios.get('http://localhost/exam-bank/api/ServicesRoute.php?action=get_all_departments')
+    await axios.get(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=get_all_departments`)
       .then(res => {
         SetMasterData(res.data)
       });
@@ -81,7 +81,7 @@ export default function DepartmentPage() {
         if (result.isConfirmed) {
           try {
             const response = await axios.post(
-              "http://localhost/exam-bank/api/ServicesRoute.php?action=delete_department",
+              `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=delete_department`,
               { id: rowData.id }
             );
             Swal.fire("Deleted!", response.data.message, "success");
