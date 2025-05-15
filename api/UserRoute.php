@@ -1,5 +1,5 @@
 <?php
-require_once './config/headers.php';
+include './config/headers.php';
 require_once './config/database.php';
 require_once 'UserController.php';
 

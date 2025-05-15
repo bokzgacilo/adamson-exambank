@@ -86,7 +86,11 @@ export default function LoginPage() {
                   axios
                     .post(
                       `${import.meta.env.VITE_API_HOST}UserRoute.php?action=login`,
-                      values
+                      values, {
+                        headers: {
+                          'Content-Type' : 'application/json'
+                        }
+                      }
                     )
                     .then((response) => {
                       if (response.data.user.id !== undefined) {

@@ -67,6 +67,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/" element={<LoginPage />}></Route>
+        <Route index element={<LoginPage />}></Route>
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<QuestionPage />} />
           <Route path="questions" element={<QuestionPage />} />

@@ -93,9 +93,10 @@ class User
       if ($row['status'] == 0) {
         return json_encode(["error" => "Your account is inactive. Please contact support."]);
       }
-
+      $stmt -> close();
       return json_encode($row);
     } else {
+      $stmt -> close();
       return json_encode(["error" => "Invalid username or password."]);
     }
   }
