@@ -1,20 +1,5 @@
 <?php
-$allowed_origins = [
-    'http://localhost:5137',
-    'http://localhost/exam-bank',
-    'https://exam-bank.site',
-];
-
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: $origin");
-    header("Access-Control-Allow-Credentials: true"); // Optional, only if you send cookies
-}
-header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
+require_once './config/headers.php';
 require_once './config/database.php';
 require_once 'ExamController.php';
 
@@ -108,15 +93,15 @@ switch ($action) {
 
     echo json_encode($exams);
     break;
-    case "change_status":
-      if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-        echo json_encode(["message" => "Invalid request method"]);
-        exit;
-      }
-      $data = json_decode(file_get_contents("php://input"), true);
-      $exams = $exam->change_status($data['id'], $data['status']);
-      echo json_encode($exams);
-      break;
+  case "change_status":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    $exams = $exam->change_status($data['id'], $data['status']);
+    echo json_encode($exams);
+    break;
   case "update":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -125,7 +110,7 @@ switch ($action) {
 
     $data = json_decode(file_get_contents("php://input"), true);
 
-    $exams = $exam -> update($data["examid"], $data["questions"]);
+    $exams = $exam->update($data["examid"], $data["questions"]);
 
     echo json_encode($exams);
     break;

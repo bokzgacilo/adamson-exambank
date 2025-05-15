@@ -1,21 +1,7 @@
 <?php
-$allowed_origins = [
-    'http://localhost:5137',
-    'http://localhost/exam-bank',
-    'https://exam-bank.site',
-];
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: $origin");
-    header("Access-Control-Allow-Credentials: true"); // Optional, only if you send cookies
-}
-header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
-require './vendor/autoload.php';
+require_once './vendor/autoload.php';
+require_once './config/headers.php';
 require_once './config/database.php';
 require_once './service/mailer.php';
 
