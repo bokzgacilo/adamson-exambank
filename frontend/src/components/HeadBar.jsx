@@ -27,7 +27,7 @@ export default function HeadBar() {
     <Flex backgroundColor="blue.800" alignItems="center" direction="row" pt={2} pb={2} pr={4} pl={4} justifyContent='space-between'>
       <Image width="10%" height="auto" src={LOGO} />
       <Menu>
-        <MenuButton as={Avatar} name='Ryan Florence' src={localStorage.getItem("useravatar")} />
+        <MenuButton as={Avatar} src={localStorage.getItem("useravatar")} />
         <MenuList>
           <Stack p={4} justifyContent="center" alignItems="center">
             <Avatar size='xl' src={localStorage.getItem("useravatar")} />

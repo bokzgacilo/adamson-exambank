@@ -11,14 +11,6 @@ import {
   Text,
   Stack,
   useToast,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
   Center,
 } from "@chakra-ui/react";
 import LOGO from "../assets/logo.png";
@@ -43,7 +35,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false);
 
@@ -99,31 +90,8 @@ export default function LoginPage() {
       backgroundSize="cover"
       backgroundPosition="center"
     >
-
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Forgot Password</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack>
-              <Text>Email</Text>
-              <Input value={email} onChange={(e) => setEmail(e.currentTarget.value)} size="sm" type="email" placeholder="Email" />
-              <Text fontSize="12px">This will generate a new password that will sent to your email.</Text>
-            </Stack>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button size="sm" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button isLoading={isLoading}
-              loadingText="Resetting..." onClick={handleResetPassword} size="sm" colorScheme="blue">Reset Password</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
       <Center>
-        <Card alignSelf="center" w={{ base: "100%", md: "75%", lg: "30%" }}>
+        <Card alignSelf="center" w={{ base: "100%", md: "75%", lg: "25%" }}>
           <CardBody>
             <Stack p={4}>
               <Image w="35%" src={LOGO} mt={4} alignSelf="center" />
@@ -225,11 +193,11 @@ export default function LoginPage() {
                         required
                       />
                     </FormControl>
-                    <Text fontSize="14px" fontWeight="semibold" cursor="pointer" mt={1} textAlign="right" onClick={onOpen} >Forgot Password?</Text>
                     <Button
                       type="submit"
                       leftIcon={<TbLogin2 />}
-                      w="100%"
+                      width="100%"
+                      size="lg"
                       mt={4}
                       colorScheme="blue"
                     >

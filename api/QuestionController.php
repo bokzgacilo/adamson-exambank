@@ -80,7 +80,7 @@ class Question
 
     // ✅ If user is Admin, return all questions
     if ($type === "Admin") {
-        $query = "SELECT * FROM question WHERE status=1";
+        $query = "SELECT * FROM question";
         $stmt = $this->conn->query($query);
         return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
     }

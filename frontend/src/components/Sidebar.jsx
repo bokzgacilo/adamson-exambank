@@ -6,13 +6,15 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import LOGO from "../assets/logo.png";
-import { TbChartDots, TbFileDescription, TbList, TbLogout2, TbQuestionMark, TbUsers } from "react-icons/tb";
+import { TbChartDots, TbEdit, TbFileDescription, TbList, TbLogout, TbLogout2, TbQuestionMark, TbUsers } from "react-icons/tb";
 import axios from "axios";
 import useUserStore from "../helper/useUserStore";
 import useAuthStore from "../helper/useAuthStore";
 
 export default function SidebarComponent() {
   const { user, setUser, clearUser } = useUserStore();
+  const assignedSubjects = JSON.parse(user.user_assigned_subject)
+  const assignedDepartments = JSON.parse(user.user_assigned_department)
   const [UserData, SetUserData] = useState({});
   const [Preview, SetPreview] = useState("");
   const [ImageFile, SetImageFile] = useState(null);
@@ -28,6 +30,7 @@ export default function SidebarComponent() {
 
   const navigationItems = [
     { to: "questions", label: "Question Bank", pathname: "/dashboard/questions", icon: TbQuestionMark },
+    { to: "quiz", label: "Quiz Bank", pathname: "/dashboard/quiz", icon: TbFileDescription },
     { to: "exams", label: "Exam Bank", pathname: "/dashboard/exams", icon: TbFileDescription },
     ...(UserData.type === "Admin"
       ? [
@@ -103,21 +106,41 @@ export default function SidebarComponent() {
       <Modal isOpen={isOpenProfileModal} onClose={onCloseProfileModal}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>USER PROFILE</ModalHeader>
+          <ModalHeader>Profile</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Stack p={4}>
+            <Stack>
               <Avatar onClick={HandleChangeAvatar} cursor="pointer" alignSelf="center" size="2xl" src={Preview} mb={4} />
               <Input type="file" accept=".jpg, .webp, .jpeg" ref={fileInputRef} hidden onChange={HandleFileChange} />
-              <Text fontWeight="semibold">USERNAME</Text>
-              <Input size="sm" value={UserData.username || ""} isDisabled />
-              <Text fontWeight="semibold" mt={4}>PASSWORD</Text>
-              <Input size="sm" value={Password} onChange={(e) => SetPassword(e.currentTarget.value)} />
+              <Text fontWeight="semibold">Username</Text>
+              <Input value={UserData.username || ""} isDisabled />
+              <Text fontWeight="semibold">Password</Text>
+              <Input value={Password} onChange={(e) => SetPassword(e.currentTarget.value)} />
+              <Text fontWeight="semibold">Assigned Department</Text>
+              {assignedSubjects.length > 0 ? (
+                assignedSubjects.map((subject, key) => (
+                  <Text key={key} mb={2}>
+                    {key + 1}. {subject}
+                  </Text>
+                ))
+              ) : (
+                <Text>No assigned subjects</Text>
+              )}
+              <Text fontWeight="semibold">Assigned Subjects</Text>
+              {assignedDepartments.length > 0 ? (
+                assignedDepartments.map((department, key) => (
+                  <Text key={key} mb={2}>
+                    {key + 1}. {department}
+                  </Text>
+                ))
+              ) : (
+                <Text>No assigned departments</Text>
+              )}
             </Stack>
           </ModalBody>
           <ModalFooter>
-            <Button size="sm" onClick={onCloseProfileModal} mr={2}>Close</Button>
-            <Button size="sm" colorScheme="green" onClick={HandleSaveChanges}>Save Changes</Button>
+            <Button onClick={onCloseProfileModal} mr={2}>Close</Button>
+            <Button rightIcon={<TbEdit />} colorScheme="green" onClick={HandleSaveChanges}>Save Changes</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -125,12 +148,13 @@ export default function SidebarComponent() {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay>
           <ModalContent>
-            <ModalCloseButton />
-            <ModalHeader>LOGOUT</ModalHeader>
-            <ModalBody><Text textAlign="center">Are you sure you want to log out?</Text></ModalBody>
+            <ModalHeader>Log Out</ModalHeader>
+            <ModalBody>
+              <Text textAlign="center" fontWeight="semibold">Are you sure you want to log out?</Text>
+            </ModalBody>
             <ModalFooter>
-              <Button size="sm" onClick={onClose} mr={2}>Cancel</Button>
-              <Button size="sm" colorScheme="red" onClick={HandleLogout}>Logout</Button>
+              <Button onClick={onClose} mr={2}>Cancel</Button>
+              <Button rightIcon={<TbLogout />} colorScheme="red" onClick={HandleLogout}>Logout</Button>
             </ModalFooter>
           </ModalContent>
         </ModalOverlay>

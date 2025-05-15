@@ -55,22 +55,23 @@ export default function ExamPage() {
       {detailOpen && <ExamDetail editExam={EditExam} refreshData={getAllExams} selectedExam={selectedExam} onClose={detailOnClose} isOpen={detailOpen} />}
       {examBuilderOpen && <ExamBuilder refreshData={getAllExams} selectedExam={selectedExam} onClose={examBuilderOnClose} isOpen={examBuilderOpen} />}
       
-      <Stack p={4}>
-        <Card>
-          <CardHeader backgroundColor="#2b2b2b" color="#fff">
+      <Stack>
+        <Card
+        height="100dvh"
+        >
+          <CardHeader backgroundColor="#141414" color="#fff">
             <Flex
               direction="row"
               alignItems="center"
               justifyContent="space-between"
             >
-              <Heading size="md">EXAM LIST</Heading>
+              <Heading>Exam Bank</Heading>
               {user.usertype !== "Instructor" && (
                 <Flex direction="row" gap={2}>
                   <Button
                     leftIcon={<BiPlus />}
                     colorScheme="green"
                     onClick={examBuilderOnOpen}
-                    size="sm"
                   >
                     Create Exam
                   </Button>
@@ -79,7 +80,7 @@ export default function ExamPage() {
             </Flex>
           </CardHeader>
           <Divider />
-          <CardBody p={4}>
+          <CardBody p={0}>
             <ExamDataTable getAllExams={getAllExams} onOpen={detailOnOpen} SetSelectedExam={SetSelectedExam} data={Exams} />
           </CardBody>
         </Card>

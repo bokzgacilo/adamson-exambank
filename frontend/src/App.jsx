@@ -15,6 +15,10 @@ import { useEffect, useRef } from "react";
 import { database } from "./helper/Firebase";
 import { onChildAdded, ref } from "firebase/database";
 import DepartmentPage from "./pages/DepartmentPage";
+import QuizPage from "./pages/QuizPage";
+
+import 'primereact/resources/themes/lara-light-blue/theme.css'; // or any theme
+import 'primereact/resources/primereact.min.css';
 
 function DashboardLayout() {
   return (
@@ -71,6 +75,7 @@ export default function App() {
           <Route path="subjects" element={<SubjectPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
           <Route path="department" element={<DepartmentPage />} />
+          <Route path="quiz" element={<QuizPage />} />
         </Route>
       </Routes>
     </Router>

@@ -9,20 +9,20 @@ import {
   CardBody,
   Divider,
 } from "@chakra-ui/react";
-import CreateQuestionForm from "../components/CreateQuestionForm";
-import QuestionDataTable from "../components/QuestionDataTable";
+
+import QuestionDataTable from "../components/question/QuestionDataTable";
 import { TbFileExcel, TbPlus } from "react-icons/tb";
-import CreateBatchQuestion from "../components/CreateBatchQuestion";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useUserStore from "../helper/useUserStore";
-import LoadingSpinner from "../components/LoadingSpinner";
 import { onChildAdded, ref } from "firebase/database";
 import { database } from "../helper/Firebase";
+import CreateQuestionModal from "../components/question/CreateQuestionModal";
+import BatchQuestionModal from "../components/question/BatchQuestionModal";
 
 export default function QuestionPage() {
   const { user } = useUserStore();
-  const [ShowSpinner, SetShowSpinner] = useState(false)
+  const [questions, setQuestions] = useState([]);
 
   const {
     isOpen: SingleIsOpen,
@@ -35,63 +35,42 @@ export default function QuestionPage() {
     onOpen: BatchOnOpen,
     onClose: BatchOnClose,
   } = useDisclosure();
-  const [Questions, SetQuestions] = useState([]);
 
-  const FetchAllQuestions = async () => {
+  const fetchAllQuestions = async () => {
     await axios
-      .post(
-        `http://localhost/exam-bank/api/QuestionRoute.php?action=viewAll`,
-        {
-          subject: user.user_assigned_subject,
-          type: user.usertype,
-        }
-      )
-      .then((response) => {
-        SetQuestions(response.data);
+      .post(`http://localhost/exam-bank/api/QuestionRoute.php?action=viewAll`, {
+        subject: user.user_assigned_subject,
+        type: user.usertype,
+      }).then((response) => {
+        setQuestions(response.data);
       });
   };
 
+  // listen to firebase realtime updates
   useEffect(() => {
-    FetchAllQuestions();
-
+    fetchAllQuestions();
     const logRef = ref(database, "/logs");
-
     const unsubscribe = onChildAdded(logRef, () => {
       // FetchAllQuestions()
     });
-
     return () => unsubscribe(); // Cleanup listener on unmount
   }, []);
 
   return (
     <Stack>
-      {ShowSpinner && <LoadingSpinner />}
-      
-      <CreateQuestionForm
-        onClose={SingleOnClose}
-        isOpen={SingleIsOpen}
-        onOpen={SingleOnOpen}
-        spinner={SetShowSpinner}
-        refreshTable={FetchAllQuestions}
-      />
-      <CreateBatchQuestion
-        onClose={BatchOnClose}
-        isOpen={BatchIsOpen}
-        onOpen={BatchOnOpen}
-        spinner={SetShowSpinner}
-      />
-      <Stack p={4}>
-        <Card>
-          <CardHeader backgroundColor="#2b2b2b" color="#fff">
+      <CreateQuestionModal isOpen={SingleIsOpen} onClose={SingleOnClose} onOpen={SingleOnOpen} refreshTable={fetchAllQuestions} />
+      <BatchQuestionModal isOpen={BatchIsOpen} onClose={BatchOnClose} onOpen={BatchOnOpen} refreshTable={fetchAllQuestions} />
+      <Stack>
+        <Card height="100dvh">
+          <CardHeader backgroundColor="#141414" color="#fff">
             <Flex
               direction="row"
               alignItems="center"
               justifyContent="space-between"
             >
-              <Heading size="md">QUESTION LIST</Heading>
-              <Flex direction="row" gap={2}>
+              <Heading>Question Bank</Heading>
+              <Flex direction="row" gap={4}>
                 <Button
-                  size="sm"
                   leftIcon={<TbPlus />}
                   colorScheme="green"
                   onClick={SingleOnOpen}
@@ -99,7 +78,6 @@ export default function QuestionPage() {
                   Single
                 </Button>
                 <Button
-                  size="sm"
                   leftIcon={<TbFileExcel />}
                   colorScheme="green"
                   onClick={BatchOnOpen}
@@ -110,8 +88,8 @@ export default function QuestionPage() {
             </Flex>
           </CardHeader>
           <Divider />
-          <CardBody p={4}>
-            <QuestionDataTable data={Questions} refreshTable={FetchAllQuestions} />
+          <CardBody p={0}>
+            <QuestionDataTable data={questions} refreshTable={fetchAllQuestions} />
           </CardBody>
         </Card>
       </Stack>
