@@ -1,9 +1,9 @@
 <?php
 
 include './config/headers.php';
-require_once './vendor/autoload.php';
 require_once './config/database.php';
 require_once './service/mailer.php';
+require_once './vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -290,7 +290,7 @@ switch ($action) {
       $updateStmt = $conn->prepare($updateQuery);
       $updateStmt->bind_param("ss", $newPassword, $email);
       $updateStmt->execute();
-
+      $updateStmt->close();
       if (sendPasswordResetEmail($newPassword, $email, $client_name)) {
         echo json_encode(["status" => "success", "message" => "Password Reset", "description" => "User password successfully reset. New password was sent to their email"]);
       } else {
