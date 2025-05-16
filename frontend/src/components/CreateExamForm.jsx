@@ -35,11 +35,11 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
   const { user } = useUserStore()
   const [Questions, SetQuestions] = useState([]);
   const [departments, setDepartments] = useState([])
-  const [selectedDepartment, setSelectedDepartment] = useState("")
   const [filteredClassification, setFilteredClassification] = useState("");
   const [filteredCategory, setFilteredCategory] = useState('');
   const [filteredTerm, setFilteredTerm] = useState("")
 
+  const [selectedDepartment, setSelectedDepartment] = useState("")
   const parsedDepartment = JSON.parse(user.user_assigned_department)
 
   useEffect(() => {
@@ -299,8 +299,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
       <Stack>
         <Heading size="md">Metadata</Heading>
         <Text fontWeight="semibold">Access Code</Text>
-        <Input size="sm" type="text" mb={2} value={AccessCode} disabled />
-
+        <Input type="text" mb={2} value={AccessCode} disabled />
         <Text fontWeight="semibold">Classifications</Text>
         {Object.entries(TOS).map(([category, expected]) => {
           if (expected === 0) return null;
@@ -321,7 +320,6 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
             </Flex>
           );
         })}
-
       </Stack>
 
       <Stack>
@@ -376,10 +374,6 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
             </Select>
           </Stack>
         </HStack>
-
-
-
-
         <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">
           {filteredQuestions.map((item) => (
             <Flex direction="row" key={item.id}>

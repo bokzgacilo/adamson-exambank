@@ -1,19 +1,9 @@
 import { useState } from "react";
 import useUserStore from "../helper/useUserStore";
-import { Button, Flex, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Stack, Text, Textarea, useToast } from "@chakra-ui/react";
+import { Button, Flex, Tooltip, IconButton, Heading, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,  Stack, Text, useToast } from "@chakra-ui/react";
 import axios from "axios";
-import { ref, set } from "firebase/database";
-import { database } from "../helper/Firebase";
-import PropTypes from "prop-types";
-
-ExamDetail.propTypes = {
-  selectedExam: PropTypes.array.isRequired,
-  refreshData: PropTypes.func.isRequired,
-  editExam: PropTypes.func.isRequired,
-  isOpen: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired
-};
-
+import { TbCheck, TbDownload, TbEdit } from "react-icons/tb";
+import QuestionCardStack from "./composites/QuestionCardStack";
 
 export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpen, onClose }){
   const user = useUserStore((state) => state.user);
@@ -21,97 +11,8 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
   const [AccessCode, SetAccessCode] = useState("")
   const [DLink, SetLink] = useState("")
 
-  const renderFormElement = (options, category) => {
-    switch (category) {
-      case "Identification": {
-        return (
-          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
-        );
-      }
-      case "Enumeration": {
-        const TextAreaValue = JSON.parse(options)
-          .map((item) => item.option)
-          .join("\n");
-
-        return (
-          <Textarea
-            size="sm"
-            value={TextAreaValue}
-            placeholder="Enter answers"
-            isReadOnly={true}
-          />
-        );
-      }
-      case "True/False": {
-        return (
-          <RadioGroup>
-            <Stack spacing={2}>
-              {JSON.parse(options).map((option) => (
-                <Radio key={option.id} isChecked={option.is_correct}>
-                  {option.option}
-                </Radio>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      }
-
-      case "Multiple":
-        return (
-          <RadioGroup>
-            <Stack spacing={4}>
-              {JSON.parse(options).map((option) => (
-                <Flex
-                  key={option.id}
-                  direction="row"
-                  alignItems="center"
-                  gap={4}
-                >
-                  <Radio isChecked={option.is_correct} />
-                  <Input size="sm" type="text" value={option.option} readOnly />
-                </Flex>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      default:
-        return null;
-    }
-  };
-
   const HandleEdit = () => {
     editExam()
-  };
-
-  const HandleDelete = () => {
-    axios
-      .post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=delete`, {
-        id: selectedExam.id,
-      })
-      .then((response) => {
-        console.log(response);
-
-        if (response.data) {
-          toast({
-            title: "Exam Deleted!",
-            description: `${selectedExam.exam_name} deleted`,
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-
-          set(ref(database, `logs/${Date.now()}`), {
-            action: "Exam Deleted",
-            timestamp: Date.now(),
-            target: selectedExam.exam_name,
-            actor: user.fullname,
-          });
-          
-          onClose();
-
-          refreshData()
-        }
-      });
   };
 
   const HandleExportToBlackboard = () => {
@@ -154,7 +55,8 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
           </>
         ) : (
           <>
-            <ModalHeader>{selectedExam.exam_name}</ModalHeader>
+            <ModalHeader>
+              <Heading size="lg">{selectedExam.exam_name}</Heading></ModalHeader>
             <ModalBody>
               <Stack spacing={4}>
                 {JSON.parse(selectedExam.questions).map((question, index) => (
@@ -162,7 +64,7 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
                     <Text fontWeight="semibold">
                       {index + 1}. {question.question}
                     </Text>
-                    {renderFormElement(question.options, question.category)}
+                    <QuestionCardStack options={question.options} category={question.category} />
                   </Stack>
                 ))}
               </Stack>
@@ -175,32 +77,39 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
               value={AccessCode}
               onChange={(e) => SetAccessCode(e.currentTarget.value)}
               type="text"
-              size="sm"
               placeholder="Access Code"
             ></Input>
-            {DLink !== "" ? (
-              <Button
-              size="sm"
-                onClick={() =>
-                  window.open(
-                    `${import.meta.env.VITE_API_HOST}${DLink}`,
-                    "_blank"
-                  )
-                }
-              >
-                Download
-              </Button>
+            {DLink ? (
+              <Tooltip label="Download File" hasArrow>
+                <IconButton
+                  icon={<TbDownload />}
+                  aria-label="Download File"
+                  onClick={() =>
+                    window.open(`${import.meta.env.VITE_API_HOST}${DLink}`, "_blank")
+                  }
+                />
+              </Tooltip>
             ) : (
-              <Button size="sm" colorScheme="blue" onClick={HandleExportToBlackboard}>
-                Export
-              </Button>
+              <Tooltip label="Export to Blackboard" hasArrow>
+                <IconButton
+                  colorScheme="blue"
+                  icon={<TbCheck />}
+                  aria-label="Export to Blackboard"
+                  onClick={HandleExportToBlackboard}
+                />
+              </Tooltip>
             )}
             {user.usertype !== "Instructor" && (
-              <Button size="sm" colorScheme="yellow" onClick={HandleEdit}>
-                Edit
-              </Button>
+              <Tooltip label="Edit Exam" hasArrow>
+                <IconButton
+                  colorScheme="yellow"
+                  icon={<TbEdit />}
+                  aria-label="Export to Blackboard"
+                  onClick={HandleEdit}
+                />
+              </Tooltip>
             )}
-            <Button size="sm" onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>Close</Button>
           </Flex>
         </ModalFooter>
       </ModalContent>

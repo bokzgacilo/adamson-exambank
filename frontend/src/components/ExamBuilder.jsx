@@ -49,6 +49,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
     Evaluation: 0,
   });
   const [StepOne, SetStepOne] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,6 +79,8 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
       return;
     }
 
+    setIsLoading(true)
+
     if (mode === "upload") {
       axios
         .post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=GenerateTOSQuestion`, {
@@ -89,6 +92,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
           SetQuestionSet(response.data.data);
           SetTOS(response.data.tos)
           SetStepOne(false);
+          setIsLoading(false)
         });
     } else {
       SetQuestionSet([]);
@@ -226,6 +230,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
             colorScheme={StepOne ? "blue" : "green"}
             rightIcon={StepOne ? <TbArrowRight /> : <TbCheck />}
             onClick={StepOne ? HandleProceedTOS : HandleCreateExam}
+            isLoading={isLoading}
           >
             {StepOne ? "Next" : "Create Exam"}
           </Button>

@@ -18,65 +18,9 @@ import {
 } from "@chakra-ui/react";
 
 import { useState } from "react";
+import QuestionChoices from "../composites/QuestionChoices";
 
-export default function QuestionDetailModal({ QuestionData }) {
-  const [MultipleChoices, ] = useState(() => {
-    try {
-      return QuestionData.options ? JSON.parse(QuestionData.options) : [];
-    } catch (error) {
-      console.error("Error parsing options:", error);
-      return [];
-    }
-  });
-
-  const renderFormElement = () => {
-    switch (QuestionData.category) {
-      case "Numeric":
-        return <Input disabled type="number" value={MultipleChoices[0].option} />;
-      case "Identification":
-        return <Input disabled type="text" value={MultipleChoices[0].option} />;
-      case "Enumeration":
-        return (
-          <>
-            <Text>Separate answers by new line</Text>
-            <Textarea isDisabled placeholder="Enter answers" value={MultipleChoices.map(choice => choice.option).join("\n")} />
-          </>
-        );
-      case "True/False":
-        return (
-          <RadioGroup>
-            <Stack spacing={4}>
-              {MultipleChoices.map((option) => (
-                <Radio disabled key={option.id} isChecked={option.is_correct}>
-                  {option.option}
-                </Radio>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      case "Multiple":
-        return (
-          <RadioGroup>
-            <Stack spacing={2}>
-              {MultipleChoices.map((option) => (
-                <Flex
-                  key={option.id}
-                  direction="row"
-                  alignItems="center"
-                  gap={4}
-                >
-                  <Checkbox size="lg" disabled isChecked={option.is_correct} />
-                  <Input readOnly type="text" value={option.option} />
-                </Flex>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      default:
-        return null;
-    }
-  };
-
+export default function QuestionDetailModal({ QuestionData, isEditing }) {
   return (
     <Stack spacing={4}>
       <FormControl>
@@ -115,7 +59,7 @@ export default function QuestionDetailModal({ QuestionData }) {
       </FormControl>
       <FormControl>
         <FormLabel>Choices and Answers</FormLabel>
-        {renderFormElement()}
+        <QuestionChoices isEditing={isEditing} multipleChoices={QuestionData.options} category={QuestionData.category} />
       </FormControl>
       <Divider />
       <Stack>
@@ -130,8 +74,8 @@ export default function QuestionDetailModal({ QuestionData }) {
         <SimpleGrid columns={2}>
           <Heading size="sm">Status</Heading>
           <Box>
-            <Tag colorScheme={QuestionData.status === 1 ? "green" : "red"}>
-              {QuestionData.status === 1 ? "Active" : "Inactive"}
+            <Tag colorScheme={QuestionData.status == 1 ? "green" : "red"}>
+              {QuestionData.status == 1 ? "Active" : "Inactive"}
             </Tag>
           </Box>
         </SimpleGrid>

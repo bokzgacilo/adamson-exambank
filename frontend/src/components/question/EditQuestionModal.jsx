@@ -15,13 +15,16 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import useUserStore from "../../helper/useUserStore";
+import QuestionChoices from "../composites/QuestionChoices";
 
 export default function EditQuestionModal({
   QuestionData,
   SetUpdatedQuestionData,
   choicesError,
   termsError,
-  questionError
+  questionError,
+  isEditing,
+  multipleChoiceError
 }) {
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
@@ -125,96 +128,12 @@ export default function EditQuestionModal({
     }
   };
 
-  const handleRadioChange = (selectedId) => {
-    setMultipleChoices((prev) =>
-      prev.map((option) => ({
-        ...option,
-        is_correct: option.id === selectedId, // Ensure only one is selected
-      }))
-    );
-  };
-
-  const handleInputChange = (id, newValue) => {
-    setMultipleChoices(
-      multipleChoices.map((option) => ({
-        ...option,
-        option: option.id === id ? newValue : option.option,
-      }))
-    );
-  };
-
   const handleCheckboxChange = (value) => {
     setSelectedTerms((prev) =>
       prev.includes(value)
         ? prev.filter((item) => item !== value)
         : [...prev, value]
     );
-  };
-
-  const renderFormElement = () => {
-    switch (selectedCategory) {
-      case "Identification":
-        return (
-          <Input
-            type="text"
-            onChange={(e) => handleInputChange(1, e.target.value)}
-            value={multipleChoices[0].option}
-          />
-        );
-      case "Numeric":
-        return (
-          <Input
-            type="number"
-            onChange={(e) => handleInputChange(1, e.target.value)}
-            value={multipleChoices[0].option}
-          />
-        );
-      case "True/False":
-        return (
-          <RadioGroup
-            value={multipleChoices.find((option) => option.is_correct)?.id || ""}
-            onChange={(val) => handleRadioChange(Number(val))}
-          >
-            <Stack spacing={2}>
-              {multipleChoices.map((option) => (
-                <Radio key={option.id} value={option.id}>
-                  {option.option}
-                </Radio>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      case "Multiple":
-        return (
-          <RadioGroup>
-            <Stack spacing={2}>
-              {multipleChoices.map((option) => (
-                <Flex
-                  key={option.id}
-                  direction="row"
-                  alignItems="center"
-                  gap={4}
-                >
-                  <Checkbox
-                    size="lg"
-                    onChange={() => handleRadioChange(option.id)}
-                    isChecked={option.is_correct}
-                  />
-                  <Input
-                    onChange={(e) =>
-                      handleInputChange(option.id, e.target.value)
-                    }
-                    type="text"
-                    value={option.option}
-                  />
-                </Flex>
-              ))}
-            </Stack>
-          </RadioGroup>
-        );
-      default:
-        return null;
-    }
   };
 
   return (
@@ -288,7 +207,12 @@ export default function EditQuestionModal({
       </FormControl>
       <FormControl isRequired isInvalid={choicesError}>
         <FormLabel>Choices and Answers</FormLabel>
-        {renderFormElement()}
+        <QuestionChoices 
+          setMultipleChoices={setMultipleChoices}
+          multipleChoices={multipleChoices}
+          category={selectedCategory}
+          isEditing={true}
+        />
         {choicesError && (
           <FormErrorMessage>
             Provide at least one non-empty choice and mark a correct answer.

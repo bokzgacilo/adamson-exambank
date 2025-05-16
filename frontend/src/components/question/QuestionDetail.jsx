@@ -91,7 +91,6 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
             duration: 3000,
             isClosable: true,
           });
-          // FIREBASE ENABLE QUESTION
           onClose();
         }
       });
@@ -175,14 +174,16 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
         </ModalHeader>
         <ModalBody>
           {!isEditing ? (
-            <QuestionDetailModal QuestionData={selectedQuestion} />
+            <QuestionDetailModal isEditing={false} QuestionData={selectedQuestion} />
           ) : (
             <EditQuestionModal
               SetUpdatedQuestionData={setUpdatedQuestionData}
               QuestionData={selectedQuestion}
               choicesError={choicesError}
               questionError={questionError}
+              multipleChoiceError={multipleChoiceError}
               termsError={termsError}
+              isEditing={true}
             />
           )}
         </ModalBody>

@@ -42,8 +42,6 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 
 const renderQuestionListElement = (questionSet) => {
-
-
   // handling moving item in preview
   const moveItem = (index, direction) => {
     setQuestionSet((prevItems) => {
@@ -189,6 +187,13 @@ const QuizTable = ({ data, refreshTable }) => {
     onOpen()
   }
 
+  const handleExport = (rowData) => {
+    axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`, { data: JSON.parse(rowData.questions), subject: rowData.subject })
+      .then(response => {
+        window.open(`${import.meta.env.VITE_API_HOST}${response.data}`, "_blank")
+      });
+  }
+
   const handleDeleteQuiz = (id) => {
     Swal.fire({
       title: 'Are you sure?',
@@ -268,15 +273,6 @@ const QuizTable = ({ data, refreshTable }) => {
           header="Action"
           body={(rowData) => (
             <HStack spacing={2}>
-              {/* <Tooltip label="Edit">
-                <IconButton
-                  icon={<TbEdit />}
-                  colorScheme="yellow"
-                  aria-label="Edit"
-                  onClick={() => handleEdit(rowData)}
-                />
-              </Tooltip> */}
-
               <Tooltip label="Delete">
                 <IconButton
                   icon={<TbTrash />}
@@ -473,12 +469,11 @@ export default function QuizPage() {
             <ModalCloseButton />
             <ModalBody>
               <SimpleGrid gap={4} columns={3}>
-                {/* PREVIEW */}
                 <Stack>
                   <Heading size="md">Preview</Heading>
-                  <Stack>
+                  <Stack backgroundColor="gray.200" maxH="80dvh" overflowY="auto">
                     {questionSet.map((item, index) => (
-                      <Card key={item.id}>
+                      <Card mx={2} my={1} key={item.id}>
                         <CardBody>
                           <Stack spacing={4}>
                             <Flex direction="row">

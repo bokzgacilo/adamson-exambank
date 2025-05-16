@@ -87,10 +87,10 @@ export default function LoginPage() {
                     .post(
                       `${import.meta.env.VITE_API_HOST}UserRoute.php?action=login`,
                       values, {
-                        headers: {
-                          'Content-Type' : 'application/json'
-                        }
+                      headers: {
+                        'Content-Type': 'application/json'
                       }
+                    }
                     )
                     .then((response) => {
                       if (response.data.user.id !== undefined) {

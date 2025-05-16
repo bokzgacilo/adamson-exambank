@@ -29,15 +29,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { TbArrowDown, TbArrowUp, TbTrash } from "react-icons/tb";
-
-EditExamForm.propTypes = {
-  data: PropTypes.array.isRequired,
-  isOpen: PropTypes.func.isRequired,
-  refreshData: PropTypes.func.isRequired,
-  onClose: PropTypes.array.isRequired,
-};
+import useUserStore from "../helper/useUserStore";
 
 export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
+  const { user } = useUserStore();
   const AccessCode = data.access_code;
   const TOS = JSON.parse(data.tos);
   const SelectedSubject = data.subject;
@@ -46,15 +41,22 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
   const [Questions, SetQuestions] = useState(JSON.parse(data.questions));
   const [filteredClassification, setFilteredClassification] = useState("");
   const [filteredCategory, setFilteredCategory] = useState('');
-const [filteredTerm, setFilteredTerm] = useState("")
+  const [filteredTerm, setFilteredTerm] = useState("")
+  const [departments, setDepartments] = useState([])
+  const [selectedDepartment, setSelectedDepartment] = useState("")
+  const parsedDepartment = JSON.parse(user.user_assigned_department)
+
 
   const filteredQuestions = Questions.filter((q) => {
     const matchClassification =
       filteredClassification === '' || q.classification === filteredClassification;
-  
+
     const matchCategory =
       filteredCategory === '' || q.category === filteredCategory;
-  
+
+    const matchDepartment =
+      selectedDepartment === 'All' || q.department === selectedDepartment;
+
     let matchTerm = true;
     if (filteredTerm !== '') {
       if (q.terms && q.terms.startsWith('[')) {
@@ -68,21 +70,23 @@ const [filteredTerm, setFilteredTerm] = useState("")
         matchTerm = false;
       }
     }
-  
-    return matchClassification && matchCategory && matchTerm;
+    return matchClassification && matchCategory && matchDepartment && matchTerm;
   });
 
-  const handleCheckboxChange = (id) => {
-    SetQuestionSet((prevItems) => {
-      const isAlreadySelected = prevItems.some((item) => item.id === id);
-
-      if (isAlreadySelected) {
-        return prevItems.filter((item) => item.id !== id);
-      } else {
-        return [...prevItems, Questions.find((q) => q.id === id)];
-      }
-    });
-  };
+  useEffect(() => {
+    if (user.usertype === "Admin") {
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: user.usertype } })
+        .then(({ data }) => {
+          const departmentsWithAll = [{ name: "All" }, ...data];
+          setDepartments(departmentsWithAll);
+          setSelectedDepartment("All");
+        })
+        .catch(console.error);
+    } else {
+      setDepartments(parsedDepartment)
+      setSelectedDepartment(parsedDepartment[0])
+    }
+  }, [])
 
   const renderFormElement = (options, category) => {
     switch (category) {
@@ -280,7 +284,7 @@ const [filteredTerm, setFilteredTerm] = useState("")
                         >
                           <Icon as={TbArrowDown} />
                         </Button>
-                         <Button
+                        <Button
                           size="xs"
                           colorScheme="red"
                           onClick={() => handleDelete(item.id)}
@@ -295,14 +299,14 @@ const [filteredTerm, setFilteredTerm] = useState("")
               ))}
             </Stack>
             <Stack>
-              <Heading size="md">METADATA</Heading>
-              <Text fontWeight="semibold">ACCESS CODE</Text>
-              <Input size="sm" type="text" mb={2} value={AccessCode} disabled />
-
-              <Text fontWeight="semibold">TOS</Text>
+              <Heading size="md">Metadata</Heading>
+              <Text fontWeight="semibold">Access Code</Text>
+              <Input type="text" mb={2} value={AccessCode} disabled />
+              <Text fontWeight="semibold">Classifications</Text>
               {Object.entries(TOS).map(([category, expected]) => {
-                const count = categoryCounts[category] || 0;
+                if (expected === 0) return null;
 
+                const count = categoryCounts[category] || 0;
                 return (
                   <Flex
                     key={category}
@@ -321,52 +325,58 @@ const [filteredTerm, setFilteredTerm] = useState("")
             </Stack>
 
             <Stack>
-              <Heading size="md">BANK</Heading>
-              <Text fontWeight="semibold">SORT BY CLASSIFICATION</Text>
-              <Select
-                size="sm"
-                onChange={(e) => setFilteredClassification(e.target.value)}
-                mb={4}
-              >
-                <option value="">All</option>
-                <option value="Knowledge">Knowledge</option>
-                <option value="Comprehension">Comprehension</option>
-                <option value="Application">Application</option>
-                <option value="Evaluation">Evaluation</option>
-                <option value="Analysis">Analysis</option>
-                <option value="Synthesis">Synthesis</option>
-              </Select>
-              <Text fontWeight="semibold">SORT BY CATEGORY</Text>
-              <Select
-                size="sm"
-                value={filteredCategory}
-                onChange={(e) => setFilteredCategory(e.target.value)}
-                mb={4}
-              >
-                <option value="">All</option>
-                <option value="Multiple">Multiple Choice</option>
-                <option value="Numeric">Numeric</option>
-                <option value="Identification">Identification</option>
-                <option value="True/False">True/False</option>
-              </Select>
-              <Text fontWeight="semibold">SORT BY TERM</Text>
-              <Select
-                size="sm"
-                value={filteredTerm}
-                onChange={(e) => setFilteredTerm(e.target.value)}
-                mb={2}
-              >
-                <option value="">All</option>
-                <option value="Prelims">Prelims</option>
-                <option value="Midterms">Midterms</option>
-                <option value="Finals">Finals</option>
-              </Select>
-              <Stack
-                spacing={2}
-                overflowY="auto"
-                maxH="calc(100vh - 280px)"
-                w="100%"
-              >
+              <Heading size="md">Question Bank</Heading>
+              <Text fontWeight="semibold">Sort By</Text>
+              <HStack>
+                <Stack>
+                  <Text fontWeight="semibold">Classification</Text>
+                  <Select
+                    onChange={(e) => setFilteredClassification(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="Knowledge">Knowledge</option>
+                    <option value="Comprehension">Comprehension</option>
+                    <option value="Application">Application</option>
+                    <option value="Evaluation">Evaluation</option>
+                    <option value="Analysis">Analysis</option>
+                    <option value="Synthesis">Synthesis</option>
+                  </Select>
+                </Stack>
+                <Stack>
+                  <Text fontWeight="semibold">Category</Text>
+                  <Select
+                    value={filteredCategory}
+                    onChange={(e) => setFilteredCategory(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="Multiple">Multiple Choice</option>
+                    <option value="Numeric">Numeric</option>
+                    <option value="Identification">Identification</option>
+                    <option value="True/False">True/False</option>
+                  </Select>
+                </Stack>
+                <Stack>
+                  <Text fontWeight="semibold">Department</Text>
+                  <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
+                    {departments.map((department, index) => (
+                      <option key={index} value={department.name || department}>{department.name || department}</option>
+                    ))}
+                  </Select>
+                </Stack>
+                <Stack>
+                  <Text fontWeight="semibold">Term</Text>
+                  <Select
+                    value={filteredTerm}
+                    onChange={(e) => setFilteredTerm(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="Prelims">Prelims</option>
+                    <option value="Midterms">Midterms</option>
+                    <option value="Finals">Finals</option>
+                  </Select>
+                </Stack>
+              </HStack>
+              <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">
                 {filteredQuestions.map((item) => (
                   <Flex direction="row" key={item.id}>
                     <Checkbox
@@ -375,8 +385,8 @@ const [filteredTerm, setFilteredTerm] = useState("")
                       onChange={() => handleCheckboxChange(item.id)}
                       isChecked={CheckIfSelected(item.id)}
                       isDisabled={
-                        categoryCounts[item.classification] >=
-                          TOS[item.classification] && !CheckIfSelected(item.id)
+                        TOS[item.classification] === 0 ||
+                        (categoryCounts[item.classification] >= TOS[item.classification] && !CheckIfSelected(item.id))
                       }
                     />
                     <Text fontWeight="semibold">{item.question}</Text>
@@ -387,6 +397,8 @@ const [filteredTerm, setFilteredTerm] = useState("")
                 ))}
               </Stack>
             </Stack>
+
+
           </SimpleGrid>
         </ModalBody>
         <ModalFooter>
