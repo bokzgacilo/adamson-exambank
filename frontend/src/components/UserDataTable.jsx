@@ -106,9 +106,9 @@ export default function UserDataTable({ data, fetchMasterData }) {
             duration: 3000,
             isClosable: true,
           });
-
-          fetchMasterData();
         }
+        
+        fetchMasterData();
       });
 
     onClose();

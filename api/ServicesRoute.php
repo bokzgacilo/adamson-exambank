@@ -1,7 +1,7 @@
 <?php
 
-require_once './vendor/autoload.php';
 include './config/headers.php';
+require_once './vendor/autoload.php';
 require_once './config/database.php';
 require_once './service/mailer.php';
 
@@ -407,7 +407,6 @@ switch ($action) {
     $departments = get_all_departments();
     echo json_encode($departments);
     break;
-
   case "delete_department":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
