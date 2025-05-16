@@ -21,28 +21,52 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { TbArrowDown, TbArrowUp, TbTrash } from "react-icons/tb";
+import useUserStore from "../helper/useUserStore";
 
 CreateExamForm.propTypes = {
   TOS: PropTypes.array.isRequired,
-  SelectedSubject: PropTypes.string.isRequired, 
-  QuestionSet: PropTypes.array.isRequired, 
-  SetQuestionSet: PropTypes.func.isRequired, 
+  SelectedSubject: PropTypes.string.isRequired,
+  QuestionSet: PropTypes.array.isRequired,
+  SetQuestionSet: PropTypes.func.isRequired,
   AccessCode: PropTypes.string.isRequired,
 };
 
 export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, QuestionSet, SetQuestionSet }) {
+  const { user } = useUserStore()
   const [Questions, SetQuestions] = useState([]);
+  const [departments, setDepartments] = useState([])
+  const [selectedDepartment, setSelectedDepartment] = useState("")
   const [filteredClassification, setFilteredClassification] = useState("");
   const [filteredCategory, setFilteredCategory] = useState('');
   const [filteredTerm, setFilteredTerm] = useState("")
 
+  const parsedDepartment = JSON.parse(user.user_assigned_department)
+
+  useEffect(() => {
+    if (user.usertype === "Admin") {
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: user.usertype } })
+        .then(({ data }) => {
+          const departmentsWithAll = [{ name: "All" }, ...data];
+          setDepartments(departmentsWithAll);
+          setSelectedDepartment("All");
+        })
+        .catch(console.error);
+    } else {
+      setDepartments(parsedDepartment)
+      setSelectedDepartment(parsedDepartment[0])
+    }
+  }, [])
+
   const filteredQuestions = Questions.filter((q) => {
     const matchClassification =
       filteredClassification === '' || q.classification === filteredClassification;
-  
+
     const matchCategory =
       filteredCategory === '' || q.category === filteredCategory;
-  
+
+    const matchDepartment =
+      selectedDepartment === 'All' || q.department === selectedDepartment;
+
     let matchTerm = true;
     if (filteredTerm !== '') {
       if (q.terms && q.terms.startsWith('[')) {
@@ -56,9 +80,9 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
         matchTerm = false;
       }
     }
-  
-    return matchClassification && matchCategory && matchTerm;
+    return matchClassification && matchCategory && matchDepartment && matchTerm;
   });
+
 
   const [, SetSubjects] = useState([]);
 
@@ -195,9 +219,9 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
   };
 
   const CheckIfSelected = (qid) => {
-    if(QuestionSet.some((q) => q.id === qid)){
+    if (QuestionSet.some((q) => q.id === qid)) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
@@ -215,57 +239,73 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
         maxH="calc(100vh - 150px)"
         w="100%"
       >
-        {QuestionSet.map((item, index) => (
-          <Card key={item.id}>
+        {QuestionSet.length === 0 ? (
+          <Card>
             <CardBody>
-              <Stack spacing={4}>
-                <Flex direction="row">
-                  <Text fontSize="14px" fontWeight="semibold" mr="auto">
-                    {index + 1}. {item.question}
-                  </Text>
-
-                  <Text fontWeight="semibold" fontSize="10px" mr={2}>
-                    {item.classification}
-                  </Text>
-                  <Button
-                    size="xs"
-                    mr={1}
-                    onClick={() => moveItem(index, -1)}
-                    isDisabled={index === 0}
-                  >
-                    <Icon as={TbArrowUp} />
-                  </Button>
-                  <Button
-                    size="xs"
-                    mr={1}
-                    onClick={() => moveItem(index, 1)}
-                    isDisabled={index === QuestionSet.length - 1}
-                  >
-                    <Icon as={TbArrowDown} />
-                  </Button>
-                  <Button
-                    size="xs"
-                    colorScheme="red"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    <Icon as={TbTrash} />
-                  </Button>
-                </Flex>
-                {renderFormElement(item.options, item.category)}
+              <Stack spacing={4} textAlign="center">
+                <Text fontSize="lg" fontWeight="semibold">
+                  No Question in this exam.
+                </Text>
+                <Text fontSize="sm" color="gray.500">
+                  Add a question to get started.
+                </Text>
               </Stack>
             </CardBody>
           </Card>
-        ))}
+        ) : (
+          QuestionSet.map((item, index) => (
+            <Card key={item.id}>
+              <CardBody>
+                <Stack spacing={4}>
+                  <Flex direction="row">
+                    <Text fontSize="14px" fontWeight="semibold" mr="auto">
+                      {index + 1}. {item.question}
+                    </Text>
+
+                    <Text fontWeight="semibold" fontSize="10px" mr={2}>
+                      {item.classification}
+                    </Text>
+                    <Button
+                      size="xs"
+                      mr={1}
+                      onClick={() => moveItem(index, -1)}
+                      isDisabled={index === 0}
+                    >
+                      <Icon as={TbArrowUp} />
+                    </Button>
+                    <Button
+                      size="xs"
+                      mr={1}
+                      onClick={() => moveItem(index, 1)}
+                      isDisabled={index === QuestionSet.length - 1}
+                    >
+                      <Icon as={TbArrowDown} />
+                    </Button>
+                    <Button
+                      size="xs"
+                      colorScheme="red"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Icon as={TbTrash} />
+                    </Button>
+                  </Flex>
+                  {renderFormElement(item.options, item.category)}
+                </Stack>
+              </CardBody>
+            </Card>
+          ))
+        )}
       </Stack>
       <Stack>
-        <Heading size="md">METADATA</Heading>
-        <Text fontWeight="semibold">ACCESS CODE</Text>
+        <Heading size="md">Metadata</Heading>
+        <Text fontWeight="semibold">Access Code</Text>
         <Input size="sm" type="text" mb={2} value={AccessCode} disabled />
-        
-        <Text fontWeight="semibold">TOS</Text>
-        {Object.entries(TOS).map(([category, expected]) => {
-          const count = categoryCounts[category] || 0;
 
+        <Text fontWeight="semibold">Classifications</Text>
+        {Object.entries(TOS).map(([category, expected]) => {
+          if (expected === 0) return null;
+
+          const count = categoryCounts[category] || 0;
           return (
             <Flex
               key={category}
@@ -281,49 +321,64 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
             </Flex>
           );
         })}
+
       </Stack>
 
       <Stack>
-        <Heading size="md">BANK</Heading>
-        <Text fontWeight="semibold">SORT BY CLASSIFICATION</Text>
-        <Select
-          size="sm"
-          onChange={(e) => setFilteredClassification(e.target.value)}
-          mb={2}
-        >
-          <option value="">All</option>
-          <option value="Knowledge">Knowledge</option>
-          <option value="Comprehension">Comprehension</option>
-          <option value="Application">Application</option>
-          <option value="Evaluation">Evaluation</option>
-          <option value="Analysis">Analysis</option>
-          <option value="Synthesis">Synthesis</option>
-        </Select>
-        <Text fontWeight="semibold">SORT BY CATEGORY</Text>
-        <Select
-          size="sm"
-          value={filteredCategory}
-          onChange={(e) => setFilteredCategory(e.target.value)}
-          mb={2}
-        >
-          <option value="">All</option>
-          <option value="Multiple">Multiple Choice</option>
-          <option value="Numeric">Numeric</option>
-          <option value="Identification">Identification</option>
-          <option value="True/False">True/False</option>
-        </Select>
-        <Text fontWeight="semibold">SORT BY TERM</Text>
-        <Select
-          size="sm"
-          value={filteredTerm}
-          onChange={(e) => setFilteredTerm(e.target.value)}
-          mb={2}
-        >
-          <option value="">All</option>
-          <option value="Prelims">Prelims</option>
-          <option value="Midterms">Midterms</option>
-          <option value="Finals">Finals</option>
-        </Select>
+        <Heading size="md">Question Bank</Heading>
+        <Heading size="md">Sort By</Heading>
+        <HStack>
+          <Stack>
+            <Text fontWeight="semibold">Classification</Text>
+            <Select
+              onChange={(e) => setFilteredClassification(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="Knowledge">Knowledge</option>
+              <option value="Comprehension">Comprehension</option>
+              <option value="Application">Application</option>
+              <option value="Evaluation">Evaluation</option>
+              <option value="Analysis">Analysis</option>
+              <option value="Synthesis">Synthesis</option>
+            </Select>
+          </Stack>
+          <Stack>
+            <Text fontWeight="semibold">Category</Text>
+            <Select
+              value={filteredCategory}
+              onChange={(e) => setFilteredCategory(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="Multiple">Multiple Choice</option>
+              <option value="Numeric">Numeric</option>
+              <option value="Identification">Identification</option>
+              <option value="True/False">True/False</option>
+            </Select>
+          </Stack>
+          <Stack>
+            <Text fontWeight="semibold">Department</Text>
+            <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
+              {departments.map((department, index) => (
+                <option key={index} value={department.name || department}>{department.name || department}</option>
+              ))}
+            </Select>
+          </Stack>
+          <Stack>
+            <Text fontWeight="semibold">Term</Text>
+            <Select
+              value={filteredTerm}
+              onChange={(e) => setFilteredTerm(e.target.value)}
+            >
+              <option value="">All</option>
+              <option value="Prelims">Prelims</option>
+              <option value="Midterms">Midterms</option>
+              <option value="Finals">Finals</option>
+            </Select>
+          </Stack>
+        </HStack>
+
+
+
 
         <Stack spacing={2} overflowY="auto" maxH="calc(100vh - 280px)" w="100%">
           {filteredQuestions.map((item) => (
@@ -334,7 +389,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
                 onChange={() => handleCheckboxChange(item.id)}
                 isChecked={CheckIfSelected(item.id)}
                 isDisabled={
-                  TOS[item.classification] === 0 || 
+                  TOS[item.classification] === 0 ||
                   (categoryCounts[item.classification] >= TOS[item.classification] && !CheckIfSelected(item.id))
                 }
               />

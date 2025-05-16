@@ -12,31 +12,21 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  Flex,
-  Icon,
   Heading,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import PropTypes from "prop-types";
-import { TbPlus, TbX } from "react-icons/tb";
-
-AddNewUserForm.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  fetchMasterData: PropTypes.func.isRequired,
-};
+import { TbPlus } from "react-icons/tb";
+import AssignSubjectSelector from "./composites/AssignSubjectSelector";
 
 export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
   const [FullName, SetFullName] = useState("");
   const [Role, SetRole] = useState("Instructor");
   const [Username, SetUsername] = useState("");
   const [Password, SetPassword] = useState("");
-  const [AvailableSubjects, SetAvailableSubjects] = useState([]);
-  const [SelectedSubject, SetSelectedSubject] = useState(AvailableSubjects[0]);
   const [UserSubjects, SetUserSubjects] = useState([]);
-  const toast = useToast();
 
+  const toast = useToast();
   const data = {
     name: FullName,
     role: Role,
@@ -45,32 +35,18 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
     password: Password,
   };
 
-  useEffect(() => {
-    if (Role === "Coordinator") {
-      SetUserSubjects(["None"]);
-    } else {
-      axios
-        .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`)
-        .then((response) => {
-          SetAvailableSubjects(response.data);
-          SetSelectedSubject(response.data[0]?.name || "");
-          SetUserSubjects([])
-        })
-        .catch((error) => console.error("Error fetching subjects:", error));
-    }
-  }, [Role]);
-
-  const HandleAddSubject = () => {
-    if (SelectedSubject && !UserSubjects.includes(SelectedSubject)) {
-      SetUserSubjects((prev) => [...prev, SelectedSubject]);
-    }
-  };
-
-  const HandleRemoveSubject = (indexToRemove) => {
-    SetUserSubjects((prev) => prev.filter((_, index) => index !== indexToRemove));
-  };
-  
   const HandleAddUser = () => {
+    if (!FullName || !Username || !Password) {
+      toast({
+        title: "Validation Error",
+        description: "Full Name, Username, and Password are required.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     axios
       .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=create`, data)
       .then((response) => {
@@ -81,7 +57,7 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
           duration: 3000,
           isClosable: true,
         });
-        
+
         fetchMasterData()
         onClose();
       });
@@ -102,59 +78,23 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                 value={FullName}
                 onChange={(e) => SetFullName(e.currentTarget.value)}
                 type="text"
-                mb={4}
               />
               <Text fontWeight="semibold">Role</Text>
               <Select
                 value={Role}
                 onChange={(e) => SetRole(e.target.value)}
-                mb={4}
               >
                 <option>Instructor</option>
                 <option>Coordinator</option>
               </Select>
-              {Role === "Coordinator" ? (
-                ""
-              ) : (
-                <>
-                  <Text fontWeight="semibold">Assigned Subject</Text>
-                  <Flex direction="row" gap={4}>
-                    <Select
-                      value={SelectedSubject}
-                      onChange={(e) => SetSelectedSubject(e.target.value)}
-                      mb={4}
-                    >
-                      {AvailableSubjects.map((subject) => (
-                        <option key={subject.id} value={subject.name}>
-                          {subject.name}
-                        </option>
-                      ))}
-                    </Select>
-                    <Button
-                      colorScheme="green"
-                      onClick={HandleAddSubject}
-                    >
-                      <Icon as={TbPlus} />
-                    </Button>
-                  </Flex>
-                  {UserSubjects.length === 0 ? (
-                    <Text>No Selected Subject</Text>
-                  ) : (
-                    <Stack mb={4}>
-                      {UserSubjects.map((item, index) => (
-                        <Flex key={index} direction="row" alignItems="center" justifyContent="space-between">
-                        <Text >
-                          {index + 1}. {item}
-                        </Text>
-                        <Button onClick={() => HandleRemoveSubject(index)} size="xs"><Icon as={TbX} /></Button>
-                        </Flex>
-                        
-                      ))}
-                    </Stack>
-                  )}
-                </>
-              )}
-
+              {isOpen && 
+                <AssignSubjectSelector 
+                  data={{
+                    user_subjects: UserSubjects,
+                    set_user_subject: SetUserSubjects
+                  }}
+                />
+              }
               <Text fontWeight="semibold">Username</Text>
               <Input
                 value={Username}

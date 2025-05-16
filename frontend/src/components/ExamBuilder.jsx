@@ -98,6 +98,11 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
 
 
   const HandleCreateExam = () => {
+    if(QuestionSet.length === 0){
+      alert("Please add question to the exam.")
+      return;
+    }
+
     const totalSum = Object.values(TOS)
       .map(Number)
       .reduce((sum, value) => sum + value, 0);
@@ -136,7 +141,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
           refreshData()
         });
     } else {
-      alert("INCOMPLETE");
+      alert("Incomplete");
     }
   };
 

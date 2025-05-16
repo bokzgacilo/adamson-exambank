@@ -12,7 +12,7 @@ import {
 
 import QuestionDataTable from "../components/question/QuestionDataTable";
 import { TbFileExcel, TbPlus } from "react-icons/tb";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import useUserStore from "../helper/useUserStore";
 import { onChildAdded, ref } from "firebase/database";
@@ -23,6 +23,7 @@ import BatchQuestionModal from "../components/question/BatchQuestionModal";
 export default function QuestionPage() {
   const { user } = useUserStore();
   const [questions, setQuestions] = useState([]);
+  const didFetch = useRef(false);
 
   const {
     isOpen: SingleIsOpen,
@@ -48,18 +49,29 @@ export default function QuestionPage() {
 
   // listen to firebase realtime updates
   useEffect(() => {
-    fetchAllQuestions();
-    const logRef = ref(database, "/logs");
-    const unsubscribe = onChildAdded(logRef, () => {
-      // FetchAllQuestions()
-    });
-    return () => unsubscribe(); // Cleanup listener on unmount
+    fetchAllQuestions()
   }, []);
 
   return (
     <Stack>
-      <CreateQuestionModal isOpen={SingleIsOpen} onClose={SingleOnClose} onOpen={SingleOnOpen} refreshTable={fetchAllQuestions} />
-      <BatchQuestionModal isOpen={BatchIsOpen} onClose={BatchOnClose} onOpen={BatchOnOpen} refreshTable={fetchAllQuestions} />
+      {SingleIsOpen && (
+        <CreateQuestionModal
+          isOpen={SingleIsOpen}
+          onClose={SingleOnClose}
+          onOpen={SingleOnOpen}
+          refreshTable={fetchAllQuestions}
+        />
+      )}
+
+      {BatchIsOpen && (
+        <BatchQuestionModal
+          isOpen={BatchIsOpen}
+          onClose={BatchOnClose}
+          onOpen={BatchOnOpen}
+          refreshTable={fetchAllQuestions}
+        />
+      )}
+      
       <Stack>
         <Card height="100dvh">
           <CardHeader backgroundColor="#141414" color="#fff">

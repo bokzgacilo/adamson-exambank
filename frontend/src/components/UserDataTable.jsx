@@ -36,11 +36,7 @@ import PropTypes from "prop-types";
 import { ref, set } from "firebase/database";
 import { database } from "../helper/Firebase";
 import useUserStore from "../helper/useUserStore";
-
-UserDataTable.propTypes = {
-  data: PropTypes.object.isRequired,
-  fetchMasterData: PropTypes.func.isRequired,
-};
+import AssignSubjectSelector from "./composites/AssignSubjectSelector";
 
 export default function UserDataTable({ data, fetchMasterData }) {
   const [globalFilter, setGlobalFilter] = useState("");
@@ -73,16 +69,15 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const [isOpen, setIsOpen] = useState(false);
   const [IsLoading, SetIsLoading] = useState(false)
   const [SelectedCredential, SetSelectedCredential] = useState(null);
-  const [SelectedSubject, SetSelectedSubject] = useState("");
   const [SelectedDepartment, SetSelectedDepartment] = useState("");
   const [SelectUserSubject, SetSelectUserSubject] = useState([]);
   const [SelectUserDepartment, SetSelectUserDepartment] = useState([]);
-  const [AvailableSubjects, SetAvailableSubjects] = useState([]);
   const [AvailableDepartment, SetAvailableDepartment] = useState([]);
   const [NewPassword, SetNewPassword] = useState();
   const toast = useToast();
   const onClose = () => setIsOpen(false);
   const cancelRef = useRef()
+  const [selectedUser, setSelectedUser] = useState("")
 
 
   const [selectedUserId, setSelectedUserId] = useState("")
@@ -155,7 +150,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
     return (
       <Button
         variant="ghost"
-         size="sm"
+        size="sm"
         onClick={() => HandleShowSubjects(rowData)}
       >
         {label}
@@ -163,7 +158,6 @@ export default function UserDataTable({ data, fetchMasterData }) {
     );
   };
   const renderDepartments = (rowData) => {
-    console.log(rowData)
     let items = [];
 
     try {
@@ -332,16 +326,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
   }
 
   useEffect(() => {
-    fetchMasterData();
-
-    axios
-      .get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`)
-      .then((response) => {
-        SetAvailableSubjects(response.data);
-        SetSelectedSubject(response.data[0]?.name || "");
-      })
-      .catch((error) => console.error("Error fetching subjects:", error));
-
+    if (!isDepartmentOpen) return;
     axios
       .get(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=get_all_departments`)
       .then((response) => {
@@ -349,13 +334,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
         SetSelectedDepartment(response.data[0]?.name || "");
       })
       .catch((error) => console.error("Error fetching subjects:", error));
-  }, []);
-
-  const HandleAddSubject = () => {
-    if (SelectUserSubject && !SelectUserSubject.includes(SelectedSubject)) {
-      SetSelectUserSubject((prev) => [...prev, SelectedSubject]);
-    }
-  };
+  }, [isDepartmentOpen])
 
   const HandleAddDepartment = () => {
     if (SelectUserDepartment && !SelectUserDepartment.includes(SelectedDepartment)) {
@@ -369,13 +348,6 @@ export default function UserDataTable({ data, fetchMasterData }) {
     );
   };
 
-  const HandleRemoveSubject = (indexToRemove) => {
-    SetSelectUserSubject((prev) =>
-      prev.filter((_, index) => index !== indexToRemove)
-    );
-  };
-
-  const [selectedUser, setSelectedUser] = useState("")
 
   const RenderActionButtons = (rowData) => {
     return (
@@ -419,7 +391,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader><Heading size="lg">Confirm Delete?</Heading>
-              
+
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -464,7 +436,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
         </AlertDialogOverlay>
       </AlertDialog>
 
-      <Modal isOpen={isDepartmentOpen} onClose={onDepartmentClose}>
+      {isDepartmentOpen && <Modal isOpen={isDepartmentOpen} onClose={onDepartmentClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader><Heading size="lg">Assign Department</Heading></ModalHeader>
@@ -532,66 +504,27 @@ export default function UserDataTable({ data, fetchMasterData }) {
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal>}
 
-      <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
+      {isThirdOpen && <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader><Heading size="lg">Assign Subject</Heading></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
-              <Flex direction="row" gap={4}>
-                <Select
-                  value={SelectedSubject}
-                  onChange={(e) => SetSelectedSubject(e.target.value)}
-                  mb={4}
-                >
-                  {AvailableSubjects
-                    .filter(subject => !SelectUserSubject.includes(subject.name))
-                    .map((subject) => (
-                      <option key={subject.id} value={subject.name}>
-                        {subject.name}
-                      </option>
-                    ))}
-                </Select>
-                <Button
-                  colorScheme="green"
-                  onClick={HandleAddSubject}
-                >
-                  <Icon as={TbPlus} />
-                </Button>
-              </Flex>
-              {SelectUserSubject.length === 0 ? (
-                <Text>No Selected Subject</Text>
-              ) : (
-                <Stack mb={4}>
-                  {SelectUserSubject.map((item, index) => (
-                    <Flex
-                      key={index}
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                    >
-                      <Text>
-                        {index + 1}. {item}
-                      </Text>
-                      <Button
-                        onClick={() => HandleRemoveSubject(index)}
-                        size="xs"
-                      >
-                        <Icon as={TbX} />
-                      </Button>
-                    </Flex>
-                  ))}
-                </Stack>
-              )}
+              <AssignSubjectSelector 
+                data={{
+                    user_subjects: SelectUserSubject,
+                    set_user_subject: SetSelectUserSubject,
+                  }}
+              />
             </Stack>
           </ModalBody>
 
           <ModalFooter>
             <Button
-              mr={4} 
+              mr={4}
               onClick={onThirdClose}
             >Close</Button>
             <Button
@@ -602,9 +535,10 @@ export default function UserDataTable({ data, fetchMasterData }) {
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal>}
 
-      <Modal isOpen={isSecondOpen} onClose={onSecondClose}>
+
+      {isSecondOpen && <Modal isOpen={isSecondOpen} onClose={onSecondClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader><Heading size="lg">Credential</Heading></ModalHeader>
@@ -615,7 +549,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
                 <>
                   <Text fontWeight="semibold">Username</Text>
                   <Input value={SelectedCredential.username} isReadOnly />
-                   <Text fontWeight="semibold">Password</Text>
+                  <Text fontWeight="semibold">Password</Text>
                   <Input
                     type="password"
                     value={NewPassword}
@@ -628,13 +562,14 @@ export default function UserDataTable({ data, fetchMasterData }) {
 
           <ModalFooter>
             <Button mr={4} onClick={onSecondClose}>Close</Button>
-            <Button  isLoading={IsLoading}
+            <Button isLoading={IsLoading}
               loadingText="Resetting..." colorScheme="green" onClick={handleResetPassword}>
               Reset Password
             </Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal>}
+
 
       <Stack
         p={4}
@@ -649,7 +584,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
           placeholder="Search name, type, assigned subject, assigned department..."
         />
       </Stack>
-      <Divider/>
+      <Divider />
       <DataTable
         value={data}
         paginator

@@ -180,16 +180,43 @@ const QuizDetail = ({ quiz }) => {
   )
 }
 
-const QuizTable = ({ data }) => {
+const QuizTable = ({ data, refreshTable }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedQuiz, setSelectedQuiz] = useState([])
 
   const handleQuizClick = (rowData) => {
-    console.log(rowData)
     setSelectedQuiz(rowData)
-
     onOpen()
   }
+
+  const handleDeleteQuiz = (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This quiz will be permanently deleted.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e53e3e', // red
+      cancelButtonColor: '#718096',  // gray
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+       axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
+          params: {
+            action: 'delete',
+            id: id
+          }
+        })
+        .then(() => {
+          Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
+          refreshTable(); 
+        })
+        .catch(() => {
+          Swal.fire('Error', 'Failed to delete quiz.', 'error');
+        });
+      }
+    });
+  };
+
 
   return (
     <PrimeReactProvider>
@@ -241,21 +268,21 @@ const QuizTable = ({ data }) => {
           header="Action"
           body={(rowData) => (
             <HStack spacing={2}>
-              <Tooltip label="Edit">
+              {/* <Tooltip label="Edit">
                 <IconButton
                   icon={<TbEdit />}
                   colorScheme="yellow"
                   aria-label="Edit"
                   onClick={() => handleEdit(rowData)}
                 />
-              </Tooltip>
+              </Tooltip> */}
 
               <Tooltip label="Delete">
                 <IconButton
                   icon={<TbTrash />}
                   colorScheme="red"
                   aria-label="Delete"
-                  onClick={() => handleDelete(rowData)}
+                  onClick={() => handleDeleteQuiz(rowData.id)}
                 />
               </Tooltip>
 
@@ -282,6 +309,7 @@ export default function QuizPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const parsedSubjects = JSON.parse(user_assigned_subject);
   const parsedDepartments = JSON.parse(user_assigned_department);
+
   const [availableQuestions, setAvailableQuestions] = useState([])
   const [quizName, setQuizName] = useState("")
   // SUBJECT
@@ -291,7 +319,7 @@ export default function QuizPage() {
   const [departments, setDepartments] = useState([])
   const [selectedDepartment, setSelectedDepartment] = useState("")
 
-  
+
   // check if selected
   const CheckIfSelected = (qid) => {
     if (questionSet.some((q) => q.id === qid)) {
@@ -324,7 +352,6 @@ export default function QuizPage() {
       }
     })
       .then(({ data }) => {
-        console.log(data)
         setQuizzes(data);
       })
       .catch(console.error);
@@ -337,6 +364,8 @@ export default function QuizPage() {
 
   //populate subject and department select element
   useEffect(() => {
+    if(!isOpen) return;
+
     if (usertype === "Admin") {
       axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: usertype } })
         .then(({ data }) => {
@@ -362,10 +391,12 @@ export default function QuizPage() {
       setDepartments(parsedDepartments);
       setSelectedDepartment(parsedDepartments[0]);
     }
-  }, [])
+  }, [isOpen])
 
   // change available quiz based on selected department and subject
   useEffect(() => {
+    if(!isOpen) return;
+
     axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
       params: {
         action: "get_available_questions",
@@ -378,9 +409,7 @@ export default function QuizPage() {
         setAvailableQuestions(data);
       })
       .catch(console.error);
-  }, [selectedDepartment, selectedSubject])
-
-
+  }, [isOpen, selectedDepartment, selectedSubject])
 
   // Create Quiz
   const handleCreateQuiz = () => {
@@ -436,114 +465,107 @@ export default function QuizPage() {
 
   return (
     <>
-      <Modal size="full" isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Quiz</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <SimpleGrid gap={4} columns={3}>
-              <Stack>
-                <Heading size="md">Preview</Heading>
+      {isOpen && (
+        <Modal size="full" isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Create Quiz</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <SimpleGrid gap={4} columns={3}>
+                {/* PREVIEW */}
                 <Stack>
-                  {questionSet.map((item, index) => (
-                    <Card key={item.id}>
-                      <CardBody>
-                        <Stack spacing={4}>
-                          <Flex direction="row">
-                            <Text fontSize="14px" fontWeight="semibold" mr="auto">
-                              {index + 1}. {item.question}
-                            </Text>
-
-                            <Text fontWeight="semibold" fontSize="10px" mr={2}>
-                              {item.classification}
-                            </Text>
-                            <Button
-                              size="xs"
-                              mr={1}
-                              onClick={() => moveItem(index, -1)}
-                              isDisabled={index === 0}
-                            >
-                              <Icon as={TbArrowUp} />
-                            </Button>
-                            <Button
-                              size="xs"
-                              mr={1}
-                              onClick={() => moveItem(index, 1)}
-                              isDisabled={index === questionSet.length - 1}
-                            >
-                              <Icon as={TbArrowDown} />
-                            </Button>
-                            <Button
-                              size="xs"
-                              colorScheme="red"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              <Icon as={TbTrash} />
-                            </Button>
-                          </Flex>
-                          {renderChoicesElement(item.options, item.category)}
-                        </Stack>
-                      </CardBody>
-                    </Card>
-                  ))}
+                  <Heading size="md">Preview</Heading>
+                  <Stack>
+                    {questionSet.map((item, index) => (
+                      <Card key={item.id}>
+                        <CardBody>
+                          <Stack spacing={4}>
+                            <Flex direction="row">
+                              <Text fontSize="14px" fontWeight="semibold" mr="auto">
+                                {index + 1}. {item.question}
+                              </Text>
+                              <Text fontWeight="semibold" fontSize="10px" mr={2}>
+                                {item.classification}
+                              </Text>
+                              <Button size="xs" mr={1} onClick={() => moveItem(index, -1)} isDisabled={index === 0}>
+                                <Icon as={TbArrowUp} />
+                              </Button>
+                              <Button size="xs" mr={1} onClick={() => moveItem(index, 1)} isDisabled={index === questionSet.length - 1}>
+                                <Icon as={TbArrowDown} />
+                              </Button>
+                              <Button size="xs" colorScheme="red" onClick={() => handleDelete(item.id)}>
+                                <Icon as={TbTrash} />
+                              </Button>
+                            </Flex>
+                            {renderChoicesElement(item.options, item.category)}
+                          </Stack>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </Stack>
                 </Stack>
-              </Stack>
-              <Stack>
-                <Heading size="md">Question List</Heading>
+
+                {/* QUESTION LIST */}
                 <Stack>
-                  {availableQuestions.map((item) => (
-                    <Flex direction="row" key={item.id}>
-                      <Checkbox
-                        key={item.id}
-                        mr={4}
-                        onChange={() => handleCheckboxChange(item.id)}
-                        isChecked={CheckIfSelected(item.id)}
-                      />
-                      <Text fontWeight="semibold">{item.question}</Text>
-                      <Tag ml="auto" size="sm">
-                        {item.category}
-                      </Tag>
-                    </Flex>
-                  ))}
+                  <Heading size="md">Question List</Heading>
+                  <Stack>
+                    {availableQuestions.map((item) => (
+                      <Flex direction="row" key={item.id}>
+                        <Checkbox
+                          mr={4}
+                          onChange={() => handleCheckboxChange(item.id)}
+                          isChecked={CheckIfSelected(item.id)}
+                        />
+                        <Text fontWeight="semibold">{item.question}</Text>
+                        <Tag ml="auto" size="sm">
+                          {item.category}
+                        </Tag>
+                      </Flex>
+                    ))}
+                  </Stack>
                 </Stack>
-              </Stack>
-              <Stack>
-                <Heading size="md">Info</Heading>
-                <FormControl isRequired mt={2}>
-                  <FormLabel>Quiz Name</FormLabel>
-                  <Input value={quizName} onChange={(e) => setQuizName(e.currentTarget.value)} placeholder="Mathematics short quiz 1" />
-                </FormControl>
-                <FormControl isRequired mt={2}>
-                  <FormLabel>Subject</FormLabel>
-                  <Select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
-                    {subjects.map((subject, key) => (
-                      <option value={subject} key={key}>{subject}</option>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl isRequired mt={2}>
-                  <FormLabel>Department</FormLabel>
-                  <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
-                    {departments.map((department, key) => (
-                      <option value={department} key={key}>{department}</option>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-            </SimpleGrid>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button mr={4} onClick={onClose}>Close</Button>
+                {/* INFO */}
+                <Stack>
+                  <Heading size="md">Info</Heading>
+                  <FormControl isRequired mt={2}>
+                    <FormLabel>Quiz Name</FormLabel>
+                    <Input
+                      value={quizName}
+                      onChange={(e) => setQuizName(e.currentTarget.value)}
+                      placeholder="Mathematics short quiz 1"
+                    />
+                  </FormControl>
+                  <FormControl isRequired mt={2}>
+                    <FormLabel>Subject</FormLabel>
+                    <Select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+                      {subjects.map((subject, key) => (
+                        <option value={subject} key={key}>{subject}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl isRequired mt={2}>
+                    <FormLabel>Department</FormLabel>
+                    <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
+                      {departments.map((department, key) => (
+                        <option value={department} key={key}>{department}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </SimpleGrid>
+            </ModalBody>
 
-            <Button onClick={handleCreateQuiz} rightIcon={<BiCheck />} colorScheme='green'>
-              Create Quiz
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
+            <ModalFooter>
+              <Button mr={4} onClick={onClose}>Close</Button>
+              <Button onClick={handleCreateQuiz} rightIcon={<BiCheck />} colorScheme="green">
+                Create Quiz
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
       <Stack>
         <Card
           height="100dvh"
@@ -562,6 +584,7 @@ export default function QuizPage() {
           <CardBody p={0}>
             <QuizTable
               data={quizzes}
+              refreshTable={fetchQuizzes}
             />
           </CardBody>
         </Card>

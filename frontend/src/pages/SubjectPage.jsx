@@ -23,10 +23,9 @@ export default function SubjectPage() {
 
   useEffect(() => {
     fetchSubjects()
-    
     const logRef = ref(database, "/logs");
     const unsubscribe = onChildAdded(logRef, () => {
-      fetchSubjects()
+      // fetchSubjects()
     });
     return () => unsubscribe();
   }, []);

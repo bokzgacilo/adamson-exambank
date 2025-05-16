@@ -20,7 +20,8 @@ export default function UserPage() {
 
   return (
     <Stack>
-      <AddNewUserForm fetchMasterData={fetchMasterData} onClose={onClose} isOpen={isOpen} onOpen={onOpen}  />
+      {isOpen && <AddNewUserForm fetchMasterData={fetchMasterData} onClose={onClose} isOpen={isOpen} onOpen={onOpen}  />}
+      
       <Stack >
         <Card height="100dvh">
           <CardHeader backgroundColor="#141414" color="#fff">

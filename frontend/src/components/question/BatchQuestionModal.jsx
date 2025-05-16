@@ -26,6 +26,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState("")
   const [File, SetFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -57,7 +58,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
       alert("Please select a file first.");
       return;
     }
-
+    setIsLoading(true)
     await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=ProcessQuestionBatch`, {
       subject: selectedSubject,
       excel_data: File,
@@ -66,7 +67,6 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
       headers: { "Content-Type": "multipart/form-data" },
     })
       .then(response => {
-        console.log(response)
 
         if (response.data.status === "not-found") {
           Swal.fire({
@@ -87,9 +87,10 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
             toast: false // you can set this to true if you want a top-right mini-alert
           });
         }
-
         onClose()
         SetFile(null)
+        setIsLoading(false)
+        refreshTable();
       })
   };
 
@@ -129,6 +130,7 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
               colorScheme="green"
               rightIcon={<TbUpload />}
               onClick={HandleCreate}
+              isLoading={isLoading}
             >
               Upload File
             </Button>

@@ -8,14 +8,14 @@ function sendPasswordResetEmail($newPassword, $email, $clientName)
 
   try {
     $mail->isSMTP();
-    $mail->Host       = 'smtp.gmail.com';
+    $mail->Host       = 'smtp.hostinger.com';
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'bokwebmaster2000@gmail.com';
-    $mail->Password   = 'mrxheyufylkteano';
+    $mail->Username   = 'support@exambank.site';
+    $mail->Password   = '87hRLAO$Vj';
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
     $mail->Port       = 465;
 
-    $mail->setFrom('bokwebmaster2000@gmail.com', 'Exam Bank Support');
+    $mail->setFrom('support@exambank.site', 'Exam Bank Support');
     $mail->addAddress($email, $clientName);
 
     $mail->isHTML(true);

@@ -7,6 +7,20 @@ class Quiz
   {
     $this->conn = $db;
   }
+
+  function delete($id) {
+
+    $stmt = $this->conn->prepare("DELETE FROM quiz WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+      $stmt -> close();
+      return ['success' => true, 'message' => 'Quiz deleted successfully'];
+    } else {
+      $stmt -> close();
+      return ['success' => false, 'message' => 'Failed to delete quiz'];
+    }
+  }
   public function getQuizzes($usertype, $fullname)
   {
     if ($usertype === 'Admin') {

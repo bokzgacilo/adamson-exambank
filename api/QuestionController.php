@@ -106,7 +106,7 @@ class Question
 
   public function QuestionForBank($subject)
   {
-    $query = "SELECT id, question, options, category, classification,terms
+    $query = "SELECT id, question, options, department, category, classification,terms
           FROM question 
           WHERE subject = ? AND status <> 0";
 

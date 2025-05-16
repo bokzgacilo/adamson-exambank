@@ -75,6 +75,24 @@ switch ($action) {
     }
 
     break;
+  case 'delete':
+    $id = $_GET['id'] ?? null;
+    if ($id) {
+      
+      $newQuiz = $quiz->delete(
+        $id,
+      );
+
+      if ($newQuiz) {
+        echo json_encode([
+          "message" => "Quiz deleted successfully",
+          "question" => $newQuiz
+        ]);
+      }
+    } else {
+      echo json_encode(['success' => false, 'message' => 'Quiz ID is required']);
+    }
+    break;
   default:
     echo json_encode(["message" => "Invalid action"]);
 }
