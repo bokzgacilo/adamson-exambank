@@ -14,6 +14,7 @@ import {
   ModalFooter,
   Flex,
   Icon,
+  Heading,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -92,22 +93,19 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
       <ModalOverlay>
         <ModalContent>
           <ModalCloseButton />
-          <ModalHeader fontSize="lg" fontWeight="bold">
-            NEW USER
-          </ModalHeader>
+          <ModalHeader><Heading size="lg">Add User</Heading></ModalHeader>
           <ModalBody>
             <Stack spacing={2}>
-              <Text fontWeight="semibold">FULL NAME</Text>
+              <Text fontWeight="semibold">Full Name</Text>
               <Input
-                size="sm"
+                placeholder="Juan Dela Cruz"
                 value={FullName}
                 onChange={(e) => SetFullName(e.currentTarget.value)}
                 type="text"
                 mb={4}
               />
-              <Text fontWeight="semibold">ROLE</Text>
+              <Text fontWeight="semibold">Role</Text>
               <Select
-                size="sm"
                 value={Role}
                 onChange={(e) => SetRole(e.target.value)}
                 mb={4}
@@ -119,10 +117,9 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                 ""
               ) : (
                 <>
-                  <Text fontWeight="semibold">SUBJECT</Text>
+                  <Text fontWeight="semibold">Assigned Subject</Text>
                   <Flex direction="row" gap={4}>
                     <Select
-                      size="sm"
                       value={SelectedSubject}
                       onChange={(e) => SetSelectedSubject(e.target.value)}
                       mb={4}
@@ -135,7 +132,6 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                     </Select>
                     <Button
                       colorScheme="green"
-                      size="sm"
                       onClick={HandleAddSubject}
                     >
                       <Icon as={TbPlus} />
@@ -159,22 +155,22 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                 </>
               )}
 
-              <Text fontWeight="semibold">SET EMAIL</Text>
+              <Text fontWeight="semibold">Username</Text>
               <Input
-                size="sm"
                 value={Username}
                 onChange={(e) => SetUsername(e.currentTarget.value)}
                 type="email"
+                placeholder="j.delacruz@adamson.edu.ph"
               />
               {Username && !/^[a-zA-Z0-9._%+-]+@adamson\.edu\.ph$/.test(Username) && (
                 <Text fontSize="xs" mb={4} color="red.500">
                   Please use an Adamson associated email (e.g., user@adamson.edu.ph)
                 </Text>
               )}
-              <Text fontWeight="semibold">SET PASSWORD</Text>
+              <Text fontWeight="semibold">Password</Text>
               <Input
-                size="sm"
                 value={Password}
+                placeholder="Password"
                 onChange={(e) => SetPassword(e.currentTarget.value)}
                 type="text"
                 mb={4}
@@ -183,13 +179,18 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
           </ModalBody>
           <ModalFooter>
             <Button
+              mr={4}
+              onClick={onClose}
+            >
+              Close
+            </Button>
+            <Button
               colorScheme="green"
               onClick={HandleAddUser}
-              size="sm"
               rightIcon={<TbPlus />}
               disabled={UserSubjects.length === 0 ? true : false}
             >
-              ADD USER
+              Add User
             </Button>
           </ModalFooter>
         </ModalContent>

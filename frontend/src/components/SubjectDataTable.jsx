@@ -165,17 +165,17 @@ export default function SubjectDataTable({ data, fetchSubjects }) {
         </AlertDialogOverlay>
       </AlertDialog>
 
-      <Stack>
-        <Heading size="md">SEARCH</Heading>
+      <Stack p={4} backgroundColor="gray.200">
+        <Heading size="lg">Search</Heading>
         <Input
-          type="text"
+          backgroundColor="#fff"
+          type="search"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Search..."
-          mb={4}
+          placeholder="Search id, name..."
         />
       </Stack>
-      <Divider mb={4} />
+      <Divider />
       <DataTable
         value={data}
         paginator

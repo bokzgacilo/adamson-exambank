@@ -418,8 +418,8 @@ export default function UserDataTable({ data, fetchMasterData }) {
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Confirm Delete
+            <AlertDialogHeader><Heading size="lg">Confirm Delete?</Heading>
+              
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -427,11 +427,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button size="sm" onClick={onDeleteClose}>
+              <Button onClick={onDeleteClose}>
                 No
               </Button>
-              <Button size="sm" colorScheme="blue" onClick={handleDelete} ml={3}>
-                Yes
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Yes, Confirm delete.
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -445,8 +445,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Confirm Status Change
+            <AlertDialogHeader><Heading size="lg">Confirm Status Change?</Heading>
             </AlertDialogHeader>
 
             <AlertDialogBody>
@@ -458,7 +457,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
                 No
               </Button>
               <Button colorScheme="blue" onClick={handeChangeStatus} ml={3}>
-                Yes
+                Yes, Confirm changing status.
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -468,13 +467,12 @@ export default function UserDataTable({ data, fetchMasterData }) {
       <Modal isOpen={isDepartmentOpen} onClose={onDepartmentClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Assigned Department</ModalHeader>
+          <ModalHeader><Heading size="lg">Assign Department</Heading></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
               <Flex direction="row" gap={4}>
                 <Select
-                  size="sm"
                   value={SelectedDepartment}
                   onChange={(e) => SetSelectedDepartment(e.target.value)}
                   mb={4}
@@ -489,7 +487,6 @@ export default function UserDataTable({ data, fetchMasterData }) {
                 </Select>
                 <Button
                   colorScheme="green"
-                  size="sm"
                   onClick={HandleAddDepartment}
                 >
                   <Icon as={TbPlus} />
@@ -524,8 +521,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
 
           <ModalFooter>
             <Button
+              mr={4}
+              onClick={onDepartmentClose}
+            >Close</Button>
+            <Button
               colorScheme="green"
-              size="sm"
               onClick={HandleUpdateDepartment}
             >
               Update
@@ -537,13 +537,12 @@ export default function UserDataTable({ data, fetchMasterData }) {
       <Modal isOpen={isThirdOpen} onClose={onThirdClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Assigned Subjects</ModalHeader>
+          <ModalHeader><Heading size="lg">Assign Subject</Heading></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
               <Flex direction="row" gap={4}>
                 <Select
-                  size="sm"
                   value={SelectedSubject}
                   onChange={(e) => SetSelectedSubject(e.target.value)}
                   mb={4}
@@ -558,7 +557,6 @@ export default function UserDataTable({ data, fetchMasterData }) {
                 </Select>
                 <Button
                   colorScheme="green"
-                  size="sm"
                   onClick={HandleAddSubject}
                 >
                   <Icon as={TbPlus} />
@@ -593,8 +591,11 @@ export default function UserDataTable({ data, fetchMasterData }) {
 
           <ModalFooter>
             <Button
+              mr={4} 
+              onClick={onThirdClose}
+            >Close</Button>
+            <Button
               colorScheme="green"
-              size="sm"
               onClick={HandleUpdateSubjects}
             >
               Update
@@ -606,15 +607,15 @@ export default function UserDataTable({ data, fetchMasterData }) {
       <Modal isOpen={isSecondOpen} onClose={onSecondClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Credential</ModalHeader>
+          <ModalHeader><Heading size="lg">Credential</Heading></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
               {SelectedCredential !== null && (
                 <>
-                  <Heading size="sm">Username</Heading>
+                  <Text fontWeight="semibold">Username</Text>
                   <Input value={SelectedCredential.username} isReadOnly />
-                  <Heading size="sm">Password</Heading>
+                   <Text fontWeight="semibold">Password</Text>
                   <Input
                     type="password"
                     value={NewPassword}
@@ -626,9 +627,9 @@ export default function UserDataTable({ data, fetchMasterData }) {
           </ModalBody>
 
           <ModalFooter>
-            <Button size="sm" mr={2} onClick={onSecondClose}>Close</Button>
+            <Button mr={4} onClick={onSecondClose}>Close</Button>
             <Button  isLoading={IsLoading}
-              loadingText="Resetting..." size="sm" colorScheme="green" onClick={handleResetPassword}>
+              loadingText="Resetting..." colorScheme="green" onClick={handleResetPassword}>
               Reset Password
             </Button>
           </ModalFooter>
@@ -648,7 +649,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
           placeholder="Search name, type, assigned subject, assigned department..."
         />
       </Stack>
-      <Divider mb={4} />
+      <Divider/>
       <DataTable
         value={data}
         paginator

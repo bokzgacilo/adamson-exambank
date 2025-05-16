@@ -66,18 +66,18 @@ export default function SubjectPage() {
           </ModalContent>
         </ModalOverlay>
       </Modal>
-      <Stack p={4}>
-        <Card>
-          <CardHeader backgroundColor="#2b2b2b" color="#fff">
+      <Stack p={0}>
+        <Card height="100dvh">
+          <CardHeader backgroundColor="#141414" color="#fff">
             <Flex direction="row" alignItems="center" justifyContent="space-between">
-              <Heading size="md">SUBJECTS LIST</Heading>
+              <Heading>Manage Subjects</Heading>
               <Flex direction="row" gap={2}>
-                <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen} size="sm">New Subject</Button>
+                <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen}>New Subject</Button>
               </Flex>
             </Flex>
           </CardHeader>
           <Divider />
-          <CardBody p={4}>
+          <CardBody p={0}>
             <SubjectDataTable fetchSubjects={fetchSubjects} data={Subjects} />
           </CardBody>
         </Card>

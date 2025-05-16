@@ -99,17 +99,17 @@ export default function DepartmentPage() {
     };
 
     return (
-      <HStack spacing={2}>
-        <Button
-          size="xs"
+      <HStack>
+        {/* <Button
+          size="sm"
           colorScheme="blue"
           leftIcon={<TbEdit />}
           onClick={handleEdit}
         >
           Edit
-        </Button>
+        </Button> */}
         <Button
-          size="xs"
+          size="sm"
           colorScheme="red"
           leftIcon={<TbTrash />}
           onClick={handleDelete}
@@ -122,48 +122,48 @@ export default function DepartmentPage() {
 
 
   return (
-    <PrimeReactProvider>
-      <Stack>
-        <Stack p={2}>
-          <NewDepartmentModal isOpen={isOpen} onClose={onClose} fetchMasterData={fetchMasterData} />
-          <Card>
-            <CardHeader backgroundColor="#2b2b2b" color="#fff">
-              <Flex direction="row" alignItems="center" justifyContent="space-between">
-                <Heading size="md">Department List</Heading>
-                <Flex direction="row" gap={2}>
-                  <Button leftIcon={<BiPlus />} colorScheme="green" size="sm" onClick={onOpen}>Create New Department</Button>
-                </Flex>
-              </Flex>
-            </CardHeader>
-            <Divider />
-            <CardBody p={0}>
-              <DataTable
-                value={MasterData}
-                paginator
-                rows={10}
-                rowsPerPageOptions={[10, 15, 30]}
-                showGridlines
-                size="small"
-              >
-                <Column
-                  field="id"
-                  header="ID"
-                ></Column>
-                <Column
-                  field="name"
-                  header="Name"
-                ></Column>
-                <Column
-                  field="id"
-                  header="Action"
-                  body={actionTemplate}
-                ></Column>
-              </DataTable>
-            </CardBody>
-          </Card>
-        </Stack>
-      </Stack>
-    </PrimeReactProvider>
+    <Stack p={0}>
+      <NewDepartmentModal isOpen={isOpen} onClose={onClose} fetchMasterData={fetchMasterData} />
+      <Card
+        height="100dvh"
+      >
+        <CardHeader backgroundColor="#141414"  color="#fff">
+          <Flex direction="row" alignItems="center" justifyContent="space-between">
+            <Heading>Manage Departments</Heading>
+            <Flex direction="row" gap={2}>
+              <Button leftIcon={<BiPlus />} colorScheme="green" onClick={onOpen}>Create Department</Button>
+            </Flex>
+          </Flex>
+        </CardHeader>
+        <Divider />
+        <CardBody p={0}>
+          <PrimeReactProvider>
 
+            <DataTable
+              value={MasterData}
+              paginator
+              rows={10}
+              rowsPerPageOptions={[10, 15, 30]}
+              showGridlines
+              size="small"
+            >
+              <Column
+                field="id"
+                header="ID"
+              ></Column>
+              <Column
+                field="name"
+                header="Name"
+              ></Column>
+              <Column
+                field="id"
+                header="Action"
+                body={actionTemplate}
+              ></Column>
+            </DataTable>
+          </PrimeReactProvider>
+        </CardBody>
+      </Card>
+    </Stack>
   );
 }

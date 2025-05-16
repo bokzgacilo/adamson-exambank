@@ -2,6 +2,8 @@ import {
   Heading,
   Stack,
   Flex,
+  Tooltip,
+  IconButton,
   Card,
   Tag,
   CardHeader,
@@ -34,14 +36,182 @@ import { useEffect, useState } from "react";
 import axios from 'axios'
 import { BiCheck, BiPlus } from "react-icons/bi";
 import useUserStore from "../helper/useUserStore";
-import { TbArrowDown, TbArrowUp, TbTrash } from "react-icons/tb";
+import { TbArrowDown, TbArrowUp, TbDownload, TbEdit, TbTrash } from "react-icons/tb";
 import { PrimeReactProvider } from "primereact/api";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 
+const renderQuestionListElement = (questionSet) => {
+
+
+  // handling moving item in preview
+  const moveItem = (index, direction) => {
+    setQuestionSet((prevItems) => {
+      const newItems = [...prevItems];
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= newItems.length) return prevItems;
+      [newItems[index], newItems[newIndex]] = [
+        newItems[newIndex],
+        newItems[index],
+      ];
+      return newItems;
+    });
+  };
+
+
+  // handle delete from preview
+  const handleDelete = (id) => {
+    setQuestionSet((prevSet) => prevSet.filter((item) => item.id !== id));
+  };
+
+  return questionSet.map((item, index) => (
+    <Card key={item.id}>
+      <CardBody>
+        <Stack spacing={4}>
+          <Flex direction="row">
+            <Text fontSize="14px" fontWeight="semibold" mr="auto">
+              {index + 1}. {item.question}
+            </Text>
+
+            <Text fontWeight="semibold" fontSize="10px" mr={2}>
+              {item.classification}
+            </Text>
+            <Button
+              size="xs"
+              mr={1}
+              onClick={() => moveItem(index, -1)}
+              isDisabled={index === 0}
+            >
+              <Icon as={TbArrowUp} />
+            </Button>
+            <Button
+              size="xs"
+              mr={1}
+              onClick={() => moveItem(index, 1)}
+              isDisabled={index === questionSet.length - 1}
+            >
+              <Icon as={TbArrowDown} />
+            </Button>
+            <Button
+              size="xs"
+              colorScheme="red"
+              onClick={() => handleDelete(item.id)}
+            >
+              <Icon as={TbTrash} />
+            </Button>
+          </Flex>
+          {renderChoicesElement(item.options, item.category)}
+        </Stack>
+      </CardBody>
+    </Card>
+  ))
+}
+
+const renderChoicesElement = (options, category) => {
+  switch (category) {
+    case "Identification": {
+      return (
+        <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
+      );
+    }
+    case "Numeric": {
+      return (
+        <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
+      );
+    }
+    case "Enumeration": {
+      const TextAreaValue = JSON.parse(options)
+        .map((item) => item.option)
+        .join("\n");
+
+      return (
+        <Textarea
+          size="sm"
+          value={TextAreaValue}
+          placeholder="Enter answers"
+          isReadOnly={true}
+        />
+      );
+    }
+    case "True/False": {
+      return (
+        <RadioGroup>
+          <HStack spacing={4}>
+            {JSON.parse(options).map((option) => (
+              <Radio key={option.id} isChecked={option.is_correct}>
+                {option.option}
+              </Radio>
+            ))}
+          </HStack>
+        </RadioGroup>
+      );
+    }
+
+    case "Multiple":
+      return (
+        <RadioGroup>
+          <HStack spacing={4}>
+            {JSON.parse(options).map((option) => (
+              <Flex
+                key={option.id}
+                direction="row"
+                alignItems="center"
+                gap={4}
+              >
+                <Checkbox isChecked={option.is_correct} />
+                <Input size="sm" type="text" value={option.option} readOnly />
+              </Flex>
+            ))}
+          </HStack>
+        </RadioGroup>
+      );
+    default:
+      return null;
+  }
+};
+
+const QuizDetail = ({ quiz }) => {
+  const questionSet = JSON.parse(quiz.questions);
+
+  return (
+    <Stack spacing={4}>
+      {renderQuestionListElement(questionSet)}
+    </Stack>
+  )
+}
+
 const QuizTable = ({ data }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedQuiz, setSelectedQuiz] = useState([])
+
+  const handleQuizClick = (rowData) => {
+    console.log(rowData)
+    setSelectedQuiz(rowData)
+
+    onOpen()
+  }
+
   return (
     <PrimeReactProvider>
+      <Modal size="xl" isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            <ModalCloseButton />
+            <Heading size="lg">{selectedQuiz.quiz_name}</Heading>
+          </ModalHeader>
+          <ModalBody>
+            <QuizDetail quiz={selectedQuiz} />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={onClose}
+            >
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <DataTable
         value={data}
         paginator
@@ -50,10 +220,56 @@ const QuizTable = ({ data }) => {
         showGridlines
       >
         <Column field="id" header="ID" />
-        <Column field="quiz_name" header="Quiz Name" />
+        <Column
+          field="quiz_name"
+          header="Quiz Name"
+          body={(rowData) => (
+            <Text
+              fontWeight="bold"
+              cursor="pointer"
+              onClick={() => handleQuizClick(rowData)}
+              _hover={{ textDecoration: 'underline' }}
+            >
+              {rowData.quiz_name}
+            </Text>
+          )}
+        />
         <Column field="department" header="Department" />
         <Column field="subject" header="Subject" />
         <Column field="created_by" header="Created By" />
+        <Column
+          header="Action"
+          body={(rowData) => (
+            <HStack spacing={2}>
+              <Tooltip label="Edit">
+                <IconButton
+                  icon={<TbEdit />}
+                  colorScheme="yellow"
+                  aria-label="Edit"
+                  onClick={() => handleEdit(rowData)}
+                />
+              </Tooltip>
+
+              <Tooltip label="Delete">
+                <IconButton
+                  icon={<TbTrash />}
+                  colorScheme="red"
+                  aria-label="Delete"
+                  onClick={() => handleDelete(rowData)}
+                />
+              </Tooltip>
+
+              <Tooltip label="Export">
+                <IconButton
+                  icon={<TbDownload />}
+                  colorScheme="green"
+                  aria-label="Export"
+                  onClick={() => handleExport(rowData)}
+                />
+              </Tooltip>
+            </HStack>
+          )}
+        />
       </DataTable>
     </PrimeReactProvider>
   )
@@ -75,6 +291,29 @@ export default function QuizPage() {
   const [departments, setDepartments] = useState([])
   const [selectedDepartment, setSelectedDepartment] = useState("")
 
+  
+  // check if selected
+  const CheckIfSelected = (qid) => {
+    if (questionSet.some((q) => q.id === qid)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // handling if checkbox
+  const handleCheckboxChange = (id) => {
+    setQuestionSet((prevItems) => {
+      const isAlreadySelected = prevItems.some((item) => item.id === id);
+
+      if (isAlreadySelected) {
+        return prevItems.filter((item) => item.id !== id);
+      } else {
+        return [...prevItems, availableQuestions.find((q) => q.id === id)];
+      }
+    });
+  };
+
   // get datatable quiz data
   const fetchQuizzes = () => {
     axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
@@ -93,8 +332,6 @@ export default function QuizPage() {
 
   // initialize datatable
   useEffect(() => {
-    console.log(parsedSubjects)
-    console.log(parsedDepartments)
     fetchQuizzes()
   }, [])
 
@@ -143,110 +380,7 @@ export default function QuizPage() {
       .catch(console.error);
   }, [selectedDepartment, selectedSubject])
 
-  // rendering question in preview
-  const renderFormElement = (options, category) => {
-    switch (category) {
-      case "Identification": {
-        return (
-          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
-        );
-      }
-      case "Numeric": {
-        return (
-          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
-        );
-      }
-      case "Enumeration": {
-        const TextAreaValue = JSON.parse(options)
-          .map((item) => item.option)
-          .join("\n");
 
-        return (
-          <Textarea
-            size="sm"
-            value={TextAreaValue}
-            placeholder="Enter answers"
-            isReadOnly={true}
-          />
-        );
-      }
-      case "True/False": {
-        return (
-          <RadioGroup>
-            <HStack spacing={4}>
-              {JSON.parse(options).map((option) => (
-                <Radio key={option.id} isChecked={option.is_correct}>
-                  {option.option}
-                </Radio>
-              ))}
-            </HStack>
-          </RadioGroup>
-        );
-      }
-
-      case "Multiple":
-        return (
-          <RadioGroup>
-            <HStack spacing={4}>
-              {JSON.parse(options).map((option) => (
-                <Flex
-                  key={option.id}
-                  direction="row"
-                  alignItems="center"
-                  gap={4}
-                >
-                  <Checkbox isChecked={option.is_correct} />
-                  <Input size="sm" type="text" value={option.option} readOnly />
-                </Flex>
-              ))}
-            </HStack>
-          </RadioGroup>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // check if selected
-  const CheckIfSelected = (qid) => {
-    if (questionSet.some((q) => q.id === qid)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  // handling moving item in preview
-  const moveItem = (index, direction) => {
-    setQuestionSet((prevItems) => {
-      const newItems = [...prevItems];
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= newItems.length) return prevItems;
-      [newItems[index], newItems[newIndex]] = [
-        newItems[newIndex],
-        newItems[index],
-      ];
-      return newItems;
-    });
-  };
-
-  // handling if checkbox
-  const handleCheckboxChange = (id) => {
-    setQuestionSet((prevItems) => {
-      const isAlreadySelected = prevItems.some((item) => item.id === id);
-
-      if (isAlreadySelected) {
-        return prevItems.filter((item) => item.id !== id);
-      } else {
-        return [...prevItems, availableQuestions.find((q) => q.id === id)];
-      }
-    });
-  };
-
-  // handle delete from preview
-  const handleDelete = (id) => {
-    setQuestionSet((prevSet) => prevSet.filter((item) => item.id !== id));
-  };
 
   // Create Quiz
   const handleCreateQuiz = () => {
@@ -294,7 +428,7 @@ export default function QuizPage() {
             });
             console.error(error);
           });
-      }else {
+      } else {
         onOpen()
       }
     });
@@ -348,7 +482,7 @@ export default function QuizPage() {
                               <Icon as={TbTrash} />
                             </Button>
                           </Flex>
-                          {renderFormElement(item.options, item.category)}
+                          {renderChoicesElement(item.options, item.category)}
                         </Stack>
                       </CardBody>
                     </Card>

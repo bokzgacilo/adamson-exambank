@@ -22,8 +22,11 @@ class Subject
       $fetch_stmt->bind_param("i", $last_id);
       $fetch_stmt->execute();
       $result = $fetch_stmt->get_result();
+      $data = $result -> fetch_assoc();
+      $stmt -> close();
+      $fetch_stmt -> close();
 
-      return $result->fetch_assoc();
+      return $data;
     }
 
     return false;
@@ -37,8 +40,9 @@ class Subject
     } else {
       return [];
     }
-
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    $data = $stmt->fetch_all(MYSQLI_ASSOC);
+    $stmt -> close();
+    return $data;
   }
   public function GetAllDepartments($type)
   {
@@ -49,7 +53,9 @@ class Subject
       return [];
     }
 
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    $data = $stmt->fetch_all(MYSQLI_ASSOC);
+    $stmt -> close();
+    return $data;
   }
 
   public function change_status($id, $status)
@@ -78,8 +84,10 @@ class Subject
     $query = "UPDATE subjects SET status = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $status, $id);
+    $data = $stmt -> execute();
+    $stmt -> close();
 
-    return $stmt->execute();
+    return $data;
 
   }
 
@@ -96,7 +104,9 @@ class Subject
   {
     $query = "SELECT * FROM subjects"; // No WHERE condition
     $stmt = $this->conn->query($query);
+    $data = $stmt->fetch_all(MYSQLI_ASSOC);
+    $stmt -> close();
 
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    return $data;
   }
 }

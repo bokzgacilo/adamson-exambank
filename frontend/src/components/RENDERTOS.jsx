@@ -1,6 +1,7 @@
 import { Button, Flex, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Text } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
+import { TbDownload } from "react-icons/tb";
 
 const minVal = 0;
 const maxVal = 100;
@@ -38,15 +39,14 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
     case "upload":
       return (
         <>
-          <Text fontWeight="semibold">UPLOAD TOS FILE</Text>
+          <Text fontWeight="semibold">Upload TOS File</Text>
           <Flex direction="row" alignItems="center" gap={4}>
             <Input
               accept=".xlsx"
               onChange={handleFileChange}
-              size="sm"
               type="file"
             />
-            <Button onClick={DownloadFormat} size="sm">
+            <Button leftIcon={<TbDownload />} onClick={DownloadFormat}>
               Template
             </Button>
           </Flex>
@@ -56,14 +56,13 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
     default:
       return (
         <>
-          <Text fontWeight="semibold">SET CATEGORY ITEMS</Text>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">Category Items</Text>
+          <Text fontWeight="semibold">
             Knowledge
           </Text>
           <NumberInput
             value={TOS.Knowledge}
             onChange={(value) => SetTOS({ ...TOS, Knowledge: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel
@@ -74,13 +73,12 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">
             Comprehension
           </Text>
           <NumberInput
             value={TOS.Comprehension}
             onChange={(value) => SetTOS({ ...TOS, Comprehension: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel
@@ -91,13 +89,12 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">
             Application
           </Text>
           <NumberInput
             value={TOS.Application}
             onChange={(value) => SetTOS({ ...TOS, Application: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel
@@ -108,13 +105,12 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">
             Analysis
           </Text>
           <NumberInput
             value={TOS.Analysis}
             onChange={(value) => SetTOS({ ...TOS, Analysis: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel
@@ -125,13 +121,12 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">
             Synthesis
           </Text>
           <NumberInput
             value={TOS.Synthesis}
             onChange={(value) => SetTOS({ ...TOS, Synthesis: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel
@@ -142,13 +137,12 @@ export default function RENDERTOS ({mode, TOS, SetTOS}) {
               <NumberDecrementStepper />
             </NumberInputStepper>
           </NumberInput>
-          <Text fontSize="12px" fontWeight="semibold">
+          <Text fontWeight="semibold">
             Evaluation
           </Text>
           <NumberInput
             value={TOS.Evaluation}
             onChange={(value) => SetTOS({ ...TOS, Evaluation: value })}
-            size="sm"
             min={minVal}
             max={maxVal}
             allowMouseWheel

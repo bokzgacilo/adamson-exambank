@@ -141,12 +141,12 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
   };
 
   return (
-    <Modal size={StepOne ? "md" : "full"} isOpen={isOpen} onClose={onClose}>
+    <Modal size={StepOne ? "3xl" : "full"} isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
           <ModalCloseButton />
-          <Heading size="md">
+          <Heading size="lg">
             {StepOne ? "Select Mode" : "Exam Builder"}
           </Heading>
         </ModalHeader>
@@ -163,7 +163,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
           ) : (
             <>
               <Stack>
-                <Text fontWeight="semibold">MODE</Text>
+                <Text fontWeight="semibold">Mode</Text>
                 <RadioGroup
                   onChange={(picked) => setMode(picked)}
                   defaultValue="upload"
@@ -173,29 +173,27 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
                     direction="row"
                     justifyContent="space-evenly"
                   >
-                    <Radio value="upload">
-                      <Heading size="sm">Exam Generator</Heading>
+                    <Radio size="lg" value="upload">
+                      <Heading size="md">Exam Generator</Heading>
                     </Radio>
-                    <Radio value="manual">
-                      <Heading size="sm">Manual TOS</Heading>
+                    <Radio  size="lg" value="manual">
+                      <Heading size="md">Manual TOS</Heading>
                     </Radio>
                   </Stack>
                 </RadioGroup>
                 <Text fontWeight="semibold" mt={2}>
-                  NAME
+                  Name
                 </Text>
                 <Input
                   placeholder="Enter exam name"
-                  size="sm"
                   type="text"
                   value={ExamName}
                   onChange={(e) => SetExamName(e.currentTarget.value)}
                 />
                 <Text fontWeight="semibold" mt={2}>
-                  SUBJECT
+                  Subject
                 </Text>
                 <Select
-                  size="sm"
                   onChange={(e) => SetSelectedSubject(e.target.value)}
                   mb={2}
                 >
@@ -214,7 +212,12 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
         </ModalBody>
         <ModalFooter>
           <Button
-            size="sm"
+            mr={4}
+            onClick={onClose}
+          >
+            Close
+          </Button>
+          <Button
             colorScheme={StepOne ? "blue" : "green"}
             rightIcon={StepOne ? <TbArrowRight /> : <TbCheck />}
             onClick={StepOne ? HandleProceedTOS : HandleCreateExam}

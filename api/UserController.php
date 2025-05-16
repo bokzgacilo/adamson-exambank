@@ -14,7 +14,9 @@ class User
     $query = "INSERT INTO user (name, type, assigned_subject, username, password) VALUES (?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("sssss", $name, $type, $assigned_subject, $username, $password);
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt -> close();
+    return $data;
   }
 
   // Read all user
@@ -22,7 +24,9 @@ class User
   {
     $query = "SELECT * FROM user WHERE type <> 'admin'";
     $result = $this->conn->query($query);
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $data = $result->fetch_all(MYSQLI_ASSOC);
+    $result -> close();
+    return $data;
   }
 
   // Read a single exam
@@ -33,7 +37,9 @@ class User
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $data = $result->fetch_assoc();
+    $stmt -> close();
+    return $data;
   }
 
   // Update an exam
@@ -42,7 +48,9 @@ class User
     $query = "UPDATE user SET title = ?, description = ?, exam_date = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("sssi", $title, $description, $date, $id);
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt -> close();
+    return $data;
   }
 
   public function update_subjects($id, $usersubjects)
@@ -51,8 +59,9 @@ class User
     $query = "UPDATE user SET assigned_subject = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $assigned_subjects, $id);
-    
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt -> close();
+    return $data;
   }
   public function update_departments($id, $usersubjects)
   {
@@ -60,8 +69,9 @@ class User
     $query = "UPDATE user SET assigned_department = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $assigned_departments, $id);
-    
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt -> close();
+    return $data;
   }
 
   public function get_user_data($id)
@@ -73,9 +83,10 @@ class User
 
     if ($result->num_rows > 0) {
       $row = $result->fetch_assoc();
-
+      $stmt -> close();
       return $row;
     } else {
+      $stmt -> close();
       return json_encode([]);
     }
   }
@@ -90,10 +101,10 @@ class User
     if ($result->num_rows > 0) {
       $row = $result->fetch_assoc();
 
+      $stmt -> close();
       if ($row['status'] == 0) {
         return json_encode(["error" => "Your account is inactive. Please contact support."]);
       }
-      $stmt -> close();
       return json_encode($row);
     } else {
       $stmt -> close();
@@ -127,8 +138,9 @@ class User
       $stmt = $this->conn->prepare($query);
       $stmt->bind_param("si", $password, $id);
     }
-
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt -> close();
+    return $data;
   }
 
 
@@ -137,7 +149,9 @@ class User
     $query = "UPDATE user SET password = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $password, $id);
-    return $stmt->execute();
+    $data = $stmt -> execute();
+    $stmt -> close();
+    return $data;
   }
 
   public function change_status($id, $status)
@@ -145,7 +159,8 @@ class User
     $query = "UPDATE user SET status = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $status, $id);
-    return $stmt->execute();
+    $data = $stmt -> execute();
+    $stmt -> close();
   }
 
   // Delete an exam
@@ -154,6 +169,7 @@ class User
     $query = "DELETE FROM user WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
-    return $stmt->execute();
+    $data = $stmt -> execute();
+    $stmt -> close();
   }
 }

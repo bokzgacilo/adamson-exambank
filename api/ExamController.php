@@ -16,7 +16,9 @@ class Exam
     $query = "INSERT INTO exam (exam_name, subject, access_code, tos, questions, created_by) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("ssssss", $exam_name, $subject, $access_code, $tosJSON, $questionJSON, $created_by);
-    return $stmt->execute();
+    $result = $stmt->execute();
+    $stmt->close();
+    return $result;
   }
 
   public function viewAll($subjects, $type)
@@ -51,7 +53,9 @@ class Exam
     $stmt->execute();
 
     $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $data = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $data;
   }
 
   public function getAllQuestion($assigned_subject)
@@ -72,15 +76,14 @@ class Exam
       $stmt = $stmt->get_result();
     }
 
-    return $stmt->fetch_all(MYSQLI_ASSOC);
+    $data = $stmt->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $data;
   }
 
   public function GenerateTOSQuestion($tos, $subject)
   {
     $question_list = [];
-
-    // Assuming you have a PDO connection stored in $this->conn
-    $pdo = $this->conn;
 
     foreach ($tos as $entry) {
       $classification = $entry['classification'];
@@ -99,20 +102,12 @@ class Exam
           ";
 
           if ($stmt = $this->conn->prepare($query)) {
-            // Bind parameters
             $stmt->bind_param('sssi', $subject, $classification, $category, $limit);
-
-            // Execute query
             $stmt->execute();
-
-            // Fetch results
             $result = $stmt->get_result();
             $results = $result->fetch_all(MYSQLI_ASSOC);
-
-            // Merge results
             $question_list = array_merge($question_list, $results);
 
-            // Close statement
             $stmt->close();
           }
         }
@@ -193,7 +188,9 @@ class Exam
     $query = "UPDATE exam SET status = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $status, $id);
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt->close();
+    return $data;
   }
 
   public function update($id, $question)
@@ -202,7 +199,9 @@ class Exam
     $query = "UPDATE exam SET questions = ? WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("si", $stringedQuestion, $id);
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt->close();
+    return $data;
   }
 
   public function delete($id)
@@ -210,6 +209,8 @@ class Exam
     $query = "DELETE FROM exam WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
-    return $stmt->execute();
+    $data = $stmt->execute();
+    $stmt->close();
+    return $data;
   }
 }
