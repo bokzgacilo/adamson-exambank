@@ -97,6 +97,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
     } else {
       SetQuestionSet([]);
       SetStepOne(false);
+      setIsLoading(false)
     }
   };
 
