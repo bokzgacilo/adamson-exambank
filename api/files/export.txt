@@ -1,6 +1,3 @@
-FIB	asdasdsad	asdasd
-FIB	asdasd	asdasd
-FIB	asdas	dasdasd
-FIB	asdsad	asdasd
-NUM	1212	12121
-TF	ASDASDASD	True
+TF	True/False_Knowledge	True
+MA	Multiple_Knowledge	sd12	Correct	dasda	Correct	asdas	Correct	123123123	Incorrect
+FIB	asdasd	asdasdasd

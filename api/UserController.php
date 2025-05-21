@@ -112,7 +112,7 @@ class User
     }
   }
 
-  public function change_avatar($id, $avatar, $password)
+  public function change_avatar($id, $avatar): mixed
   {
     $query = "UPDATE user SET password = ? WHERE id = ?";
 
@@ -128,17 +128,19 @@ class User
       $imagePath = "user_images/$id/" . $fileName;
 
       if (move_uploaded_file($avatar["tmp_name"], $imagePath)) {
-        $query = "UPDATE user SET avatar = ?, password = ? WHERE id = ?";
+        $query = "UPDATE user SET avatar = ? WHERE id = ?";
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("ssi", $imagePath, $password, $id);
+        $stmt->bind_param("si", $imagePath, $id);
       } else {
         return false;
       }
     } else {
       $stmt = $this->conn->prepare($query);
-      $stmt->bind_param("si", $password, $id);
+      $stmt->bind_param("i", $id);
     }
+
     $data = $stmt->execute();
+    
     $stmt -> close();
     return $data;
   }

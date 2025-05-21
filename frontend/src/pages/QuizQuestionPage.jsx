@@ -65,6 +65,7 @@ export default function QuizQuestionPage() {
 
       {BatchIsOpen && (
         <BatchQuestionModal
+          isForExam={false}
           isOpen={BatchIsOpen}
           onClose={BatchOnClose}
           onOpen={BatchOnOpen}

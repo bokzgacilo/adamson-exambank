@@ -3,6 +3,7 @@
 include './config/headers.php';
 require_once './config/database.php';
 require_once './service/mailer.php';
+require_once './service/logger.php';
 require_once './vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -114,6 +115,179 @@ function update_department($id, $name)
 }
 
 switch ($action) {
+  case "quiz_question_batch":
+    $data = json_decode(file_get_contents("php://input"), true);
+    $fileTmpPath = $_FILES["excel_data"]["tmp_name"];
+
+    $subject = $_POST['subject'];
+    $creator = $_POST['creator'];
+
+    try {
+      $spreadsheet = IOFactory::load($fileTmpPath);
+      $sheet = $spreadsheet->getSheetByName("INPUT SHEET");
+
+      $highestRow = $sheet->getHighestRow(); // Get the last row with data
+      $columns = range("A", "L"); // Columns A to L
+      $data = [];
+
+      for ($row = 3; $row <= $highestRow; $row++) {
+        $rowData = [];
+        $isEmpty = true;
+        $option = null;
+
+        foreach ($columns as $column) {
+          $cellValue = $sheet->getCell($column . $row)->getValue();
+          $rowData[$column] = $cellValue;
+
+          if (!empty($cellValue)) {
+            $isEmpty = false;
+          }
+        }
+
+        if (isset($rowData["B"]) && in_array(strtoupper($rowData["B"]), ["ID", "NUM"])) {
+          $option = [
+            [
+              "id" => 1,
+              "option" => $rowData["D"] ?? null,
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ]
+          ];
+        }
+
+        if (isset($rowData["B"]) && strtoupper($rowData["B"]) === "TF") {
+          $option = [
+            [
+              "id" => 1,
+              "option" => "True",
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : ""
+            ],
+            [
+              "id" => 2,
+              "option" => "False",
+              "is_correct" => (isset($rowData["G"]) && in_array(strtolower($rowData["G"]), ["x"])) ? true : ""
+            ]
+          ];
+        }
+
+        if (isset($rowData["B"]) && strtoupper($rowData["B"]) === "MC") {
+          $option = [
+            [
+              "id" => 1,
+              "option" => $rowData["D"] ?? null,
+              "is_correct" => (isset($rowData["E"]) && in_array(strtolower($rowData["E"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ],
+            [
+              "id" => 2,
+              "option" => $rowData["F"] ?? null,
+              "is_correct" => (isset($rowData["G"]) && in_array(strtolower($rowData["G"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ],
+            [
+              "id" => 3,
+              "option" => $rowData["H"] ?? null,
+              "is_correct" => (isset($rowData["I"]) && in_array(strtolower($rowData["I"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ],
+            [
+              "id" => 4,
+              "option" => $rowData["J"] ?? null,
+              "is_correct" => (isset($rowData["K"]) && in_array(strtolower($rowData["K"]), ["x"])) ? true : "" // Blank if no 'X' or 'x'
+            ]
+          ];
+        }
+
+        $category = "";
+
+        switch ($rowData["B"]) {
+          case "NUM":
+            $category = "Numeric";
+            break;
+          case "TF":
+            $category = "True/False";
+            break;
+          case "MC":
+            $category = "Multiple";
+            break;
+          case "ID":
+            $category = "Identification";
+            break;
+        }
+
+        $deparment = "";
+        switch ($rowData["A"]) {
+          case "ARCHI":
+            $deparment = "Architecture";
+            break;
+          case "BA":
+            $deparment = "Business Adminitration";
+            break;
+          case "CIT":
+            $deparment = "Computing and Information Technology";
+            break;
+          case "ENGR":
+            $deparment = "Engineering";
+            break;
+          case "LAW":
+            $deparment = "Law";
+            break;
+          case "ELA":
+            $deparment = "Education and Liberal Arts";
+          case "NURSE":
+            $deparment = "Nursing";
+          case "PHARMA":
+            $deparment = "Pharmacy";
+          case "COSCI":
+            $deparment = "College and Science";
+            break;
+        }
+
+        $Json = [
+          "category" => $category,
+          "department" => $deparment,
+          "created_by" => $creator,
+          "options" => $option,
+          "question" => $rowData["C"],
+          "module" => $rowData["L"]
+        ];
+
+
+        if (!$isEmpty) {
+          $data[] = $Json;
+
+          $stmt = $conn->prepare("
+              INSERT INTO quiz_question (question, options, answer, category, created_by, subject, department, module)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+          $option_encoded = json_encode($option);
+
+          $stmt->bind_param(
+            'ssssssss',
+            $rowData["C"],
+            $option_encoded,
+            $option_encoded,
+            $category,
+            $creator,
+            $subject,
+            $deparment,
+            $rowData["L"]
+          );
+
+          if ($stmt->execute()) {
+            create_log($conn, $creator, "CREATE: Quiz Question: {$rowData["C"]}");
+          } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to insert data: ' . $stmt->error]);
+          }
+
+          $stmt->close();
+
+        }
+      }
+
+      echo json_encode(["data" => $data]);
+    } catch (Exception $e) {
+      echo json_encode(["message" => "Error processing file", "error" => $e->getMessage()]);
+    }
+    break;
   case "ProcessQuestionBatch":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -441,7 +615,7 @@ switch ($action) {
 
   case "get_all_logs":
     $query = "SELECT * FROM logs ORDER BY datetime_created DESC";
-    $stmt = $conn -> prepare($query);
+    $stmt = $conn->prepare($query);
     $stmt->execute();
     $res = $stmt->get_result();
     $result = [];

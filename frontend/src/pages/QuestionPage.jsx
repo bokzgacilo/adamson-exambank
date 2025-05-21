@@ -67,6 +67,7 @@ export default function QuestionPage() {
 
       {BatchIsOpen && (
         <BatchQuestionModal
+          isForExam={true}
           isOpen={BatchIsOpen}
           onClose={BatchOnClose}
           onOpen={BatchOnOpen}

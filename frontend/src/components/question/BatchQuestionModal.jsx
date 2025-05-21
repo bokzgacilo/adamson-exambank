@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import useUserStore from "../../helper/useUserStore";
 
-export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTable }){
+export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTable, isForExam }){
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject)
   const [subjects, setSubjects] = useState([])
@@ -30,8 +30,15 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = `${import.meta.env.VITE_HOST}BATCH_QUESTION.xlsx`;
+    
+    if(isForExam){
+      link.href = `${import.meta.env.VITE_HOST}BATCH_QUESTION.xlsx`;
     link.download = "BATCH_QUESTION.xlsx";
+
+    }else {
+      link.href = `${import.meta.env.VITE_HOST}BATCH_QUIZ_QUESTION.xlsx`;
+    link.download = "BATCH_QUIZ_QUESTION.xlsx";
+    }
     link.click();
   };
 
@@ -59,7 +66,14 @@ export default function BatchQuestionModal({ isOpen, onClose, onOpen, refreshTab
       return;
     }
     setIsLoading(true)
-    await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=ProcessQuestionBatch`, {
+    let url = "";
+    if(isForExam){
+      url = `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=ProcessQuestionBatch`;
+    }else {
+      url = `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=quiz_question_batch`;
+    }
+
+    await axios.post(url, {
       subject: selectedSubject,
       excel_data: File,
       creator: user.fullname

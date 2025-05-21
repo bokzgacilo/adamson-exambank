@@ -46,7 +46,7 @@ export default function SidebarComponent() {
           { to: "department", label: "Manage Departments", pathname: "/dashboard/department", icon: TbUsers },
           { to: "subjects", label: "Manage Subjects", pathname: "/dashboard/subjects", icon: TbList },
           { to: "statistics", label: "Dashboard", pathname: "/dashboard/statistics", icon: TbChartDots },
-          { to: "history", label: "Logs History", pathname: "/dashboard/statistics", icon: TbHistory }
+          { to: "history", label: "Logs History", pathname: "/dashboard/history", icon: TbHistory }
         ]
       : [])
   ];
@@ -84,13 +84,21 @@ export default function SidebarComponent() {
       reader.onloadend = () => {
         SetPreview(reader.result);
         SetImageFile(file);
+        HandleSaveAvatar(file)
       };
       reader.readAsDataURL(file);
+      
     }
   };
 
-  const HandleSaveChanges = async () => {
+  const HandleSaveAvatar = async (file) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    formData.append("id", user.id);
+    await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`, formData, { headers: { "Content-Type": "multipart/form-data" } })
+  }
 
+  const HandleSaveChanges = async () => {
     if (!/^\S{8,}$/.test(newPassword)) {
       toast({ title: "Invalid Password", description: "Password must be at least 8 characters with no spaces.", status: "error", duration: 3000, isClosable: true });
       return;
@@ -102,12 +110,11 @@ export default function SidebarComponent() {
     }
 
     const formData = new FormData();
-    formData.append("password", Password);
+    formData.append("password", newPassword);
     formData.append("id", user.id);
-    if (ImageFile) formData.append("avatar", ImageFile);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_password`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       toast({ title: "Profile Updated", status: "success", duration: 3000, isClosable: true });
       setUser({ ...user, password: newPassword });
       onCloseProfileModal();

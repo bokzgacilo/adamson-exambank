@@ -57,9 +57,13 @@ switch ($action) {
       exit;
     }
     $data = json_decode(file_get_contents("php://input"), true);
-    $users = $user->change_password($data['id'], $data['password']);
+
+    $id = $_POST['id'];
+    $newPassword = $_POST['password'];
+    $users = $user->change_password($id, $newPassword);
+
     echo json_encode($users);
-    create_log($conn, $data['id'], "Update: Password of User #{$data['id']}.");
+    create_log($conn, $id, "Update: Password of User #{$id}.");
     break;
   case "delete":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -77,16 +81,15 @@ switch ($action) {
       exit;
     }
 
-    if (!isset($_POST['id']) || !isset($_POST['password'])) {
+    if (!isset($_POST['id'])) {
       echo json_encode(["message" => "Missing required fields"]);
       exit;
     }
 
     $id = $_POST['id'];
-    $password = $_POST['password'];
     $avatar = isset($_FILES['avatar']) ? $_FILES['avatar'] : null;
 
-    $users = $user->change_avatar($id, $avatar, $password);
+    $users = $user->change_avatar($id, $avatar);
     echo json_encode(["success" => $users]);
     create_log($conn, $id, "Update: Account Image of User #{$id}.");
     break;
