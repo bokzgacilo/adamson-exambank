@@ -66,7 +66,14 @@ export default function UserDataTable({ data, fetchMasterData }) {
     onClose: onDeleteClose,
   } = useDisclosure();
 
+  const {
+    isOpen: isOpenConfirmType,
+    onOpen: onOpenConfirmType,
+    onClose: onCloseConfirmType,
+  } = useDisclosure();
+
   const [isOpen, setIsOpen] = useState(false);
+
   const [IsLoading, SetIsLoading] = useState(false)
   const [SelectedCredential, SetSelectedCredential] = useState(null);
   const [SelectedDepartment, SetSelectedDepartment] = useState("");
@@ -83,10 +90,44 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const [selectedUserId, setSelectedUserId] = useState("")
   const [newStatusValue, setNewStatusValue] = useState("")
 
+  const [newType, setNewType] = useState("")
+
+  const prepareTypeChange = (userid, new_type) => {
+    onOpenConfirmType()
+    setSelectedUserId(userid)
+    setNewType(new_type)
+  }
+
   const PrepareStatusChange = (userid, status_value) => {
     setIsOpen(true)
     setSelectedUserId(userid)
     setNewStatusValue(status_value)
+  }
+
+  const handleChangeType = () => {
+    const data = {
+      id: selectedUserId,
+      type: newType,
+    };
+
+    axios
+      .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_type`, data)
+      .then((response) => {
+        if (response.data) {
+          toast({
+            title: "User Updated",
+            description: `User ${selectedUserId} type changed to ${newType}`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+        
+        setNewType("")
+        fetchMasterData();
+      });
+
+    onCloseConfirmType();
   }
 
   const handeChangeStatus = () => {
@@ -117,6 +158,8 @@ export default function UserDataTable({ data, fetchMasterData }) {
   const StatusTemplate = (rowData) => (
     <Select
       size="sm"
+      variant="filled"
+      rounded="full"
       onChange={(e) => PrepareStatusChange(rowData.id, e.target.value)}
       value={rowData.status === "1" ? "1" : "0"}
     >
@@ -382,8 +425,52 @@ export default function UserDataTable({ data, fetchMasterData }) {
     onDeleteClose();
   };
 
+   const TypeTemplate = (rowData) => (
+    <Select
+      variant="filled"
+      rounded="full"
+      value={rowData.type}
+      onChange={(e) => prepareTypeChange(rowData.id, e.target.value)}
+      size="sm"
+    >
+      {["Instructor", "Coordinator"].map((type, index) => (
+        <option key={index} value={type}>
+          {type}
+        </option>
+      ))}
+    </Select>
+  );
+
   return (
     <PrimeReactProvider>
+      <AlertDialog
+        isOpen={isOpenConfirmType}
+        onClose={onCloseConfirmType}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <Heading size="lg">Change Type</Heading>
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              <Text fontSize="16px" noOfLines={2}>
+                Are you sure you want to change user type to <strong>{newType}</strong>?
+              </Text>
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button onClick={onCloseConfirmType}>
+                No
+              </Button>
+              <Button colorScheme="green" onClick={handleChangeType} ml={3}>
+                Yes, change it.
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
       <AlertDialog
         isOpen={isDeleteOpen}
         onClose={onDeleteClose}
@@ -451,8 +538,8 @@ export default function UserDataTable({ data, fetchMasterData }) {
                 >
                   {AvailableDepartment
                     .filter(department => !SelectUserDepartment.includes(department.name))
-                    .map((department) => (
-                      <option key={department.id} value={department.name}>
+                    .map((department, index) => (
+                      <option key={index} value={department.name}>
                         {department.name}
                       </option>
                     ))}
@@ -586,17 +673,22 @@ export default function UserDataTable({ data, fetchMasterData }) {
       </Stack>
       <Divider />
       <DataTable
+        size="small"
         value={data}
         paginator
         rows={10}
         rowsPerPageOptions={[10, 15, 30]}
         showGridlines
-        size="small"
         globalFilter={globalFilter} // 🔍 Enable global search
       >
         <Column field="avatar" header="Image" body={ImageTemplate}></Column>
         <Column field="name" header="Name" sortable></Column>
-        <Column field="type" header="Type" filter sortable></Column>
+         <Column
+          field="type"
+          header="Type"
+          body={TypeTemplate}
+          sortable
+        ></Column>
         <Column
           field="assigned_subject"
           header="Assigned Subject"

@@ -13,8 +13,6 @@ import {
   Divider,
   Button,
   useDisclosure,
-  RadioGroup,
-  Radio,
   HStack,
   SimpleGrid,
   Text,
@@ -40,140 +38,14 @@ import { TbArrowDown, TbArrowUp, TbDownload, TbEdit, TbTrash } from "react-icons
 import { PrimeReactProvider } from "primereact/api";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
-const renderQuestionListElement = (questionSet) => {
-  // handling moving item in preview
-  const moveItem = (index, direction) => {
-    setQuestionSet((prevItems) => {
-      const newItems = [...prevItems];
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= newItems.length) return prevItems;
-      [newItems[index], newItems[newIndex]] = [
-        newItems[newIndex],
-        newItems[index],
-      ];
-      return newItems;
-    });
-  };
-
-
-  // handle delete from preview
-  const handleDelete = (id) => {
-    setQuestionSet((prevSet) => prevSet.filter((item) => item.id !== id));
-  };
-
-  return questionSet.map((item, index) => (
-    <Card key={item.id}>
-      <CardBody>
-        <Stack spacing={4}>
-          <Flex direction="row">
-            <Text fontSize="14px" fontWeight="semibold" mr="auto">
-              {index + 1}. {item.question}
-            </Text>
-
-            <Text fontWeight="semibold" fontSize="10px" mr={2}>
-              {item.classification}
-            </Text>
-            <Button
-              size="xs"
-              mr={1}
-              onClick={() => moveItem(index, -1)}
-              isDisabled={index === 0}
-            >
-              <Icon as={TbArrowUp} />
-            </Button>
-            <Button
-              size="xs"
-              mr={1}
-              onClick={() => moveItem(index, 1)}
-              isDisabled={index === questionSet.length - 1}
-            >
-              <Icon as={TbArrowDown} />
-            </Button>
-            <Button
-              size="xs"
-              colorScheme="red"
-              onClick={() => handleDelete(item.id)}
-            >
-              <Icon as={TbTrash} />
-            </Button>
-          </Flex>
-          {renderChoicesElement(item.options, item.category)}
-        </Stack>
-      </CardBody>
-    </Card>
-  ))
-}
-
-const renderChoicesElement = (options, category) => {
-  switch (category) {
-    case "Identification": {
-      return (
-        <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
-      );
-    }
-    case "Numeric": {
-      return (
-        <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
-      );
-    }
-    case "Enumeration": {
-      const TextAreaValue = JSON.parse(options)
-        .map((item) => item.option)
-        .join("\n");
-
-      return (
-        <Textarea
-          size="sm"
-          value={TextAreaValue}
-          placeholder="Enter answers"
-          isReadOnly={true}
-        />
-      );
-    }
-    case "True/False": {
-      return (
-        <RadioGroup>
-          <HStack spacing={4}>
-            {JSON.parse(options).map((option) => (
-              <Radio key={option.id} isChecked={option.is_correct}>
-                {option.option}
-              </Radio>
-            ))}
-          </HStack>
-        </RadioGroup>
-      );
-    }
-
-    case "Multiple":
-      return (
-        <RadioGroup>
-          <HStack spacing={4}>
-            {JSON.parse(options).map((option) => (
-              <Flex
-                key={option.id}
-                direction="row"
-                alignItems="center"
-                gap={4}
-              >
-                <Checkbox isChecked={option.is_correct} />
-                <Input size="sm" type="text" value={option.option} readOnly />
-              </Flex>
-            ))}
-          </HStack>
-        </RadioGroup>
-      );
-    default:
-      return null;
-  }
-};
+import QuizQuestionListElement from "../components/composites/QuizQuestionListElement";
+import QuizChoices from "../components/composites/QuizChoices";
+import { deleteItem, moveItem } from "../helper/main";
 
 const QuizDetail = ({ quiz }) => {
-  const questionSet = JSON.parse(quiz.questions);
-
   return (
     <Stack spacing={4}>
-      {renderQuestionListElement(questionSet)}
+      <QuizQuestionListElement questionSet={JSON.parse(quiz.questions)} />
     </Stack>
   )
 }
@@ -205,19 +77,19 @@ const QuizTable = ({ data, refreshTable }) => {
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
       if (result.isConfirmed) {
-       axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
+        axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
           params: {
             action: 'delete',
             id: id
           }
         })
-        .then(() => {
-          Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
-          refreshTable(); 
-        })
-        .catch(() => {
-          Swal.fire('Error', 'Failed to delete quiz.', 'error');
-        });
+          .then(() => {
+            Swal.fire('Deleted!', 'The quiz has been deleted.', 'success');
+            refreshTable();
+          })
+          .catch(() => {
+            Swal.fire('Error', 'Failed to delete quiz.', 'error');
+          });
       }
     });
   };
@@ -305,17 +177,16 @@ export default function QuizPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const parsedSubjects = JSON.parse(user_assigned_subject);
   const parsedDepartments = JSON.parse(user_assigned_department);
-
   const [availableQuestions, setAvailableQuestions] = useState([])
   const [quizName, setQuizName] = useState("")
-  // SUBJECT
   const [subjects, setSubjects] = useState([])
-  const [selectedSubject, setSelectedSubject] = useState("")
-  // DEPARTMENT
+  const [selectedSubject, setSelectedSubject] = useState("All")
   const [departments, setDepartments] = useState([])
-  const [selectedDepartment, setSelectedDepartment] = useState("")
-
-
+  const [selectedDepartment, setSelectedDepartment] = useState("All")
+  const [selectedModule, setSelectedModule] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [paginationPage, setPaginationPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   // check if selected
   const CheckIfSelected = (qid) => {
     if (questionSet.some((q) => q.id === qid)) {
@@ -360,14 +231,15 @@ export default function QuizPage() {
 
   //populate subject and department select element
   useEffect(() => {
-    if(!isOpen) return;
+    if (!isOpen) return;
 
     if (usertype === "Admin") {
       axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: usertype } })
         .then(({ data }) => {
           const subjects = data.map(subject => subject.name);
+          subjects.unshift("All");
           setSubjects(subjects);
-          setSelectedSubject(data[0].name);
+          setSelectedSubject(subjects[0]);
         })
         .catch(console.error);
     } else {
@@ -379,8 +251,9 @@ export default function QuizPage() {
       axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: usertype } })
         .then(({ data }) => {
           const departments = data.map(department => department.name);
+           departments.unshift("All");
           setDepartments(departments);
-          setSelectedDepartment(data[0].name);
+          setSelectedDepartment(departments[0]);
         })
         .catch(console.error);
     } else {
@@ -391,21 +264,25 @@ export default function QuizPage() {
 
   // change available quiz based on selected department and subject
   useEffect(() => {
-    if(!isOpen) return;
+    if (!isOpen) return;
 
-    axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
+    axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php?action=get_available_questions`, {
       params: {
-        action: "get_available_questions",
         department: selectedDepartment,
-        subject: selectedSubject
+        subject: selectedSubject,
+        module: selectedModule,
+        category: selectedCategory,
+        page: paginationPage,
+        limit: 15,
       }
     })
-      .then(({ data }) => {
-        setQuestionSet([])
-        setAvailableQuestions(data);
+      .then( response  => {
+        console.log(response)
+        setAvailableQuestions(response.data.questions);
+        setTotalPages(Math.ceil(response.data.total / 10))
       })
       .catch(console.error);
-  }, [isOpen, selectedDepartment, selectedSubject])
+  }, [isOpen, selectedDepartment, selectedSubject, selectedModule, selectedCategory, paginationPage])
 
   // Create Quiz
   const handleCreateQuiz = () => {
@@ -473,7 +350,7 @@ export default function QuizPage() {
                   <Heading size="md">Preview</Heading>
                   <Stack backgroundColor="gray.200" maxH="80dvh" overflowY="auto">
                     {questionSet.map((item, index) => (
-                      <Card mx={2} my={1} key={item.id}>
+                      <Card key={index}  mx={2} my={1}>
                         <CardBody>
                           <Stack spacing={4}>
                             <Flex direction="row">
@@ -483,17 +360,17 @@ export default function QuizPage() {
                               <Text fontWeight="semibold" fontSize="10px" mr={2}>
                                 {item.classification}
                               </Text>
-                              <Button size="xs" mr={1} onClick={() => moveItem(index, -1)} isDisabled={index === 0}>
+                              <Button size="xs" mr={1} onClick={() => moveItem(index, -1, setQuestionSet)} isDisabled={index === 0}>
                                 <Icon as={TbArrowUp} />
                               </Button>
-                              <Button size="xs" mr={1} onClick={() => moveItem(index, 1)} isDisabled={index === questionSet.length - 1}>
+                              <Button size="xs" mr={1} onClick={() => moveItem(index, 1, setQuestionSet)} isDisabled={index === questionSet.length - 1}>
                                 <Icon as={TbArrowDown} />
                               </Button>
-                              <Button size="xs" colorScheme="red" onClick={() => handleDelete(item.id)}>
+                              <Button size="xs" colorScheme="red" onClick={() => deleteItem(item.id, setQuestionSet)}>
                                 <Icon as={TbTrash} />
                               </Button>
                             </Flex>
-                            {renderChoicesElement(item.options, item.category)}
+                            <QuizChoices options={item.options} category={item.category} />
                           </Stack>
                         </CardBody>
                       </Card>
@@ -503,28 +380,56 @@ export default function QuizPage() {
 
                 {/* QUESTION LIST */}
                 <Stack>
-                  <Heading size="md">Question List</Heading>
+                  <Heading size="md">Available Questions</Heading>
                   <Stack>
-                    {availableQuestions.map((item) => (
-                      <Flex direction="row" key={item.id}>
-                        <Checkbox
-                          mr={4}
-                          onChange={() => handleCheckboxChange(item.id)}
-                          isChecked={CheckIfSelected(item.id)}
-                        />
-                        <Text fontWeight="semibold">{item.question}</Text>
-                        <Tag ml="auto" size="sm">
-                          {item.category}
-                        </Tag>
-                      </Flex>
-                    ))}
+                    {availableQuestions.length > 0 ? (
+                      availableQuestions.map((item, index) => (
+                        <Flex direction="row" key={index} align="center" mb={2}>
+                          <Checkbox
+                            mr={4}
+                            onChange={() => handleCheckboxChange(item.id)}
+                            isChecked={CheckIfSelected(item.id)}
+                          />
+                          <Text fontWeight="semibold">{item.question}</Text>
+                          <Tag ml="auto" mr={2} size="sm">
+                            {item.category}
+                          </Tag>
+                          <Tag size="sm">
+                            {item.module}
+                          </Tag>
+                        </Flex>
+                      ))
+                    ) : (
+                      <Text>No questions available</Text>
+                    )}
                   </Stack>
+                  <HStack spacing={2} mt={4} justify="center">
+                    <Button
+                      onClick={() => setPaginationPage((prev) => Math.max(prev - 1, 1))}
+                      isDisabled={paginationPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <Text>
+                      Page {paginationPage} {totalPages ? `of ${totalPages}` : ""}
+                    </Text>
+                    <Button
+                      onClick={() =>
+                        setPaginationPage((prev) =>
+                          totalPages ? Math.min(prev + 1, totalPages) : prev + 1
+                        )
+                      }
+                      isDisabled={paginationPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </HStack>
                 </Stack>
 
                 {/* INFO */}
                 <Stack>
                   <Heading size="md">Info</Heading>
-                  <FormControl isRequired mt={2}>
+                  <FormControl mt={2}>
                     <FormLabel>Quiz Name</FormLabel>
                     <Input
                       value={quizName}
@@ -532,19 +437,35 @@ export default function QuizPage() {
                       placeholder="Mathematics short quiz 1"
                     />
                   </FormControl>
-                  <FormControl isRequired mt={2}>
+                  <FormControl mt={2}>
                     <FormLabel>Subject</FormLabel>
                     <Select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
-                      {subjects.map((subject, key) => (
-                        <option value={subject} key={key}>{subject}</option>
+                      {subjects.map((subject, index) => (
+                        <option key={index} value={subject}>{subject}</option>
                       ))}
                     </Select>
                   </FormControl>
-                  <FormControl isRequired mt={2}>
+                  <FormControl mt={2}>
                     <FormLabel>Department</FormLabel>
                     <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
-                      {departments.map((department, key) => (
-                        <option value={department} key={key}>{department}</option>
+                      {departments.map((department, index) => (
+                        <option key={index} value={department}>{department}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl mt={2}>
+                    <FormLabel>Category</FormLabel>
+                    <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                      {["All", "Identification", "Numeric", "True/False", "Multiple"].map((department, index) => (
+                        <option key={index} value={department}>{department}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl mt={2}>
+                    <FormLabel>Module Number</FormLabel>
+                    <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                      {["All", "Module 1", "Module 2", "Module 3"].map((department, index) => (
+                        <option key={index} value={department}>{department}</option>
                       ))}
                     </Select>
                   </FormControl>

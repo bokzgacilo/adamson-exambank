@@ -12,10 +12,6 @@ export default function QuestionChoices({ multipleChoices, setMultipleChoices, c
     choices = [];
   }
 
-  useEffect(() => {
-    console.log(choices)
-  }, [])
-
   const handleRadioChange = (selectedId) => {
     setMultipleChoices((prev) =>
       prev.map((option) => ({
@@ -46,10 +42,10 @@ export default function QuestionChoices({ multipleChoices, setMultipleChoices, c
           onChange={(val) => handleRadioChange(Number(val))}
         >
           <Stack spacing={4}>
-            {choices.map((option) => (
+            {choices.map((option, index) => (
               <Radio
+                key={index}
                 disabled={!isEditing}
-                key={option.id}
                 value={option.id} // controlled by RadioGroup
               >
                 {option.option}
@@ -62,9 +58,9 @@ export default function QuestionChoices({ multipleChoices, setMultipleChoices, c
       return (
         <RadioGroup>
           <Stack spacing={4}>
-            {choices.map((option) => (
+            {choices.map((option, index) => (
               <Flex
-                key={option.id}
+                key={index}
                 direction="row"
                 alignItems="center"
                 gap={4}

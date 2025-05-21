@@ -202,7 +202,8 @@ export default function SubjectDataTable({ data, fetchSubjects }) {
           header="Status"
           body={(rowData) => (
             <Select
-              size="sm"
+              variant="filled"
+              rounded="full"
               onChange={(e) => PrepareStatusChange(rowData.id, e.target.value)}
               value={rowData.status === "1" ? "1" : "0"}
             >

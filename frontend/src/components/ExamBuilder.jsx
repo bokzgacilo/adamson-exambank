@@ -207,8 +207,8 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
                   onChange={(e) => SetSelectedSubject(e.target.value)}
                   mb={2}
                 >
-                  {Subjects.map((subject) => (
-                    <option key={subject.id} value={subject.name}>
+                  {Subjects.map((subject, index) => (
+                    <option key={index} value={subject.name}>
                       {subject.name}
                     </option>
                   ))}

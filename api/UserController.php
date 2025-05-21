@@ -9,11 +9,11 @@ class User
   }
 
   // Create a new exam
-  public function create($name, $type, $assigned_subject, $username, $password)
+  public function create($name, $type, $assigned_subject, $assigned_department, $username, $password)
   {
-    $query = "INSERT INTO user (name, type, assigned_subject, username, password) VALUES (?, ?, ?, ?, ?)";
+    $query = "INSERT INTO user (name, type, assigned_subject, assigned_department, username, password) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("sssss", $name, $type, $assigned_subject, $username, $password);
+    $stmt->bind_param("ssssss", $name, $type, $assigned_subject, $assigned_department, $username, $password);
     $data = $stmt->execute();
     $stmt -> close();
     return $data;
@@ -161,6 +161,16 @@ class User
     $stmt->bind_param("si", $status, $id);
     $data = $stmt -> execute();
     $stmt -> close();
+    return $data;
+  }
+  public function change_type($id, $type)
+  {
+    $query = "UPDATE user SET type = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $type, $id);
+    $data = $stmt -> execute();
+    $stmt -> close();
+    return $data;
   }
 
   // Delete an exam
@@ -171,5 +181,6 @@ class User
     $stmt->bind_param("i", $id);
     $data = $stmt -> execute();
     $stmt -> close();
+    return $data;
   }
 }

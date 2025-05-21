@@ -60,7 +60,7 @@ export default function ExamDetail ({ editExam, refreshData, selectedExam, isOpe
             <ModalBody>
               <Stack spacing={4}>
                 {JSON.parse(selectedExam.questions).map((question, index) => (
-                  <Stack key={question.id}>
+                  <Stack key={index}>
                     <Text fontWeight="semibold">
                       {index + 1}. {question.question}
                     </Text>

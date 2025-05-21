@@ -20,9 +20,9 @@ import { database } from "../../helper/Firebase";
 
 import EditQuestionModal from "./EditQuestionModal";
 import QuestionDetailModal from "./QuestionDetailModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQuestionData, setUpdatedQuestionData, setSelectedQuestion, selectedQuestion, isEditing, setIsEditing }) {
+export default function QuestionDetail({ isForExam, refreshTable, isOpen, onClose, updatedQuestionData, setUpdatedQuestionData, setSelectedQuestion, selectedQuestion, isEditing, setIsEditing }) {
   const { user } = useUserStore()
   const toast = useToast();
   // for tracking validation of inputs
@@ -38,9 +38,8 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
   };
 
   const HandleSaveEdit = () => {
-    console.log(updatedQuestionData)
     const isQuestionEmpty = updatedQuestionData.question.trim() === "";
-    const isTermsEmpty = updatedQuestionData.terms.length === 0;
+    const isTermsEmpty = isForExam ? updatedQuestionData.terms.length === 0 : false;
     const hasValidOption = updatedQuestionData.options.some(choice => choice.option.trim() !== "");
     const hasCorrectAnswer = updatedQuestionData.options.some(choice => choice.is_correct);
     const allChoicesHaveValue = updatedQuestionData.options.every(choice => choice.option.trim() !== "");
@@ -58,11 +57,16 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
     setMultipleChoiceError(!allChoicesHaveValue);
     if (!allChoicesHaveValue) return;
 
+    let url = "";
+
+    if (isForExam) {
+      url = `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=update`;
+    } else {
+      url = `${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=update`;
+    }
+
     axios
-      .post(
-        `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=update`,
-        updatedQuestionData
-      )
+      .post(url, updatedQuestionData)
       .then((response) => {
         toast({
           title: "Question Updated!",
@@ -122,6 +126,15 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
   const HandleDelete = () => {
     onClose();
 
+    let url = "";
+
+    if (isForExam) {
+      url = `${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=delete`;
+    } else {
+      url = `${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=delete`;
+    }
+
+
     Swal.fire({
       title: 'Are you sure?',
       text: `Do you really want to delete: "${selectedQuestion.question}"?`,
@@ -133,8 +146,9 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=delete`, {
+          .post(url, {
             id: selectedQuestion.id,
+            deleted_by: user.fullname
           })
           .then((response) => {
             if (response.data) {
@@ -146,12 +160,6 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
                 isClosable: true,
               });
 
-              set(ref(database, `logs/${Date.now()}`), {
-                action: "Question Deleted",
-                timestamp: Date.now(),
-                target: selectedQuestion.question,
-                actor: user.fullname,
-              });
               refreshTable()
               onClose();
             }
@@ -174,9 +182,14 @@ export default function QuestionDetail({ refreshTable, isOpen, onClose, updatedQ
         </ModalHeader>
         <ModalBody>
           {!isEditing ? (
-            <QuestionDetailModal isEditing={false} QuestionData={selectedQuestion} />
+            <QuestionDetailModal
+              isForExam={isForExam}
+              isEditing={false}
+              QuestionData={selectedQuestion}
+            />
           ) : (
             <EditQuestionModal
+              isForExam={isForExam}
               SetUpdatedQuestionData={setUpdatedQuestionData}
               QuestionData={selectedQuestion}
               choicesError={choicesError}

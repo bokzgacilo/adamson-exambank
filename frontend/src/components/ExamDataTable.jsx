@@ -57,7 +57,8 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
 
   const StatusTemplate = (rowData) => (
     <Select
-      size="sm"
+      variant="filled"
+      rounded="full"
       onChange={(e) => handleStatusChange(rowData.id, e.target.value)}
       value={rowData.status === 1 ? 1 : 0}
       disabled={user.usertype === "Instructor" ? true : false}

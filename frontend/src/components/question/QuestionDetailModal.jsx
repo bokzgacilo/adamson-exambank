@@ -1,10 +1,6 @@
 import {
   Stack,
-  Radio,
-  RadioGroup,
-  Flex,
   Text,
-  Textarea,
   Input,
   SimpleGrid,
   Heading,
@@ -17,10 +13,9 @@ import {
   Box
 } from "@chakra-ui/react";
 
-import { useState } from "react";
 import QuestionChoices from "../composites/QuestionChoices";
 
-export default function QuestionDetailModal({ QuestionData, isEditing }) {
+export default function QuestionDetailModal({ QuestionData, isEditing, isForExam }) {
   return (
     <Stack spacing={4}>
       <FormControl>
@@ -35,24 +30,36 @@ export default function QuestionDetailModal({ QuestionData, isEditing }) {
         <FormLabel>Department</FormLabel>
         <Input value={QuestionData.department} readOnly />
       </FormControl>
-      <FormControl>
-        <FormLabel>Terms</FormLabel>
-        <HStack justifyContent="space-evenly">
-          <Checkbox isChecked={QuestionData.terms.includes("Prelims")}>
-            Prelims
-          </Checkbox>
-          <Checkbox isChecked={QuestionData.terms.includes("Midterms")}>
-            Midterms
-          </Checkbox>
-          <Checkbox isChecked={QuestionData.terms.includes("Finals")}>
-            Finals
-          </Checkbox>
-        </HStack>
-      </FormControl>
-      <FormControl>
-        <FormLabel>Classification</FormLabel>
-        <Input value={QuestionData.classification} readOnly />
-      </FormControl>
+
+      {isForExam ?
+        <>
+          <FormControl>
+            <FormLabel>Terms</FormLabel>
+            <HStack justifyContent="space-evenly">
+              <Checkbox isChecked={QuestionData.terms.includes("Prelims")}>
+                Prelims
+              </Checkbox>
+              <Checkbox isChecked={QuestionData.terms.includes("Midterms")}>
+                Midterms
+              </Checkbox>
+              <Checkbox isChecked={QuestionData.terms.includes("Finals")}>
+                Finals
+              </Checkbox>
+            </HStack>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Classification</FormLabel>
+            <Input value={QuestionData.classification} readOnly />
+          </FormControl>
+        </>
+
+        :
+        <FormControl>
+          <FormLabel>Module Number</FormLabel>
+          <Input value={QuestionData.module} readOnly />
+        </FormControl>
+      }
+      
       <FormControl>
         <FormLabel>Category</FormLabel>
         <Input value={QuestionData.category} readOnly />

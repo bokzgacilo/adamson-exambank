@@ -438,8 +438,22 @@ switch ($action) {
     $result = update_department((int) $data["id"], trim($data["name"]));
     echo json_encode(["message" => $result ? "Department updated successfully" : "Failed to update department"]);
     break;
+
+  case "get_all_logs":
+    $query = "SELECT * FROM logs ORDER BY datetime_created DESC";
+    $stmt = $conn -> prepare($query);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $result = [];
+    while ($row = $res->fetch_assoc()) {
+      $result[] = $row;
+    }
+    $stmt->close();
+    $conn->close();
+    echo json_encode(["data" => $result]);
+    break;
   default:
-    echo json_encode(["message" => "Invalid action"]);
+    echo json_encode(["data" => "Invalid action"]);
 }
 
 function generateRandomPassword($length = 12)

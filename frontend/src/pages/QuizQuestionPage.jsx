@@ -20,11 +20,9 @@ import { database } from "../helper/Firebase";
 import CreateQuestionModal from "../components/question/CreateQuestionModal";
 import BatchQuestionModal from "../components/question/BatchQuestionModal";
 
-export default function QuestionPage() {
+export default function QuizQuestionPage() {
   const { user } = useUserStore();
   const [questions, setQuestions] = useState([]);
-  const didFetch = useRef(false);
-  const isForExam = true;
 
   const {
     isOpen: SingleIsOpen,
@@ -40,11 +38,11 @@ export default function QuestionPage() {
 
   const fetchAllQuestions = async () => {
     await axios
-      .post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=viewAll`, {
-        subject: user.user_assigned_subject,
+      .post(`${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=get_all`, {
+        fullname: user.fullname,
         type: user.usertype,
       }).then((response) => {
-        setQuestions(response.data);
+        setQuestions(response.data.data);
       });
   };
 
@@ -61,7 +59,7 @@ export default function QuestionPage() {
           onClose={SingleOnClose}
           onOpen={SingleOnOpen}
           refreshTable={fetchAllQuestions}
-          isFormExam={true}
+          isForExam={false}
         />
       )}
 
@@ -82,7 +80,7 @@ export default function QuestionPage() {
               alignItems="center"
               justifyContent="space-between"
             >
-              <Heading>Question Bank</Heading>
+              <Heading>Quiz Question Bank</Heading>
               <Flex direction="row" gap={4}>
                 <Button
                   leftIcon={<TbPlus />}
@@ -103,10 +101,10 @@ export default function QuestionPage() {
           </CardHeader>
           <Divider />
           <CardBody p={0}>
-            <QuestionDataTable 
-              isForExam={isForExam} 
-              data={questions} 
-              refreshTable={fetchAllQuestions}
+            <QuestionDataTable
+              isForExam={false}
+              data={questions}
+              refreshTable={fetchAllQuestions} 
             />
           </CardBody>
         </Card>

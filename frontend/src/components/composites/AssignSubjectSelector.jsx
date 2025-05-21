@@ -52,8 +52,8 @@ export default function AssignSubjectSelector({data}) {
               onChange={(e) => setSelectedSubject(e.target.value)}
               mb={4}
             >
-              {availableSubjects.map((subject, key) => (
-                <option key={key} value={subject}>
+              {availableSubjects.map((subject, index) => (
+                <option index={index} value={subject}>
                   {subject}
                 </option>
               ))}
@@ -71,10 +71,10 @@ export default function AssignSubjectSelector({data}) {
         <Text>No Selected Subject</Text>
       ) : (
         <Stack mb={4}>
-          {user_subjects.map((subject, key) => (
-            <Flex key={key} direction="row" alignItems="center" justifyContent="space-between">
+          {user_subjects.map((subject, index) => (
+            <Flex index={index} direction="row" alignItems="center" justifyContent="space-between">
               <Text >
-                {key + 1}. {subject}
+                {index + 1}. {subject}
               </Text>
               <Button onClick={() => HandleRemoveSubject(subject)} size="xs"><Icon as={TbX} /></Button>
             </Flex>

@@ -14,7 +14,7 @@ import { useDisclosure } from "@chakra-ui/react";
 
 import QuestionDetail from "./QuestionDetail";
 
-export default function QuestionDataTable({ data, refreshTable }) {
+export default function QuestionDataTable({ data, refreshTable, isForExam }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [updatedQuestionData, setUpdatedQuestionData] = useState([]);
@@ -28,7 +28,7 @@ export default function QuestionDataTable({ data, refreshTable }) {
   );
 
   const StatusTemplate = (rowData) => (
-    <Tag size="sm" colorScheme={rowData.status == 1 ? "green" : "red"}>
+    <Tag rounded="full" colorScheme={rowData.status == 1 ? "green" : "red"}>
       {rowData.status == 1 ? "Active" : "Inactive"}
     </Tag>
   );
@@ -53,7 +53,18 @@ export default function QuestionDataTable({ data, refreshTable }) {
           placeholder="Search question name, type, terms, department, creator"
         />
       </Stack>
-      <QuestionDetail refreshTable={refreshTable} updatedQuestionData={updatedQuestionData} setUpdatedQuestionData={setUpdatedQuestionData} isOpen={isOpen} onClose={onClose} selectedQuestion={selectedQuestion} setSelectedQuestion={setSelectedQuestion} isEditing={isEditing} setIsEditing={setIsEditing} />
+      <QuestionDetail 
+        refreshTable={refreshTable} 
+        updatedQuestionData={updatedQuestionData} 
+        setUpdatedQuestionData={setUpdatedQuestionData}
+        isOpen={isOpen} 
+        onClose={onClose} 
+        selectedQuestion={selectedQuestion} 
+        setSelectedQuestion={setSelectedQuestion}
+        isEditing={isEditing} 
+        setIsEditing={setIsEditing}
+        isForExam={isForExam}
+      />
 
       <Divider />
       <PrimeReactProvider>
@@ -75,20 +86,24 @@ export default function QuestionDataTable({ data, refreshTable }) {
             sortable
           ></Column>
           <Column field="category" header="Type" filter sortable></Column>
-          <Column
-            field="terms"
-            header="Terms"
-            sortable
-            filter
-            filterField="terms"
-            body={(rowData) => {
-              let terms = JSON.parse(rowData.terms)
-              return terms.join(', ')
-            }}
-            filterFunction={(value, filter) =>
-              value ? value.some(term => term.toLowerCase().includes(filter.toLowerCase())) : false
-            }
-          ></Column>
+          {
+            isForExam && 
+            <Column
+              field="terms"
+              header="Terms"
+              sortable
+              filter
+              filterField="terms"
+              body={(rowData) => {
+                let terms = JSON.parse(rowData.terms)
+                return terms.join(', ')
+              }}
+              filterFunction={(value, filter) =>
+                value ? value.some(term => term.toLowerCase().includes(filter.toLowerCase())) : false
+              }
+            ></Column>
+          }
+         
           <Column
             showFilterMenu={true}
             field="department"
@@ -103,11 +118,22 @@ export default function QuestionDataTable({ data, refreshTable }) {
             header="Subject"
             sortable
           ></Column>
-          <Column
-            field="classification"
-            header="Classification"
-            sortable
-          ></Column>
+          {
+            !isForExam && 
+            <Column
+              field="module"
+              header="Module Number"
+              sortable
+            ></Column>
+          }
+          {
+            isForExam && 
+            <Column
+              field="classification"
+              header="Classification"
+              sortable
+            ></Column>
+          }
           <Column
             field="created_by"
             header="Created By"

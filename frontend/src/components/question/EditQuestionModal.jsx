@@ -23,9 +23,9 @@ export default function EditQuestionModal({
   choicesError,
   termsError,
   questionError,
-  isEditing,
-  multipleChoiceError
+  isForExam,
 }) {
+
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject) || [];
   const parsedDepartments = JSON.parse(user.user_assigned_department) || [];
@@ -35,11 +35,28 @@ export default function EditQuestionModal({
   const [selectedDepartment, setSelectedDepartment] = useState(QuestionData.department);
   const [selectedClassification, setSelectedClassification] = useState(QuestionData.classification)
   const [selectedCategory, setSelectedCategory] = useState(QuestionData.category)
-  const [multipleChoices, setMultipleChoices] = useState(QuestionData.options ? JSON.parse(QuestionData.options) : []);
+  const [multipleChoices, setMultipleChoices] = useState(() => {
+    try {
+      if (!QuestionData.options) return [];
+      return Array.isArray(QuestionData.options)
+        ? QuestionData.options
+        : JSON.parse(QuestionData.options);
+    } catch (e) {
+      return [];
+    }
+  });
+
   const [question, setQuestion] = useState(QuestionData.question);
-  const [selectedTerms, setSelectedTerms] = useState(
-    JSON.parse(QuestionData.terms)
-  );
+  const [selectedTerms, setSelectedTerms] = useState(() => {
+    try {
+      return QuestionData.terms ? JSON.parse(QuestionData.terms) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+
+  const [selectedModule, setSelectedModule] = useState(QuestionData.module || "Module 1")
 
   const data = {
     id: QuestionData.id,
@@ -47,6 +64,7 @@ export default function EditQuestionModal({
     options: multipleChoices,
     answer: multipleChoices.filter((item) => item.is_correct === true),
     category: selectedCategory,
+    module: selectedModule,
     created_by: user.fullname,
     terms: selectedTerms,
     department: selectedDepartment,
@@ -63,7 +81,8 @@ export default function EditQuestionModal({
     selectedTerms,
     selectedClassification,
     selectedSubject,
-    selectedDepartment
+    selectedDepartment,
+    selectedModule
   ])
 
   useEffect(() => {
@@ -151,63 +170,73 @@ export default function EditQuestionModal({
       <FormControl isRequired>
         <FormLabel>Subject</FormLabel>
         <Select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
-          {subjects.map((subject, key) => (
-            <option value={subject.name || subject} key={key}>{subject.name || subject}</option>
+          {subjects.map((subject, index) => (
+            <option key={index} value={subject.name || subject}>{subject.name || subject}</option>
           ))}
         </Select>
       </FormControl>
       <FormControl isRequired>
         <FormLabel>Department</FormLabel>
         <Select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
-          {departments.map((department, key) => (
-            <option value={department.name || department} key={key}>{department.name || department}</option>
+          {departments.map((department, index) => (
+            <option key={index} value={department.name || department}>{department.name || department}</option>
           ))}
         </Select>
       </FormControl>
-      <FormControl isRequired isInvalid={termsError}>
-        <FormLabel>Terms</FormLabel>
-        <CheckboxGroup colorScheme="blue">
-          <HStack justifyContent="space-evenly" mb={4}>
-            <Checkbox
-              isChecked={selectedTerms.includes("Prelims")}
-              onChange={() => handleCheckboxChange("Prelims")}
-            >
-              Prelims
-            </Checkbox>
-            <Checkbox
-              isChecked={selectedTerms.includes("Midterms")}
-              onChange={() => handleCheckboxChange("Midterms")}
-            >
-              Midterms
-            </Checkbox>
-            <Checkbox
-              isChecked={selectedTerms.includes("Finals")}
-              onChange={() => handleCheckboxChange("Finals")}
-            >
-              Finals
-            </Checkbox>
-          </HStack>
-        </CheckboxGroup>
-        {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
-      </FormControl>
+      {isForExam ?
+        <>
+          <FormControl isRequired isInvalid={termsError}>
+            <FormLabel>Terms</FormLabel>
+            <CheckboxGroup colorScheme="blue">
+              <HStack justifyContent="space-evenly" mb={4}>
+                <Checkbox
+                  isChecked={selectedTerms.includes("Prelims")}
+                  onChange={() => handleCheckboxChange("Prelims")}
+                >
+                  Prelims
+                </Checkbox>
+                <Checkbox
+                  isChecked={selectedTerms.includes("Midterms")}
+                  onChange={() => handleCheckboxChange("Midterms")}
+                >
+                  Midterms
+                </Checkbox>
+                <Checkbox
+                  isChecked={selectedTerms.includes("Finals")}
+                  onChange={() => handleCheckboxChange("Finals")}
+                >
+                  Finals
+                </Checkbox>
+              </HStack>
+            </CheckboxGroup>
+            {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Classification</FormLabel>
+            <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
+              {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val, index) => (
+                <option key={index} value={val}>{val}</option>
+              ))}
+            </Select>
+          </FormControl>
+        </> :
+        <FormControl isRequired>
+          <FormLabel>Module Number</FormLabel>
+          <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+            {["Module 1", "Module 2", "Module 3"].map((type, index) => <option key={index} value={type}>{type}</option>)}
+          </Select>
+        </FormControl>
+      }
 
-      <FormControl isRequired>
-        <FormLabel>Classification</FormLabel>
-        <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
-          {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val) => (
-            <option key={val} value={val}>{val}</option>
-          ))}
-        </Select>
-      </FormControl>
       <FormControl isRequired>
         <FormLabel>Category</FormLabel>
         <Select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); updateMultipleChoices(e.target.value); }}>
-          {["Identification", "True/False", "Multiple", "Numeric"].map(type => <option key={type} value={type}>{type}</option>)}
+          {["Identification", "True/False", "Multiple", "Numeric"].map((type, index) => <option key={index} value={type}>{type}</option>)}
         </Select>
       </FormControl>
       <FormControl isRequired isInvalid={choicesError}>
         <FormLabel>Choices and Answers</FormLabel>
-        <QuestionChoices 
+        <QuestionChoices
           setMultipleChoices={setMultipleChoices}
           multipleChoices={multipleChoices}
           category={selectedCategory}

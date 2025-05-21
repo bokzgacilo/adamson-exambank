@@ -19,6 +19,8 @@ import QuizPage from "./pages/QuizPage";
 
 import 'primereact/resources/themes/lara-light-blue/theme.css'; // or any theme
 import 'primereact/resources/primereact.min.css';
+import HistoryPage from "./pages/HistoryPage";
+import QuizQuestionPage from "./pages/QuizQuestionPage";
 
 function DashboardLayout() {
   return (
@@ -71,12 +73,14 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<QuestionPage />} />
           <Route path="questions" element={<QuestionPage />} />
+          <Route path="quiz_questions" element={<QuizQuestionPage />} />
           <Route path="exams" element={<ExamPage />} />
           <Route path="users" element={<UserPage />} />
           <Route path="subjects" element={<SubjectPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
           <Route path="department" element={<DepartmentPage />} />
           <Route path="quiz" element={<QuizPage />} />
+          <Route path="history" element={<HistoryPage />} />
         </Route>
       </Routes>
     </Router>

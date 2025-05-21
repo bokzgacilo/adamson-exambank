@@ -104,30 +104,6 @@ class Question
     return json_encode($data);
   }
 
-  public function QuestionForBank($subject)
-  {
-    $query = "SELECT id, question, options, department, category, classification,terms
-          FROM question 
-          WHERE subject = ? AND status <> 0";
-
-    $stmt = $this->conn->prepare($query);
-    if ($stmt === false) {
-      return json_encode(["error" => "Failed to prepare statement"]);
-    }
-
-    $stmt->bind_param("s", $subject);
-
-    if (!$stmt->execute()) {
-      return json_encode(["error" => "Execution failed"]);
-    }
-
-    $result = $stmt->get_result();
-    $data = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-
-    return json_encode($data);
-  }
-
   public function view($id)
   {
     $query = "SELECT * FROM exams WHERE id = ?";
@@ -152,11 +128,19 @@ class Question
 
   public function delete($id)
   {
+    $selectUser = $this -> conn -> prepare("SELECT created_by, question FROM question WHERE id = ?");
+    $selectUser->bind_param("i", $id); // assuming $questionId holds the question ID
+    $selectUser->execute();
+    $selectUser->bind_result($created_by, $question);
+    $selectUser->fetch();
+    $selectUser->close();
+
     $query = "DELETE FROM question WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
     $data = $stmt->execute();
     $stmt -> close();
+    create_log($this->conn, $created_by,"DELETE: Question: {$id}; {$question}.");
     return $data;
   }
 }

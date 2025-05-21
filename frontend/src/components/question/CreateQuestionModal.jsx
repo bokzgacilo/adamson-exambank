@@ -28,7 +28,7 @@ import {
 import { TbCheck } from "react-icons/tb";
 import axios from "axios"
 
-export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshTable }) {
+export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTable, isFormExam }) {
   const { user } = useUserStore();
   const parsedSubjects = JSON.parse(user.user_assigned_subject)
   const parsedDepartments = JSON.parse(user.user_assigned_department)
@@ -39,6 +39,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
   const [selectedSubject, setSelectedSubject] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("")
   const [selectedTerms, setSelectedTerms] = useState([]);
+  const [selectedModule, setSelectedModule] = useState("Module 1");
   const [selectedClassification, setSelectedClassification] = useState("Knowledge")
   const [selectedCategory, setSelectedCategory] = useState("Identification")
   const [multipleChoices, setMultipleChoices] = useState([]);
@@ -90,7 +91,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
     setMultipleChoices(templates[type] || []);
   };
 
-  // handle create question
+  // handle create question for exam
   const handleCreateQuestion = () => {
     const isQuestionEmpty = question.trim() === "";
     const isTermsEmpty = selectedTerms.length === 0;
@@ -157,6 +158,65 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
     });
   };
 
+  // handle create question for quiz
+  const handleCreateQuizQuestion = () => {
+    const isQuestionEmpty = question.trim() === "";
+    const hasValidOption = multipleChoices.some(choice => choice.option.trim() !== "");
+    const hasCorrectAnswer = multipleChoices.some(choice => choice.is_correct);
+    const allChoicesHaveValue = multipleChoices.every(choice => choice.option.trim() !== "");
+
+    setQuestionError(isQuestionEmpty);
+    if (isQuestionEmpty) return;
+
+    const hasChoiceErrors = !hasValidOption || !hasCorrectAnswer;
+    setChoicesError(hasChoiceErrors);
+    if (hasChoiceErrors) return;
+
+    setMultipleChoiceError(!allChoicesHaveValue);
+    if (!allChoicesHaveValue) return;
+
+    onClose()
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to create this question for quiz?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, create it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const data = {
+          question,
+          subject: selectedSubject,
+          department: selectedDepartment,
+          module: selectedModule,
+          category: selectedCategory,
+          options: multipleChoices,
+          answer: multipleChoices,
+          created_by: user.fullname
+        };
+
+        axios.post(`${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=create`, data)
+          .then((response) => {
+            console.log(response.data)
+            Swal.fire('Created!', 'Your question has been created.', 'success');
+            refreshTable()
+            setQuestion("")
+            setMultipleChoices([])
+          })
+          .catch((error) => {
+            onOpen()
+            console.error(error);
+            Swal.fire('Error', 'Failed to create question.', 'error');
+          });
+      } else {
+        onOpen()
+      }
+    });
+  };
+
 
   return (
     <Modal size="xl" isOpen={isOpen} onClose={onClose}>
@@ -189,23 +249,38 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
                 ))}
               </Select>
             </FormControl>
-            <FormControl isRequired isInvalid={termsError}>
-              <FormLabel>Terms</FormLabel>
-              <CheckboxGroup colorScheme="blue" value={selectedTerms} onChange={setSelectedTerms}>
-                <HStack justifyContent="space-evenly">
-                  {["Prelims", "Midterms", "Finals"].map(term => <Checkbox key={term} value={term}>{term}</Checkbox>)}
-                </HStack>
-              </CheckboxGroup>
-              {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
-            </FormControl>
-            <FormControl isRequired>
-              <FormLabel>Classification</FormLabel>
-              <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
-                {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val) => (
-                  <option key={val} value={val}>{val}</option>
-                ))}
-              </Select>
-            </FormControl>
+            {isFormExam ?
+              <>
+                <FormControl isRequired isInvalid={termsError}>
+                  <FormLabel>Terms</FormLabel>
+                  <CheckboxGroup colorScheme="blue" value={selectedTerms} onChange={setSelectedTerms}>
+                    <HStack justifyContent="space-evenly">
+                      {["Prelims", "Midterms", "Finals"].map((term, index) => <Checkbox key={index} value={term}>{term}</Checkbox>)}
+                    </HStack>
+                  </CheckboxGroup>
+                  {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Classification</FormLabel>
+                  <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
+                    {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val) => (
+                      <option key={val} value={val}>{val}</option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+
+              :
+              <FormControl isRequired>
+                <FormLabel>Module</FormLabel>
+                <Select variant="filled" rounded="full" value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                    {[
+                      "Module 1", "Module 2", "Module 3"
+                    ].map((val, index) => <option key={index} value={val}>{val}</option>)}
+                </Select>
+              </FormControl>
+            }
+
             <FormControl isRequired>
               <FormLabel>Category</FormLabel>
               <Select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); updateMultipleChoices(e.target.value); }}>
@@ -272,7 +347,7 @@ export default function CreateQuestionModal ({ isOpen, onClose, onOpen, refreshT
         </ModalBody>
         <ModalFooter>
           <Button onClick={onClose} mr={4}>Cancel</Button>
-          <Button colorScheme="green" rightIcon={<TbCheck />} onClick={handleCreateQuestion}>Create Single</Button>
+          <Button colorScheme="green" rightIcon={<TbCheck />} onClick={isFormExam ? handleCreateQuestion : handleCreateQuizQuestion}>Create Single</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

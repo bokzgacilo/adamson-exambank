@@ -1,4 +1,4 @@
-import { Button, Heading, Stack, Flex, useDisclosure, Card, CardHeader, CardBody, Divider, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Text, ModalFooter, Input } from "@chakra-ui/react";
+import { Button, Heading, Stack, Flex, useDisclosure, Card, CardHeader, CardBody, Divider, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Text, ModalFooter, Input, FormControl, FormLabel } from "@chakra-ui/react";
 import axios from 'axios';
 import { useEffect, useState } from "react";
 import { BiPlus } from "react-icons/bi";
@@ -51,16 +51,19 @@ export default function SubjectPage() {
           <ModalContent>
             <ModalCloseButton />
             <ModalHeader>
-              <Heading size="md">CREATE SUBJECT</Heading>
+              <Heading size="lg">Create Subject</Heading>
             </ModalHeader>
             <ModalBody>
               <Stack>
-                <Text fontWeight="semibold">SUBJECT NAME</Text>
-                <Input size="sm" value={SubjectName} onChange={(e) => SetSubjectName(e.currentTarget.value)} type="text" placeholder="Subject Name" />
+                <FormControl isRequired>
+                  <FormLabel>Subject Name</FormLabel>
+                  <Input value={SubjectName} onChange={(e) => SetSubjectName(e.currentTarget.value)} type="text" placeholder="Subject Name" />
+                </FormControl>
               </Stack>
             </ModalBody>
             <ModalFooter>
-              <Button disabled={SubjectName === "" ? true : false} leftIcon={<TbCheck />} size="sm" colorScheme="green" onClick={HandleCreateSubject}>Create</Button>
+              <Button mr={4} onClick={onClose}>Close</Button>
+              <Button disabled={SubjectName === "" ? true : false} leftIcon={<TbCheck />} colorScheme="green" onClick={HandleCreateSubject}>Create</Button>
             </ModalFooter>
           </ModalContent>
         </ModalOverlay>

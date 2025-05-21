@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { TbPlus } from "react-icons/tb";
 import AssignSubjectSelector from "./composites/AssignSubjectSelector";
+import AssignDepartmentSelector from "./composites/AssignDepartmentSelector";
 
 export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
   const [FullName, SetFullName] = useState("");
@@ -25,12 +26,14 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
   const [Username, SetUsername] = useState("");
   const [Password, SetPassword] = useState("");
   const [UserSubjects, SetUserSubjects] = useState([]);
+  const [UserDepartments, SetUserDepartments] = useState([]);
 
   const toast = useToast();
   const data = {
     name: FullName,
     role: Role,
     assigned_subject: UserSubjects,
+    assigned_department: UserDepartments,
     username: Username,
     password: Password,
   };
@@ -88,12 +91,21 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                 <option>Coordinator</option>
               </Select>
               {isOpen && 
-                <AssignSubjectSelector 
-                  data={{
-                    user_subjects: UserSubjects,
-                    set_user_subject: SetUserSubjects
-                  }}
-                />
+                <>
+                  <AssignSubjectSelector 
+                    data={{
+                      user_subjects: UserSubjects,
+                      set_user_subject: SetUserSubjects
+                    }}
+                  />
+                  <AssignDepartmentSelector 
+                    data={{
+                      user_departments: UserDepartments,
+                      set_user_department: SetUserDepartments
+                    }}
+                  />
+                </>
+                
               }
               <Text fontWeight="semibold">Username</Text>
               <Input
