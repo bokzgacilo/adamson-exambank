@@ -195,7 +195,9 @@ export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTa
           category: selectedCategory,
           options: multipleChoices,
           answer: multipleChoices,
-          created_by: user.fullname
+          created_by: user.fullname,
+          usertype: user.usertype,
+          user_department: JSON.parse(user.user_assigned_department)[0]
         };
 
         axios.post(`${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=create`, data)
@@ -275,7 +277,16 @@ export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTa
                 <FormLabel>Module</FormLabel>
                 <Select variant="filled" rounded="full" value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
                     {[
-                      "Module 1", "Module 2", "Module 3"
+                      "Module 1",
+                      "Module 2",
+                      "Module 3",
+                      "Module 4",
+                      "Module 5",
+                      "Module 6",
+                      "Module 7",
+                      "Module 8",
+                      "Module 9",
+                      "Module 10"
                     ].map((val, index) => <option key={index} value={val}>{val}</option>)}
                 </Select>
               </FormControl>

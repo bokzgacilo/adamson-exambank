@@ -15,10 +15,10 @@ import useUserStore from "../helper/useUserStore";
 import useAuthStore from "../helper/useAuthStore";
 
 export default function SidebarComponent() {
-  const {isOpen: isOpenPasswordModal, onOpen: onOpenPasswordModal, onClose: onClosePasswordModal } = useDisclosure();
+  const { isOpen: isOpenPasswordModal, onOpen: onOpenPasswordModal, onClose: onClosePasswordModal } = useDisclosure();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isOpenProfileModal, onOpen: onOpenProfileModal, onClose: onCloseProfileModal } = useDisclosure();
-  
+
   const { user, setUser, clearUser } = useUserStore();
   const assignedSubjects = JSON.parse(user.user_assigned_subject)
   const assignedDepartments = JSON.parse(user.user_assigned_department)
@@ -42,12 +42,12 @@ export default function SidebarComponent() {
     { to: "exams", label: "Exam Bank", pathname: "/dashboard/exams", icon: TbFileDescription },
     ...(UserData.type === "Admin"
       ? [
-          { to: "users", label: "Manage Users", pathname: "/dashboard/users", icon: TbUsers },
-          { to: "department", label: "Manage Departments", pathname: "/dashboard/department", icon: TbUsers },
-          { to: "subjects", label: "Manage Subjects", pathname: "/dashboard/subjects", icon: TbList },
-          { to: "statistics", label: "Dashboard", pathname: "/dashboard/statistics", icon: TbChartDots },
-          { to: "history", label: "Logs History", pathname: "/dashboard/history", icon: TbHistory }
-        ]
+        { to: "users", label: "Manage Users", pathname: "/dashboard/users", icon: TbUsers },
+        { to: "department", label: "Manage Departments", pathname: "/dashboard/department", icon: TbUsers },
+        { to: "subjects", label: "Manage Subjects", pathname: "/dashboard/subjects", icon: TbList },
+        { to: "statistics", label: "Dashboard", pathname: "/dashboard/statistics", icon: TbChartDots },
+        { to: "history", label: "Logs History", pathname: "/dashboard/history", icon: TbHistory }
+      ]
       : [])
   ];
 
@@ -67,12 +67,22 @@ export default function SidebarComponent() {
     FetchUserData();
   }, [user]);
 
-  const HandleLogout = () => {
-    clearUser();
-    localStorage.clear();
-    SetUserData({});
-    useAuthStore.getState().logout();
-    navigate("/login");
+  const HandleLogout = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_HOST}UserRoute.php?action=logout`,
+        { fullname: user.fullname } // Replace with actual value you want to send
+      );
+
+      clearUser();
+      localStorage.clear();
+      SetUserData({});
+      useAuthStore.getState().logout();
+
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const HandleChangeAvatar = () => fileInputRef.current.click();
@@ -87,7 +97,7 @@ export default function SidebarComponent() {
         HandleSaveAvatar(file)
       };
       reader.readAsDataURL(file);
-      
+
     }
   };
 
@@ -95,6 +105,9 @@ export default function SidebarComponent() {
     const formData = new FormData();
     formData.append("avatar", file);
     formData.append("id", user.id);
+    formData.append("fullname", user.fullname);
+    formData.append("usertype", user.usertype);
+    formData.append("department", JSON.parse(user.user_assigned_department)[0]);
     await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`, formData, { headers: { "Content-Type": "multipart/form-data" } })
   }
 
@@ -104,7 +117,7 @@ export default function SidebarComponent() {
       return;
     }
 
-    if(oldPassword !== Password && oldPassword !== retypePassword){
+    if (oldPassword !== Password && oldPassword !== retypePassword) {
       toast({ title: "Incorrect Old Password", description: "Old and Retype password must be matched with your old passwords.", status: "error", duration: 3000, isClosable: true });
       return;
     }
@@ -139,23 +152,23 @@ export default function SidebarComponent() {
           <ModalCloseButton />
           <ModalBody>
           </ModalBody>
-            <Stack px={4}>
-              <FormControl isRequired>
-                <FormLabel>New Password</FormLabel>
-                <Input value={newPassword} onChange={e => setNewPassword(e.currentTarget.value)} type="password" placeholder="New Password" />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>Old Password</FormLabel>
-                <Input value={oldPassword} onChange={e => setOldPassword(e.currentTarget.value)} type="password" placeholder="New Password" />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>Re-type Old Password</FormLabel>
-                <Input value={retypePassword} onChange={e => setRetypePassword(e.currentTarget.value)} type="password" placeholder="New Password" />
-              </FormControl>
-              <Text noOfLines={2} fontSize="14px" fontWeight="semibold">If you forgot your old password, please contact administrator to request new password.</Text>
-            </Stack>
+          <Stack px={4}>
+            <FormControl isRequired>
+              <FormLabel>New Password</FormLabel>
+              <Input value={newPassword} onChange={e => setNewPassword(e.currentTarget.value)} type="password" placeholder="New Password" />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Old Password</FormLabel>
+              <Input value={oldPassword} onChange={e => setOldPassword(e.currentTarget.value)} type="password" placeholder="New Password" />
+            </FormControl>
+            <FormControl isRequired>
+              <FormLabel>Re-type Old Password</FormLabel>
+              <Input value={retypePassword} onChange={e => setRetypePassword(e.currentTarget.value)} type="password" placeholder="New Password" />
+            </FormControl>
+            <Text noOfLines={2} fontSize="14px" fontWeight="semibold">If you forgot your old password, please contact administrator to request new password.</Text>
+          </Stack>
           <ModalFooter>
-            
+
             <Button mr={4} onClick={onClosePasswordModal}>Close</Button>
             <Button rightIcon={<TbCheck />} colorScheme='green' onClick={HandleSaveChanges}>
               Update Password
@@ -178,7 +191,7 @@ export default function SidebarComponent() {
               <Text fontWeight="semibold">Username</Text>
               <Input value={UserData.username || ""} isDisabled />
               <Divider />
-              <Text fontWeight="semibold">Assigned Department</Text>
+              <Text fontWeight="semibold">Assigned Subject</Text>
               {assignedSubjects.length > 0 ? (
                 assignedSubjects.map((subject, index) => (
                   <Text key={index} mb={2}>
@@ -189,7 +202,7 @@ export default function SidebarComponent() {
                 <Text>No assigned subjects</Text>
               )}
               <Divider />
-              <Text fontWeight="semibold">Assigned Subjects</Text>
+              <Text fontWeight="semibold">Assigned Department</Text>
               {assignedDepartments.length > 0 ? (
                 assignedDepartments.map((department, index) => (
                   <Text key={index} mb={2}>
@@ -267,7 +280,7 @@ export default function SidebarComponent() {
           <Icon as={TbLogout2} />
           <Text fontWeight="semibold">Log Out</Text>
         </Flex>
-      </Stack>      
+      </Stack>
     </Flex>
   );
 }

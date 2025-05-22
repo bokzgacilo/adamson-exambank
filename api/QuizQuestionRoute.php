@@ -54,10 +54,12 @@ function create($data)
     $data['module']
   );
 
+  $usertype = $data['usertype'];
+  $department = $usertype === "Admin" ? "Admin" : $data['user_department'];
 
   if ($stmt->execute()) {
     echo json_encode(['message' => 'Data inserted successfully']);
-    create_log($conn, $data['created_by'], "CREATE: Quiz Question: {$data['question']}");
+    create_log($conn, $data['created_by'], "CREATE QUIZ QUESTION [$department] -> {$data['question']}");
   } else {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to insert data: ' . $stmt->error]);
@@ -136,9 +138,12 @@ function update($data)
     $data['id'] // Make sure this key exists in the $data array
   );
 
+  $usertype = $data['usertype'];
+  $department = $usertype === "Admin" ? "Admin" : $data['user_department'];
+
   if ($stmt->execute()) {
     echo json_encode(['message' => 'Data updated successfully']);
-    create_log($conn, $data['created_by'], "UPDATE: Quiz Question: {$data['question']}");
+    create_log($conn, $data['created_by'], "UPDATE QUIZ QUESTION [$department] ID: {$data['id']}");
   } else {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to update data: ' . $stmt->error]);
@@ -152,14 +157,8 @@ function delete($data)
 
   $id = $data['id'];
   $deleted_by = $data['deleted_by'];
-
-  // Get the question text for logging before deleting
-  $stmtSelect = $conn->prepare("SELECT question FROM quiz_question WHERE id = ?");
-  $stmtSelect->bind_param("i", $id);
-  $stmtSelect->execute();
-  $stmtSelect->bind_result($questionText);
-  $stmtSelect->fetch();
-  $stmtSelect->close();
+  $usertype = $data['usertype'];
+  $department = $usertype === "Admin" ? "Admin" : $data['department'];
 
   // Proceed to delete
   $stmt = $conn->prepare("DELETE FROM quiz_question WHERE id = ?");
@@ -167,7 +166,7 @@ function delete($data)
 
   if ($stmt->execute()) {
     echo json_encode(['message' => 'Data deleted successfully']);
-    create_log($conn, $deleted_by, "DELETE: Quiz Question: {$questionText}");
+    create_log($conn, $deleted_by, "DELETE QUIZ QUESTION [$department] ID: {$id}");
   } else {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to delete data: ' . $stmt->error]);

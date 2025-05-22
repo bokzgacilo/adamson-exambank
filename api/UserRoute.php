@@ -21,7 +21,7 @@ switch ($action) {
 
     $result = $user->create($data["name"], $data["role"], $assigned_subjects, $assigned_department, $data["username"], $data["password"]);
     echo json_encode(["message" => $result ? "User created successfully" : "Failed to create user"]);
-    create_log($conn, 'Admin', "Create: User #{$data['name']}.");
+    create_log($conn, 'Admin', "CREATE USER -> {$data['name']}");
     break;
   case "viewAll":
     if ($_SERVER["REQUEST_METHOD"] !== "GET") {
@@ -31,6 +31,15 @@ switch ($action) {
     $users = $user->viewAll();
     echo json_encode($users);
     break;
+  case "logout":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+    $data = json_decode(file_get_contents("php://input"), true);
+    echo json_encode(["message" => "User logged out"]);
+    create_log($conn, $data['fullname'], "LOGGED OUT");
+    break;
   case "change_type":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -39,7 +48,7 @@ switch ($action) {
     $data = json_decode(file_get_contents("php://input"), true);
     $users = $user->change_type($data['id'], $data['type']);
     echo json_encode($users);
-    create_log($conn, 'Admin', "Update: Type of User #{$data['id']}.");
+    create_log($conn, 'Admin', "UPDATE TYPE TO [{$data['type']}] OF USER ID: {$data['id']}");
     break;
   case "change_status":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -48,7 +57,14 @@ switch ($action) {
     }
     $data = json_decode(file_get_contents("php://input"), true);
     $users = $user->change_status($data['id'], $data['status']);
-    create_log($conn, 'Admin', "Update: Status of User #{$data['id']}.");
+    $status = "";
+    if($data['status'] == 1){
+      $status = "Active";
+    }else {
+      $status = "Inactive";
+    }
+
+    create_log($conn, 'Admin', "UPDATE STATUS TO [$status] OF USER ID: {$data['id']}");
     echo json_encode($users);
     break;
   case "change_password":
@@ -63,7 +79,7 @@ switch ($action) {
     $users = $user->change_password($id, $newPassword);
 
     echo json_encode($users);
-    create_log($conn, $id, "Update: Password of User #{$id}.");
+    create_log($conn, $id, "UPDATE PASSWORD OF USER ID: {$id}");
     break;
   case "delete":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -71,10 +87,11 @@ switch ($action) {
       exit;
     }
     $data = json_decode(file_get_contents("php://input"), true);
+    $user_name = $data['username'];
     $users = $user->delete($data['id']);
+    create_log($conn, "Admin", "DELETE USER [Admin] -> {$data['username']}");
     echo json_encode($users);
     break;
-
   case "change_avatar":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -87,11 +104,15 @@ switch ($action) {
     }
 
     $id = $_POST['id'];
+    $fullname = $_POST['fullname'];
     $avatar = isset($_FILES['avatar']) ? $_FILES['avatar'] : null;
+
+    $usertype = $_POST['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $_POST['department'];
 
     $users = $user->change_avatar($id, $avatar);
     echo json_encode(["success" => $users]);
-    create_log($conn, $id, "Update: Account Image of User #{$id}.");
+    create_log($conn, $fullname, "UPDATE ACCOUNT_IMAGE [$department]");
     break;
 
   case "update_subjects":
@@ -112,7 +133,7 @@ switch ($action) {
 
     $users = $user->update_subjects($id, $usersubjects);
     echo json_encode(["success" => $users]);
-    create_log($conn, "Admin", "Update: Assigned Subjects of User #{$input['id']}: Changed to '" . implode(", ", $usersubjects) . "'.");
+    create_log($conn, "Admin", "UPDATE ASSIGNED_SUBJECTS CHANGED TO '" . implode(", ", $usersubjects) . "' OF USER ID: {$input['id']}");
     break;
   case "update_departments":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -128,7 +149,7 @@ switch ($action) {
     $userDepartments = $input['userDepartments'];
     $users = $user->update_departments($id, $userDepartments);
     echo json_encode(["success" => $users]);
-    create_log($conn, "Admin", "Update: Assigned Departments of User #{$input['id']}: Changed to '" . implode(", ", $userDepartments) . "'.");
+    create_log($conn, "Admin", "UPDATE ASSIGNED_DEPARTMENT CHANGED TO '" . implode(", ", $userDepartments) . "' OF USER ID: {$input['id']}: ");
     break;
   case "get_user_data":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -150,7 +171,7 @@ switch ($action) {
     if (isset($decodedUsers['error'])) {
       echo json_encode(["success" => false, "message" => $decodedUsers['error']]);
     } else {
-      create_log($conn,  $decodedUsers['name'], "Logged in.");
+      create_log($conn,  $decodedUsers['name'], "LOGGED IN");
       echo json_encode(["success" => true, "user" => $decodedUsers]);
     }
     break;

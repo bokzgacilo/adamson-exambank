@@ -561,6 +561,87 @@ switch ($action) {
       echo json_encode(["error" => "Error processing file: " . $e->getMessage()]);
     }
     break;
+  case "upload_batch_user":
+    $fileTmpPath = $_FILES["file"]["tmp_name"];
+    if ($_FILES["file"]["error"] !== UPLOAD_ERR_OK) {
+      die(json_encode(["error" => "File upload failed!"]));
+    }
+
+    try {
+      $spreadsheet = IOFactory::load($fileTmpPath);
+      $sheet = $spreadsheet->getActiveSheet();
+
+      $data = [];
+      $skipped = [];
+
+      $highestRow = $sheet->getHighestRow();
+      $totalRows = $highestRow - 1; 
+
+      // Prepare check and insert statements
+      $checkStmt = $conn->prepare("SELECT id FROM user WHERE username = ?");
+      $insertStmt = $conn->prepare("INSERT INTO user (name, type, username, password) VALUES (?, ?, ?, ?)");
+
+      if (!$checkStmt || !$insertStmt) {
+        throw new Exception("Statement preparation failed.");
+      }
+
+      for ($row = 2; $row <= $highestRow; $row++) {
+        $fullname = trim($sheet->getCell('A' . $row)->getValue());
+        $type = trim($sheet->getCell('B' . $row)->getValue());
+        $username = trim($sheet->getCell('C' . $row)->getValue());
+        $password = $sheet->getCell('D' . $row)->getValue();
+
+        // Skip if required fields are missing
+        if ($fullname === '' || $type === '' || $username === '') {
+          continue;
+        }
+
+        if (is_null($password) || trim($password) === '') {
+          $password = '@exambank01';
+        }
+
+        // Check for existing username
+        $checkStmt->bind_param("s", $username);
+        $checkStmt->execute();
+        $checkStmt->store_result();
+
+        if ($checkStmt->num_rows > 0) {
+          $skipped[] = $username; // Username already exists
+          continue;
+        }
+
+        // Insert user
+        $insertStmt->bind_param("ssss", $fullname, $type, $username, $password);
+        $insertStmt->execute();
+
+        $data[] = [
+          'fullname' => $fullname,
+          'type' => $type,
+          'username' => $username,
+          'password' => $password
+        ];
+
+        // Create log for this inserted user
+        create_log($conn, 'Admin', "CREATE: User {$fullname}.");
+      }
+
+      // Cleanup
+      $checkStmt->close();
+      $insertStmt->close();
+      $conn->close();
+
+      // Response
+      echo json_encode([
+        'message' => 'Users imported successfully',
+        'rows' => count($data),
+        'skipped_usernames' => $skipped,
+        'total_rows' => $totalRows,
+        'data' => $data
+      ]);
+    } catch (Exception $e) {
+      echo json_encode(["error" => "Error processing file: " . $e->getMessage()]);
+    }
+    break;
   case "create_department":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);

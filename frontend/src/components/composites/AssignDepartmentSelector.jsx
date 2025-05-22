@@ -44,33 +44,28 @@ export default function AssignDepartmentSelector({data}) {
   return (
     <Stack>
       <Text fontWeight="semibold">Assigned Departments</Text>
-      
       <Flex direction="row" gap={4}>
-        {availableDepartments.length > 0 && (
-          <>
+      {availableDepartments.length > 0 && user_departments.length === 0 && (
+        <>
           <Select
+            key={1}
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
             mb={4}
+            placeholder="Select department"
           >
-            {availableDepartments
-              .filter(department => !user_departments.includes(department))
-              .map((department, index) => (
-                <option key={index} value={department}>
-                  {department}
-                </option>
-              ))}
+            {availableDepartments.map((dept, index) => (
+              <option key={index} value={dept}>
+                {dept}
+              </option>
+            ))}
           </Select>
-          <Button
-            colorScheme="green"
-            onClick={HandleAddDepartment}
-          >
+          <Button colorScheme="green" onClick={HandleAddDepartment}>
             <Icon as={TbPlus} />
           </Button>
-          </>
-        )}
-        
-      </Flex>
+        </>
+      )}
+    </Flex>
       {user_departments.length === 0 ? (
         <Text>No Selected Subject</Text>
       ) : (

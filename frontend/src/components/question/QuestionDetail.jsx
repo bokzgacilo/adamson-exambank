@@ -64,9 +64,14 @@ export default function QuestionDetail({ isForExam, refreshTable, isOpen, onClos
     } else {
       url = `${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=update`;
     }
+    const updatedQuestionDataWithUser = {
+      ...updatedQuestionData,
+      usertype: user.usertype,
+      user_department: JSON.parse(user.user_assigned_department)[0],
+    };
 
     axios
-      .post(url, updatedQuestionData)
+      .post(url, updatedQuestionDataWithUser)
       .then((response) => {
         toast({
           title: "Question Updated!",
@@ -134,7 +139,6 @@ export default function QuestionDetail({ isForExam, refreshTable, isOpen, onClos
       url = `${import.meta.env.VITE_API_HOST}QuizQuestionRoute.php?route=delete`;
     }
 
-
     Swal.fire({
       title: 'Are you sure?',
       text: `Do you really want to delete: "${selectedQuestion.question}"?`,
@@ -148,7 +152,10 @@ export default function QuestionDetail({ isForExam, refreshTable, isOpen, onClos
         axios
           .post(url, {
             id: selectedQuestion.id,
-            deleted_by: user.fullname
+            question: selectedQuestion.question,
+            deleted_by: user.fullname,
+            usertype: user.usertype,
+            department: JSON.parse(user.user_assigned_department)[0],
           })
           .then((response) => {
             if (response.data) {

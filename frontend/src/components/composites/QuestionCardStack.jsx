@@ -7,19 +7,6 @@ export default function QuestionCardStack({ options, category }) {
           <Input value={JSON.parse(options)[0].option} readOnly />
         );
       }
-      case "Enumeration": {
-        const TextAreaValue = JSON.parse(options)
-          .map((item) => item.option)
-          .join("\n");
-
-        return (
-          <Textarea
-            value={TextAreaValue}
-            placeholder="Enter answers"
-            isReadOnly={true}
-          />
-        );
-      }
       case "True/False": {
         return (
           <RadioGroup>
@@ -33,7 +20,11 @@ export default function QuestionCardStack({ options, category }) {
           </RadioGroup>
         );
       }
-
+      case "Numeric": {
+        return (
+          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
+        );
+      }
       case "Multiple":
         return (
           <RadioGroup>

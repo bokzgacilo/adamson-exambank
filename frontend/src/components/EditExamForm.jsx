@@ -111,7 +111,10 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
 
     const updateQuestions = {
       examid: data.id,
-      questions: QuestionSet
+      questions: QuestionSet,
+      created_by: user.fullname,
+      usertype: user.usertype,
+      department: JSON.parse(user.user_assigned_department)[0]
     };
 
     if (totalSum === QuestionSet.length) {

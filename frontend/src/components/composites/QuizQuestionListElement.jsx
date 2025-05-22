@@ -12,7 +12,7 @@ export default function QuizQuestionListElement({questionSet}){
             </Text>
 
             <Tag fontWeight="semibold" fontSize="12px" mr={2}>
-              {item.classification}
+              {item.category}
             </Tag>
           </Flex>
           <QuizChoices options={item.options} category={item.category} />

@@ -12,20 +12,6 @@ export default function QuizChoices({options, category}) {
         <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
       );
     }
-    case "Enumeration": {
-      const TextAreaValue = JSON.parse(options)
-        .map((item) => item.option)
-        .join("\n");
-
-      return (
-        <Textarea
-          size="sm"
-          value={TextAreaValue}
-          placeholder="Enter answers"
-          isReadOnly={true}
-        />
-      );
-    }
     case "True/False": {
       return (
         <RadioGroup>

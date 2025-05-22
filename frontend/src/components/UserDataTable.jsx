@@ -108,6 +108,7 @@ export default function UserDataTable({ data, fetchMasterData }) {
     const data = {
       id: selectedUserId,
       type: newType,
+
     };
 
     axios
@@ -409,6 +410,8 @@ export default function UserDataTable({ data, fetchMasterData }) {
     axios
       .post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=delete`, {
         id: selectedUser,
+        usertype: user.usertype,
+        department: JSON.parse(user.user_assigned_department)[0]
       })
       .then((response) => {
         if (response) {
@@ -530,27 +533,26 @@ export default function UserDataTable({ data, fetchMasterData }) {
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
-              <Flex direction="row" gap={4}>
-                <Select
-                  value={SelectedDepartment}
-                  onChange={(e) => SetSelectedDepartment(e.target.value)}
-                  mb={4}
-                >
-                  {AvailableDepartment
-                    .filter(department => !SelectUserDepartment.includes(department.name))
-                    .map((department, index) => (
-                      <option key={index} value={department.name}>
-                        {department.name}
-                      </option>
-                    ))}
-                </Select>
-                <Button
-                  colorScheme="green"
-                  onClick={HandleAddDepartment}
-                >
-                  <Icon as={TbPlus} />
-                </Button>
-              </Flex>
+              {SelectUserDepartment.length === 0 && (
+                <Flex direction="row" gap={4}>
+                  <Select
+                    value={SelectedDepartment}
+                    onChange={(e) => SetSelectedDepartment(e.target.value)}
+                    mb={4}
+                  >
+                    {AvailableDepartment
+                      .filter(department => !SelectUserDepartment.includes(department.name))
+                      .map((department, index) => (
+                        <option key={index} value={department.name}>
+                          {department.name}
+                        </option>
+                      ))}
+                  </Select>
+                  <Button colorScheme="green" onClick={HandleAddDepartment}>
+                    <Icon as={TbPlus} />
+                  </Button>
+                </Flex>
+              )}
               {SelectUserDepartment.length === 0 ? (
                 <Text>No Selected Department</Text>
               ) : (

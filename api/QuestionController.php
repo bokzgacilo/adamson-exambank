@@ -128,19 +128,11 @@ class Question
 
   public function delete($id)
   {
-    $selectUser = $this -> conn -> prepare("SELECT created_by, question FROM question WHERE id = ?");
-    $selectUser->bind_param("i", $id); // assuming $questionId holds the question ID
-    $selectUser->execute();
-    $selectUser->bind_result($created_by, $question);
-    $selectUser->fetch();
-    $selectUser->close();
-
     $query = "DELETE FROM question WHERE id = ?";
     $stmt = $this->conn->prepare($query);
     $stmt->bind_param("i", $id);
     $data = $stmt->execute();
     $stmt -> close();
-    create_log($this->conn, $created_by,"DELETE: Question: {$id}; {$question}.");
     return $data;
   }
 }

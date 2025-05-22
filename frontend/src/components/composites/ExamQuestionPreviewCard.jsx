@@ -11,17 +11,9 @@ export default function ExamQuestionPreviewCard({ item_id, options, category, up
           <Input value={JSON.parse(options)[0].option} readOnly />
         );
       }
-      case "Enumeration": {
-        const TextAreaValue = JSON.parse(options)
-          .map((item) => item.option)
-          .join("\n");
-
+      case "Numeric": {
         return (
-          <Textarea
-            value={TextAreaValue}
-            placeholder="Enter answers"
-            isReadOnly={true}
-          />
+          <Input size="sm" value={JSON.parse(options)[0].option} readOnly />
         );
       }
       case "True/False": {

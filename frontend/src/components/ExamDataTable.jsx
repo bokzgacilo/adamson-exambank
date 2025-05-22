@@ -100,7 +100,10 @@ export default function ExamDataTable({ getAllExams, data, SetSelectedExam, onOp
       if (result.isConfirmed) {
         try {
           await axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=delete`, {
-            id: rowData.id
+            id: rowData.id,
+            created_by: user.fullname,
+            usertype: user.usertype,
+            department: JSON.parse(user.user_assigned_department)[0]
           });
           Swal.fire('Deleted!', 'The record has been deleted.', 'success');
           getAllExams();

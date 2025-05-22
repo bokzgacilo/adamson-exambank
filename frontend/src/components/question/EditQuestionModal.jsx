@@ -131,9 +131,6 @@ export default function EditQuestionModal({
           { id: 2, option: "False", is_correct: false },
         ]);
         break;
-      case "Enumeration":
-        setMultipleChoices([]);
-        break;
       case "Multiple":
         setMultipleChoices([
           { id: 1, option: "Option 1", is_correct: false },
@@ -223,7 +220,18 @@ export default function EditQuestionModal({
         <FormControl isRequired>
           <FormLabel>Module Number</FormLabel>
           <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-            {["Module 1", "Module 2", "Module 3"].map((type, index) => <option key={index} value={type}>{type}</option>)}
+            {[
+              "Module 1",
+              "Module 2",
+              "Module 3",
+              "Module 4",
+              "Module 5",
+              "Module 6",
+              "Module 7",
+              "Module 8",
+              "Module 9",
+              "Module 10"
+            ].map((type, index) => <option key={index} value={type}>{type}</option>)}
           </Select>
         </FormControl>
       }

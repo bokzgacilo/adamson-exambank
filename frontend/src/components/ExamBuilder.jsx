@@ -119,6 +119,8 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
       created_by: user.fullname,
       tos: TOS,
       exam_name: ExamName,
+      usertype: user.usertype,
+      department: JSON.parse(user.user_assigned_department)[0]
     };
 
     if (totalSum === QuestionSet.length) {

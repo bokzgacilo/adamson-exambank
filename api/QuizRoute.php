@@ -2,6 +2,7 @@
 include './config/headers.php';
 require_once './config/database.php';
 require_once 'QuizController.php';
+require_once './service/logger.php';
 
 $quiz = new Quiz($conn);
 
@@ -88,6 +89,47 @@ switch ($action) {
     ]);
     break;
 
+  case "update":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        echo json_encode(["message" => "Invalid request method"]);
+        exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!$data) {
+        echo json_encode(["message" => "No JSON received"]);
+        exit;
+    }
+
+    if (!isset($data["id"], $data["quiz_name"], $data["subject"], $data["department"], $data["questions"], $data["created_by"])) {
+        echo json_encode(["message" => "Invalid input"]);
+        exit;
+    }
+
+    $updatedQuiz = $quiz->update(
+        $data["id"],
+        $data["quiz_name"],
+        $data["subject"],
+        $data["department"],
+        $data["questions"],
+        $data["created_by"]
+    );
+
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['department'];
+
+    if ($updatedQuiz) {
+        echo json_encode([
+            "message" => "Quiz updated successfully",
+            "question" => $updatedQuiz
+        ]);
+        create_log($conn, $data['created_by'], "UPDATE QUIZ [$department] ID: {$data['id']}");
+    } else {
+        echo json_encode(["message" => "Failed to update quiz"]);
+    }
+
+    break;
   case "create":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -114,11 +156,15 @@ switch ($action) {
       $data["created_by"]
     );
 
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['user_department'];
+
     if ($newQuiz) {
       echo json_encode([
         "message" => "Quiz created successfully",
         "question" => $newQuiz
       ]);
+      create_log($conn, $data['created_by'], "CREATE QUIZ [$department] -> {$data['quiz_name']}");
     } else {
       echo json_encode(["message" => "Failed to create quiz"]);
     }
@@ -126,17 +172,20 @@ switch ($action) {
     break;
   case 'delete':
     $id = $_GET['id'] ?? null;
-    if ($id) {
+    $created_by = $_GET['created_by'];
+    $usertype = $_GET['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $_GET['department'];
 
+    if ($id) {
       $newQuiz = $quiz->delete(
         $id,
       );
-
       if ($newQuiz) {
         echo json_encode([
           "message" => "Quiz deleted successfully",
           "question" => $newQuiz
         ]);
+        create_log($conn, $created_by, "DELETE QUIZ [$department] ID: {$id}");
       }
     } else {
       echo json_encode(['success' => false, 'message' => 'Quiz ID is required']);

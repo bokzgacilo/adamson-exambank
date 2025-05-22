@@ -1,6 +1,7 @@
 <?php
 include './config/headers.php';
 require_once './config/database.php';
+require_once './service/logger.php';
 require_once 'ExamController.php';
 
 $exam = new Exam($conn);
@@ -21,22 +22,41 @@ switch ($action) {
       exit;
     }
 
-    $result = $exam->create($data["exam_name"], $data["subject"], $data["access_code"], $data["tos"], $data["questions"], $data["created_by"]);
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['department'];
 
+    $result = $exam->create($data["exam_name"], $data["subject"], $data["access_code"], $data["tos"], $data["questions"], $data["created_by"]);
+    create_log($conn, $data['created_by'], "CREATE EXAM [$department] -> {$data['exam_name']}");
     echo json_encode(["message" => $result ? "Exam created successfully" : "Failed to create exam"]);
     break;
 
   case "export":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-      echo json_encode(["message" => "Invalid request method"]);
-      exit;
+        echo json_encode(["message" => "Invalid request method"]);
+        exit;
     }
 
     $data = json_decode(file_get_contents("php://input"), true);
 
-    $exams = $exam->export($data["data"], $data["subject"]);
+    $name = $data['name'];
+    $test_name = $data['test_name'];
+    $type = $data['type'];
 
-    echo json_encode($exams);
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['department'];
+
+    $filePath = $exam->export($data["data"], $data["subject"]); // Returns full path to .txt file
+    create_log($conn, $name, "EXPORT $type [$department] -> $test_name");
+    if (file_exists($filePath)) {
+        header("Content-Type: text/plain");
+        header("Content-Disposition: attachment; filename=\"EXPORT.txt\"");
+        header("Content-Length: " . filesize($filePath));
+        readfile($filePath);
+        exit;
+    } else {
+        http_response_code(404);
+        echo json_encode(["message" => "Export file not found"]);
+    }
     break;
   case "GenerateTOSQuestion":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -89,8 +109,13 @@ switch ($action) {
     }
 
     $data = json_decode(file_get_contents("php://input"), true);
-    $exams = $exam->delete($data["id"]);
+    $creator = $data['created_by'];
 
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['department'];
+
+    $exams = $exam->delete($data["id"]);
+    create_log($conn, $creator, "DELETE EXAM [$department] ID: {$data['id']}");
     echo json_encode($exams);
     break;
   case "change_status":
@@ -109,9 +134,11 @@ switch ($action) {
     }
 
     $data = json_decode(file_get_contents("php://input"), true);
-
+    $created_by = $data['created_by'];
+    $usertype = $data['usertype'];
+    $department = $usertype === "Admin" ? "Admin" : $data['department'];
+    create_log($conn, $created_by, "UPDATE EXAM [$department] ID: {$data['examid']}");
     $exams = $exam->update($data["examid"], $data["questions"]);
-
     echo json_encode($exams);
     break;
   default:

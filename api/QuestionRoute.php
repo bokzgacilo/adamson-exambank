@@ -38,7 +38,7 @@ switch ($action) {
     );
 
     if ($newQuestion) {
-      create_log($conn, $data["created_by"], "CREATE: Question {$data['question']}.");
+      create_log($conn, $data["created_by"], "CREATE QUESTION [{$data["department"]}] -> {$data['question']}.");
 
       echo json_encode([
         "message" => "Question created successfully",
@@ -79,7 +79,7 @@ switch ($action) {
     );
 
     if ($newQuestion) {
-      create_log($conn, $data["created_by"], "UPDATE: Question: {$data['id']}.");
+      create_log($conn, $data["created_by"], "UPDATE QUESTION [{$data['department']}] ID:{$data['id']}");
       echo json_encode([
         "message" => "Question created successfully",
         "question" => $newQuestion
@@ -201,8 +201,17 @@ switch ($action) {
     }
 
     $data = json_decode(file_get_contents("php://input"), true);
-    $questions = $question->delete($data["id"]);
-    print_r($questions);
+
+    $type = $data['usertype'];
+    $department = ($type === "Admin") ? "Admin" : $data['department'];
+    
+    $deleted_by = $data['deleted_by'];
+    $id = (int) $data['id'];
+    $question_name = $data['question'];
+
+    $questions = $question->delete($id);
+
+    create_log($conn, $deleted_by, "DELETE QUESTION [$department] -> $question_name");
     echo json_encode($questions);
     break;
   case "disable":

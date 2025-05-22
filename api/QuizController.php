@@ -41,6 +41,14 @@ class Quiz
     $stmt->close();
     return $quizzes;
   }
+  public function update($id, $quiz_name, $subject, $department, $questions, $created_by) {
+
+    $encoded_questions = json_encode($questions);
+    // example using mysqli
+    $stmt = $this->conn->prepare("UPDATE quiz SET quiz_name = ?, subject = ?, department = ?, questions = ?, created_by = ? WHERE id = ?");
+    $stmt->bind_param("sssssi", $quiz_name, $subject, $department, $encoded_questions, $created_by, $id);
+    return $stmt->execute();
+    }
   public function create($quiz_name, $subject, $department, $questions, $created_by)
   {
     $question_string = json_encode($questions);

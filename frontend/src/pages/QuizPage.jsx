@@ -50,20 +50,58 @@ const QuizDetail = ({ quiz }) => {
   )
 }
 
-const QuizTable = ({ data, refreshTable }) => {
+const QuizTable = ({ data, refreshTable, setIsEditing, setQuestionSet, setSelectedId,setQuizName, openCreateQuiz }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedQuiz, setSelectedQuiz] = useState([])
+  const {user} = useUserStore();
 
   const handleQuizClick = (rowData) => {
     setSelectedQuiz(rowData)
     onOpen()
   }
 
+  const handleEdit = (rowData) => {
+    console.log(rowData)
+    setSelectedId(rowData.id)
+    setIsEditing(true)
+    setQuestionSet(JSON.parse(rowData.questions))
+    setQuizName(rowData.quiz_name)
+    openCreateQuiz()
+  }
+
   const handleExport = (rowData) => {
-    axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`, { data: JSON.parse(rowData.questions), subject: rowData.subject })
-      .then(response => {
-        window.open(`${import.meta.env.VITE_API_HOST}${response.data}`, "_blank")
-      });
+    axios.post(
+      `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`,
+      {
+        name: user.fullname,
+        test_name: rowData.quiz_name,
+        type: "QUIZ",
+        data: JSON.parse(rowData.questions),
+        subject: rowData.subject,
+        usertype: user.usertype,
+        department: JSON.parse(user.user_assigned_department)[0]
+      },
+      {
+        responseType: 'blob', // important for file download
+      }
+    )
+    .then((response) => {
+      const blob = new Blob([response.data], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${rowData.quiz_name}_export.txt`; // Customize the filename
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    })
+    .catch((error) => {
+      console.error('Export failed:', error);
+      // Optional: show Chakra toast on error
+      // toast({ title: "Export failed", status: "error", duration: 3000, isClosable: true });
+    });
   }
 
   const handleDeleteQuiz = (id) => {
@@ -80,7 +118,10 @@ const QuizTable = ({ data, refreshTable }) => {
         axios.get(`${import.meta.env.VITE_API_HOST}QuizRoute.php`, {
           params: {
             action: 'delete',
-            id: id
+            id: id,
+            created_by: user.fullname,
+            usertype: user.usertype,
+            department: JSON.parse(user.user_assigned_department)[0]
           }
         })
           .then(() => {
@@ -145,21 +186,28 @@ const QuizTable = ({ data, refreshTable }) => {
           header="Action"
           body={(rowData) => (
             <HStack spacing={2}>
-              <Tooltip label="Delete">
+              <Tooltip label="Edit">
                 <IconButton
-                  icon={<TbTrash />}
-                  colorScheme="red"
-                  aria-label="Delete"
-                  onClick={() => handleDeleteQuiz(rowData.id)}
+                  icon={<TbEdit />}
+                  colorScheme="yellow"
+                  aria-label="Export"
+                  onClick={() => handleEdit(rowData)}
                 />
               </Tooltip>
-
               <Tooltip label="Export">
                 <IconButton
                   icon={<TbDownload />}
                   colorScheme="green"
                   aria-label="Export"
                   onClick={() => handleExport(rowData)}
+                />
+              </Tooltip>
+               <Tooltip label="Delete">
+                <IconButton
+                  icon={<TbTrash />}
+                  colorScheme="red"
+                  aria-label="Delete"
+                  onClick={() => handleDeleteQuiz(rowData.id)}
                 />
               </Tooltip>
             </HStack>
@@ -187,6 +235,9 @@ export default function QuizPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [paginationPage, setPaginationPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
+
   // check if selected
   const CheckIfSelected = (qid) => {
     if (questionSet.some((q) => q.id === qid)) {
@@ -286,7 +337,20 @@ export default function QuizPage() {
 
   // Create Quiz
   const handleCreateQuiz = () => {
+    if(questionSet.length === 0){
+      alert("Please insert atleast 1 question to create quiz.");
+      return;
+    }
+
     onClose()
+
+    let url = ""
+
+    if(isEditing){
+      url = `${import.meta.env.VITE_API_HOST}QuizRoute.php?action=update`
+    }else {
+      url = `${import.meta.env.VITE_API_HOST}QuizRoute.php?action=create`
+    }
 
     Swal.fire({
       title: 'Are you sure?',
@@ -298,14 +362,17 @@ export default function QuizPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         const data = {
+          id: selectedId,
           quiz_name: quizName,
           subject: selectedSubject,
           department: selectedDepartment,
           questions: questionSet,
-          created_by: fullname
+          created_by: fullname,
+          usertype: usertype,
+          user_department: JSON.parse(user_assigned_department)[0]
         };
 
-        axios.post(`${import.meta.env.VITE_API_HOST}QuizRoute.php?action=create`, data, {
+        axios.post(url, data, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -319,7 +386,7 @@ export default function QuizPage() {
             });
             fetchQuizzes();
             setQuestionSet([])
-            setQuizName([])
+            setQuizName("")
           })
           .catch((error) => {
             Swal.fire({
@@ -339,10 +406,12 @@ export default function QuizPage() {
   return (
     <>
       {isOpen && (
-        <Modal size="full" isOpen={isOpen} onClose={onClose}>
+        <Modal size="full" isOpen={isOpen} onClose={() => {onClose(); setIsEditing(false)}}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Create Quiz</ModalHeader>
+            <ModalHeader>
+              <Heading size="lg">{isEditing ? "Edit Quiz" : "Create Quiz"}</Heading>
+            </ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <SimpleGrid gap={4} columns={3}>
@@ -464,7 +533,17 @@ export default function QuizPage() {
                   <FormControl mt={2}>
                     <FormLabel>Module Number</FormLabel>
                     <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-                      {["All", "Module 1", "Module 2", "Module 3"].map((department, index) => (
+                      {["All", 
+                      "Module 1",
+                      "Module 2",
+                      "Module 3",
+                      "Module 4",
+                      "Module 5",
+                      "Module 6",
+                      "Module 7",
+                      "Module 8",
+                      "Module 9",
+                      "Module 10"].map((department, index) => (
                         <option key={index} value={department}>{department}</option>
                       ))}
                     </Select>
@@ -476,7 +555,7 @@ export default function QuizPage() {
             <ModalFooter>
               <Button mr={4} onClick={onClose}>Close</Button>
               <Button onClick={handleCreateQuiz} rightIcon={<BiCheck />} colorScheme="green">
-                Create Quiz
+                {isEditing ? "Save Changes" : "Create Quiz"}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -499,8 +578,13 @@ export default function QuizPage() {
           <Divider />
           <CardBody p={0}>
             <QuizTable
+              setSelectedId={setSelectedId}
+              setIsEditing={setIsEditing}
+              setQuestionSet={setQuestionSet}
+              setQuizName={setQuizName}
               data={quizzes}
               refreshTable={fetchQuizzes}
+              openCreateQuiz={onOpen}
             />
           </CardBody>
         </Card>
