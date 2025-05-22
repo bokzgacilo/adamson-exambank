@@ -1,1 +1,11 @@
-FIB	TEST3333	sdfsdf
+FIB	What is the purpose of the SELECT statement in SQL?	To query and retrieve data from one or more tables.
+FIB	KNOWDLEDEGE TEST	True asd asd a
+FIB	Explain what transitive dependency means in the context of database normalization.	When a non-key attribute depends on another non-key attribute.
+FIB	What is the difference between a table and a view in a database?	A table stores data; a view is a virtual table based on a query.
+FIB	What does it mean for a database to be in 3NF?	No transitive dependencies; non-key attributes depend only on the primary key.
+FIB	what numbers comes after 5	6
+FIB	Identification_Comprehension	asdfaxvvxcv
+MC	Which SQL command is used to remove a table from a database?	DELETE	Incorrect	REMOVE	Incorrect	TRUNCATE	Incorrect	DROP	Correct
+MA	Multiple_Analysis	sd12	Correct	dasda	Correct	asdas	Correct	123123123	Incorrect
+MC	Which command is used to change data in a table?	MODIFY	Incorrect	UPDATE	Correct	DELETE	Incorrect	CHANGE	Incorrect
+MC	Which language is used for defining the structure of a database?	DDL	Correct	SQL	Incorrect	DML	Incorrect	DCL	Incorrect

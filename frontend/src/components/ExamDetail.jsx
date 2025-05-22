@@ -58,7 +58,15 @@ export default function ExamDetail({ editExam, refreshData, selectedExam, isOpen
         isClosable: true,
       })
 
-      axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`, { data: JSON.parse(selectedExam.questions), subject: selectedExam.subject })
+      axios.post(`${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`, { 
+        data: JSON.parse(selectedExam.questions),
+        test_name: selectedExam.exam_name,
+        type: "EXAM", 
+        subject: selectedExam.subject,
+        name:  user.fullname,
+        usertype: user.usertype,
+        department: JSON.parse(user.user_assigned_department)[0]
+      })
         .then(response => {
           SetLink(response.data)
         });

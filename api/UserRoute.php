@@ -89,7 +89,7 @@ switch ($action) {
     $data = json_decode(file_get_contents("php://input"), true);
     $user_name = $data['username'];
     $users = $user->delete($data['id']);
-    create_log($conn, "Admin", "DELETE USER [Admin] -> {$data['username']}");
+    create_log($conn, "Admin", "DELETE USER [Admin] -> {$data['id']}");
     echo json_encode($users);
     break;
   case "change_avatar":
