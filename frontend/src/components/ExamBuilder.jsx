@@ -34,9 +34,10 @@ ExamBuilder.propTypes = {
 
 export default function ExamBuilder({ refreshData, isOpen, onClose }) {
   const toast = useToast();
-  const user = useUserStore((state) => state.user);
+  const {user} = useUserStore();
+  const parsedSubjects = JSON.parse(user.user_assigned_subject)
   const [ExamName, SetExamName] = useState("");
-  const [SelectedSubject, SetSelectedSubject] = useState("");
+  const [SelectedSubject, SetSelectedSubject] = useState("All");
   const [QuestionSet, SetQuestionSet] = useState([]);
   const [Subjects, SetSubjects] = useState([]);
   const [mode, setMode] = useState("upload");
@@ -50,25 +51,19 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
   });
   const [StepOne, SetStepOne] = useState(false);
   const [isLoading, setIsLoading] = useState(false)
-
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const subjectsResponse = await axios.get(
-          `${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=viewAll`
-        );
-
-        SetSubjects(subjectsResponse.data);
-
-        if (subjectsResponse.data.length > 0) {
-          SetSelectedSubject(subjectsResponse.data[0].name);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-
+    if (user.usertype === "Admin") {
+      axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllSubjects", type: user.usertype } })
+        .then(({ data }) => {
+          SetSubjects(data);
+          SetSelectedSubject(data[0].name);
+        })
+        .catch(console.error);
+    } else {
+      SetSubjects(parsedSubjects);
+      SetSelectedSubject(parsedSubjects[0]);
+    }
     SetStepOne(true);
   }, []);
 
@@ -210,9 +205,7 @@ export default function ExamBuilder({ refreshData, isOpen, onClose }) {
                   mb={2}
                 >
                   {Subjects.map((subject, index) => (
-                    <option key={index} value={subject.name}>
-                      {subject.name}
-                    </option>
+                    <option key={index} value={subject.name || subject}>{subject.name || subject}</option>
                   ))}
                 </Select>
                 <Stack>

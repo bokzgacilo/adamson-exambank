@@ -10,26 +10,28 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 $action = $_GET['action'] ?? '';
 
-function insertQuestion($question, $options, $category, $classification, $created_by, $subject, $terms)
+function insertQuestion($department, $question, $options, $category, $classification, $created_by, $subject, $terms)
 {
   global $conn;
 
-  $sql = "INSERT INTO question (question, options, category, classification, created_by, subject, terms) 
-          VALUES (?, ?, ?, ?, ?, ?, ?)";
+  $sql = "INSERT INTO question (question, options, category, classification, created_by, subject, terms, department) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
   if ($stmt = $conn->prepare($sql)) {
     $jsonOptions = json_encode($options); // Convert array to JSON
 
-    $stmt->bind_param("sssssss", $question, $jsonOptions, $category, $classification, $created_by, $subject, $terms);
+    $stmt->bind_param("ssssssss", $question, $jsonOptions, $category, $classification, $created_by, $subject, $terms, $department);
 
     if ($stmt->execute()) {
       $insertedId = $stmt->insert_id; // Get last inserted ID
       $stmt->close();
       return $insertedId;
     } else {
+      $stmt->close();
       return "Error: " . $stmt->error;
     }
   } else {
+    $conn -> close();
     return "Error: " . $conn->error;
   }
 }
@@ -310,7 +312,7 @@ switch ($action) {
       }
 
       $highestRow = $sheet->getHighestRow(); // Get the last row with data
-      $columns = range("A", "L"); // Columns A to L
+      $columns = range("A", "M"); // Columns A to L
       $data = [];
 
       for ($row = 3; $row <= $highestRow; $row++) {
@@ -426,20 +428,36 @@ switch ($action) {
             break;
         }
 
-        $Json = [
-          "category" => $category,
-          "classification" => $classification,
-          "created_by" => $creator,
-          "options" => $option,
-          "question" => $rowData["C"],
-          "terms" => convertToLegendArray($rowData["L"])
-        ];
+        $terms = convertToLegendArray($rowData["L"]);
+        $department = $rowData["M"];
+        $question = $rowData["C"];
 
+        if (!empty($category) && !empty($department) && !empty($classification) && !empty($terms) && !empty($question)) {
+          $Json = [
+            "category" => $category,
+            "department" => $department,
+            "classification" => $classification,
+            "created_by" => $creator,
+            "options" => $option,
+            "question" => $question,
+            "terms" => $terms
+          ];
 
-        if (!$isEmpty) {
-          $data[] = $Json;
-          insertQuestion($rowData["C"], $option, $category, $classification, $creator, $subject, json_encode(convertToLegendArray($rowData["L"])));
-        }
+          if (!$isEmpty) {
+              $data[] = $Json;
+
+              insertQuestion(
+                  $department,
+                  $question,
+                  $option,
+                  $category,
+                  $classification,
+                  $creator,
+                  $subject,
+                  json_encode($terms)
+              );
+          }
+      }
       }
 
       echo json_encode(["data" => $data]);
