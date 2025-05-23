@@ -50,10 +50,10 @@ const QuizDetail = ({ quiz }) => {
   )
 }
 
-const QuizTable = ({ data, refreshTable, setIsEditing, setQuestionSet, setSelectedId,setQuizName, openCreateQuiz }) => {
+const QuizTable = ({ data, refreshTable, setIsEditing, setQuestionSet, setSelectedId, setQuizName, openCreateQuiz }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedQuiz, setSelectedQuiz] = useState([])
-  const {user} = useUserStore();
+  const { user } = useUserStore();
 
   const handleQuizClick = (rowData) => {
     setSelectedQuiz(rowData)
@@ -70,39 +70,50 @@ const QuizTable = ({ data, refreshTable, setIsEditing, setQuestionSet, setSelect
   }
 
   const handleExport = (rowData) => {
-    axios.post(
-      `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`,
-      {
-        name: user.fullname,
-        test_name: rowData.quiz_name,
-        type: "QUIZ",
-        data: JSON.parse(rowData.questions),
-        subject: rowData.subject,
-        usertype: user.usertype,
-        department: JSON.parse(user.user_assigned_department)[0]
-      },
-      {
-        responseType: 'blob', // important for file download
-      }
-    )
-    .then((response) => {
-      const blob = new Blob([response.data], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to export this quiz?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, export it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios.post(
+          `${import.meta.env.VITE_API_HOST}ExamRoute.php?action=export`,
+          {
+            name: user.fullname,
+            test_name: rowData.quiz_name,
+            type: "QUIZ",
+            data: JSON.parse(rowData.questions),
+            subject: rowData.subject,
+            usertype: user.usertype,
+            department: JSON.parse(user.user_assigned_department)[0]
+          },
+          {
+            responseType: 'blob', // important for file download
+          }
+        )
+          .then((response) => {
+            const blob = new Blob([response.data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${rowData.quiz_name}_export.txt`; // Customize the filename
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    })
-    .catch((error) => {
-      console.error('Export failed:', error);
-      // Optional: show Chakra toast on error
-      // toast({ title: "Export failed", status: "error", duration: 3000, isClosable: true });
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${rowData.quiz_name}_export.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            console.error('Export failed:', error);
+            Swal.fire('Error', 'Export failed. Please try again.', 'error');
+          });
+      }
     });
-  }
+  };
 
   const handleDeleteQuiz = (id) => {
     Swal.fire({
@@ -202,7 +213,7 @@ const QuizTable = ({ data, refreshTable, setIsEditing, setQuestionSet, setSelect
                   onClick={() => handleExport(rowData)}
                 />
               </Tooltip>
-               <Tooltip label="Delete">
+              <Tooltip label="Delete">
                 <IconButton
                   icon={<TbTrash />}
                   colorScheme="red"
@@ -302,7 +313,7 @@ export default function QuizPage() {
       axios.get(`${import.meta.env.VITE_API_HOST}SubjectRoute.php`, { params: { action: "GetAllDepartments", type: usertype } })
         .then(({ data }) => {
           const departments = data.map(department => department.name);
-           departments.unshift("All");
+          departments.unshift("All");
           setDepartments(departments);
           setSelectedDepartment(departments[0]);
         })
@@ -327,7 +338,7 @@ export default function QuizPage() {
         limit: 15,
       }
     })
-      .then( response  => {
+      .then(response => {
         console.log(response)
         setAvailableQuestions(response.data.questions);
         setTotalPages(Math.ceil(response.data.total / 10))
@@ -337,7 +348,7 @@ export default function QuizPage() {
 
   // Create Quiz
   const handleCreateQuiz = () => {
-    if(questionSet.length === 0){
+    if (questionSet.length === 0) {
       alert("Please insert atleast 1 question to create quiz.");
       return;
     }
@@ -346,9 +357,9 @@ export default function QuizPage() {
 
     let url = ""
 
-    if(isEditing){
+    if (isEditing) {
       url = `${import.meta.env.VITE_API_HOST}QuizRoute.php?action=update`
-    }else {
+    } else {
       url = `${import.meta.env.VITE_API_HOST}QuizRoute.php?action=create`
     }
 
@@ -406,7 +417,7 @@ export default function QuizPage() {
   return (
     <>
       {isOpen && (
-        <Modal size="full" isOpen={isOpen} onClose={() => {onClose(); setIsEditing(false)}}>
+        <Modal size="full" isOpen={isOpen} onClose={() => { onClose(); setIsEditing(false) }}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>
@@ -419,7 +430,7 @@ export default function QuizPage() {
                   <Heading size="md">Preview</Heading>
                   <Stack backgroundColor="gray.200" maxH="80dvh" overflowY="auto">
                     {questionSet.map((item, index) => (
-                      <Card key={index}  mx={2} my={1}>
+                      <Card key={index} mx={2} my={1}>
                         <CardBody>
                           <Stack spacing={4}>
                             <Flex direction="row">
@@ -533,19 +544,19 @@ export default function QuizPage() {
                   <FormControl mt={2}>
                     <FormLabel>Module Number</FormLabel>
                     <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-                      {["All", 
-                      "Module 1",
-                      "Module 2",
-                      "Module 3",
-                      "Module 4",
-                      "Module 5",
-                      "Module 6",
-                      "Module 7",
-                      "Module 8",
-                      "Module 9",
-                      "Module 10"].map((department, index) => (
-                        <option key={index} value={department}>{department}</option>
-                      ))}
+                      {["All",
+                        "Module 1",
+                        "Module 2",
+                        "Module 3",
+                        "Module 4",
+                        "Module 5",
+                        "Module 6",
+                        "Module 7",
+                        "Module 8",
+                        "Module 9",
+                        "Module 10"].map((department, index) => (
+                          <option key={index} value={department}>{department}</option>
+                        ))}
                     </Select>
                   </FormControl>
                 </Stack>

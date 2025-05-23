@@ -93,11 +93,9 @@ export default function SidebarComponent() {
       const reader = new FileReader();
       reader.onloadend = () => {
         SetPreview(reader.result);
-        SetImageFile(file);
         HandleSaveAvatar(file)
       };
       reader.readAsDataURL(file);
-
     }
   };
 
@@ -108,7 +106,17 @@ export default function SidebarComponent() {
     formData.append("fullname", user.fullname);
     formData.append("usertype", user.usertype);
     formData.append("department", JSON.parse(user.user_assigned_department)[0]);
-    await axios.post(`${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`, formData, { headers: { "Content-Type": "multipart/form-data" } })
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_HOST}UserRoute.php?action=change_avatar`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      SetImageFile(file); // This will only run if the upload succeeded
+    } catch (error) {
+      console.error("Avatar upload failed:", error);
+      // Optionally show an error message to the user
+    }
   }
 
   const HandleSaveChanges = async () => {
