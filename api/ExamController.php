@@ -126,8 +126,13 @@ class Exam
     if ($file) {
       foreach ($data as $question) {
         $category = $question['category'];
-        $questionText = $question['question'];
+        $questionText = str_replace(["\r", "\n"], " ", $question['question']);
         $options = json_decode($question['options'], true);
+
+        // Clean option texts to remove line breaks
+        foreach ($options as &$option) {
+          $option['option'] = str_replace(["\r", "\n"], " ", $option['option']);
+        }
 
         if ($category === "True/False") {
           $correctOption = "";
@@ -156,23 +161,21 @@ class Exam
           $categoryLabel = "Enumeration";
         } else { // Multiple Choice
           $correctAnswers = [];
-          $correctCount = 0; // Track number of correct answers
+          $correctCount = 0;
 
           foreach ($options as $option) {
             $status = $option['is_correct'] ? "Correct" : "Incorrect";
             $correctAnswers[] = "{$option['option']}\t$status";
-
             if ($option['is_correct']) {
-              $correctCount++; // Count correct answers
+              $correctCount++;
             }
           }
 
           $correctAnswersText = implode("\t", $correctAnswers);
-          $categoryLabel = $correctCount >= 2 ? "MA" : "MC"; // Set label based on correct count
+          $categoryLabel = $correctCount >= 2 ? "MA" : "MC";
         }
 
         $line = "$categoryLabel\t$questionText\t$correctAnswersText";
-
         fwrite($file, $line . "\n");
       }
 
