@@ -2,7 +2,7 @@ import { Input, Radio, RadioGroup, Stack, Flex, Textarea, Card, CardBody, Text, 
 import { TbArrowDown, TbArrowUp, TbTrash, TbTrashFilled } from "react-icons/tb";
 import { deleteItem, moveItem } from "../../helper/main";
 
-export default function ExamQuestionPreviewCard({ item_id, options, category, update, question, item_number, classification }) {
+export default function ExamQuestionPreviewCard({ item_id, options, category, update, question, item_number, classification, module_number }) {
 
   const renderCardQuestion = (options, category) => {
     switch (category) {
@@ -62,7 +62,7 @@ export default function ExamQuestionPreviewCard({ item_id, options, category, up
           </Text>
           <Text fontWeight="semibold" noOfLines={2} mr="auto">{question}</Text>
           <Tag fontWeight="semibold" fontSize="12px" mr={2}>
-            {classification}
+            {classification} - {module_number}
           </Tag>
           <Tooltip label="Move Up">
             <IconButton onClick={() => moveItem(item_number, -1, update)} icon={<TbArrowUp />} size="sm" />

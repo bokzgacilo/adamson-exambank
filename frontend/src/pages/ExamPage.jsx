@@ -32,6 +32,7 @@ export default function ExamPage() {
       {
         params: {
           subjects: JSON.stringify(user.user_assigned_subject),
+          fullname: user.fullname,
           type: user.usertype
         },
       }

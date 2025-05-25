@@ -54,6 +54,7 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
       term: filteredTerm || "All",
       department: selectedDepartment || "All"
     }).then((response) => {
+      console.log(response.data)
       SetQuestions(response.data.questions);
       setTotalPages(Math.ceil(response.data.total / 10))
     })
@@ -185,6 +186,7 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
                     question={item.question}
                     classification={item.classification}
                     options={item.options}
+                    module_number={item.module}
                     category={item.category}
                     update={SetQuestionSet}
                   />
@@ -244,7 +246,7 @@ export default function EditExamForm({ refreshData, data, isOpen, onClose }) {
                       setPaginationPage(1)
                     }}
                   >
-                    {["All", "Prelims", "Midterms", "Finals"].map((item, index) => (
+                    {["All", "Prelims", "Midterms", "Finals", "Departmental Exam"].map((item, index) => (
                       <option key={index} value={item}>{item}</option>
                     ))}
                   </Select>

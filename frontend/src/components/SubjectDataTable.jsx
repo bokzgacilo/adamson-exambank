@@ -1,6 +1,6 @@
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { PrimeReactProvider } from "primereact/api";
 import {
   Button, Divider, Heading, Input, Stack, useToast, AlertDialog,
@@ -9,210 +9,191 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
-  Select
+  Select,
+  useDisclosure
 } from "@chakra-ui/react";
 
 import PropTypes from "prop-types";
-import { TbTrash } from "react-icons/tb";
+import { TbEdit, TbStatusChange, TbTrash } from "react-icons/tb";
 import axios from "axios";
-import { database } from "../helper/Firebase";
-import { ref, set } from "firebase/database";
-import useUserStore from "../helper/useUserStore";
-SubjectDataTable.propTypes = {
-  data: PropTypes.any.isRequired,
-  fetchSubjects: PropTypes.func.isRequired
-};
 
-export default function SubjectDataTable({ data, fetchSubjects }) {
+export default function SubjectDataTable({ data, fetchSubjects, setIsEditing, modalOpen, setTargetSubject, SetSubjectName }) {
   const [globalFilter, setGlobalFilter] = useState("");
-
-  const cancelRef = useRef()
-  const cancelStatusRef = useRef()
-  
-  const { user } = useUserStore();
-  const toast = useToast();
-
-  const [isOpen, setIsOpen] = useState(false);
-  const onClose = () => setIsOpen(false);
-
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const onDeletelose = () => setIsDeleteOpen(false);
-
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [target, setTarget] = useState("")
   const [SelectedSubject, SetSelectedSubject] = useState("")
-  const [newStatusValue, setNewStatusValue] = useState("")
-  const [selectedSubjectId, setSelectedSubjectId] = useState("")
+  const [newStatus, setNewStatus] = useState({
+    id: "",
+    status: "",
+  })
+  const toast = useToast()
+  const [loading, setLoading] = useState(false)
 
+  useEffect(() => {fetchSubjects()}, [])
+
+  const setEditing = (rowData) => {
+    modalOpen()
+    setTargetSubject(rowData.id)
+    SetSubjectName(rowData.name)
+    setIsEditing(true)
+  }
 
   const RenderActionButtons = (rowData) => {
     return (
-      <Button colorScheme="red" size="sm" leftIcon={<TbTrash />} onClick={() => SetDeleteSubject(rowData.name)}>
-        Delete
-      </Button>
+      <>
+        <Button size="sm" colorScheme="blue" mr={2} leftIcon={<TbEdit />} onClick={() => setEditing(rowData)}>
+          Edit
+        </Button>
+        <Button size="sm" colorScheme="red" leftIcon={<TbTrash />} onClick={() => SetDeleteSubject(rowData.name)}>
+          Delete
+        </Button>
+      </>
+
     )
   }
 
   const SetDeleteSubject = (subject_name) => {
+    setTarget("delete")
     SetSelectedSubject(subject_name)
-    setIsOpen(true)
+    onOpen()
   }
 
-  const PrepareStatusChange = (userid, status_value) => {
-    setIsDeleteOpen(true)
-    setSelectedSubjectId(userid)
-    setNewStatusValue(status_value)
+  const PrepareStatusChange = (id, name, value) => {
+    setTarget("status")
+    SetSelectedSubject(name)
+    setNewStatus({
+      id: id,
+      status: value
+    })
+    onOpen()
   }
 
   const handleDelete = () => {
+    setLoading(true)
     axios
       .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=delete`, {
         subject_name: SelectedSubject,
       })
       .then((response) => {
-        if (response) {
-          set(ref(database, `logs/${Date.now()}`), {
-            action: "Subject Deleted",
-            timestamp: Date.now(),
-            target: SelectedSubject,
-            actor: user.fullname,
-          });
+        if(response.data){
+          setLoading(false)
         }
+        fetchSubjects()
+        onClose();
       });
-    onClose();
+
   };
 
   const handeChangeStatus = () => {
-      const data = {
-        id: selectedSubjectId,
-        status: newStatusValue,
-      };
-  
-      axios
-        .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=change_status`, data)
-        .then((response) => {
-          if (response.data) {
-            toast({
-              title: "Subject Status Updated",
-              description: `Subject ID:${selectedSubjectId} status changed to ${newStatusValue === "0" ? "Inactive" : "Active"}`,
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-  
-            fetchSubjects()
-            setIsDeleteOpen(false)
-          }
-        });
-  
-      onClose();
-    }
-
+    setLoading(true)
+    axios
+      .post(`${import.meta.env.VITE_API_HOST}SubjectRoute.php?action=change_status`, newStatus)
+      .then((response) => {
+        if (response.data) {
+          toast({
+            title: "Subject Status Updated",
+            description: `Subject ${SelectedSubject} status changed to ${newStatus.status_value === "0" ? "Inactive" : "Active"}`,
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          setLoading(false)
+        }
+        fetchSubjects()
+        onClose();
+      });
+  }
 
   return (
-    <PrimeReactProvider>
-      <AlertDialog
-          isOpen={isDeleteOpen}
-          leastDestructiveRef={cancelStatusRef}
-          onClose={onDeletelose}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Confirm Status Change
-              </AlertDialogHeader>
-
-              <AlertDialogBody>
-                Are you sure you want to change this subject's status to <b>{newStatusValue === "0" ? "Inactive" : "Active"}</b>?
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button ref={cancelStatusRef} onClick={onDeletelose}>
-                  No
-                </Button>
-                <Button colorScheme="blue" onClick={handeChangeStatus} ml={3}>
-                  Yes
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-
-
+    <>
       <AlertDialog
         isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
         onClose={onClose}
       >
         <AlertDialogOverlay>
           <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Subject
+            <AlertDialogHeader>
+              <Heading size="md">{target === "status" ? "Update Status" : "Confirm Delete"}</Heading>
             </AlertDialogHeader>
 
             <AlertDialogBody>
-              Are you sure you want to delete <b>{SelectedSubject}</b>? This action cannot be undone.
+              {target === "status" ?
+                <>
+                  Are you sure you want to change this <b>{SelectedSubject}</b>'s status to <b>{newStatus.status_value === "0" ? "Inactive" : "Active"}</b>?
+                </> :
+                <>
+                  Are you sure you want to delete <b>{SelectedSubject}</b>? This action cannot be undone.
+                </>
+              }
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button onClick={onClose}>
                 No
               </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Yes
+              <Button
+                leftIcon={target === "status" ? <TbStatusChange /> : <TbTrash />}
+                colorScheme={target === "status" ? "green" : "red"}
+                onClick={target === "status" ? handeChangeStatus : handleDelete}
+                ml={4}
+                isLoading={loading}
+              >
+                {target === "status" ? "Yes, confirm changing status" : "I confirm to delete this"}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>
-
-      <Stack p={4} backgroundColor="gray.200">
-        <Heading size="lg">Search</Heading>
-        <Input
-          backgroundColor="#fff"
-          type="search"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Search id, name..."
-        />
-      </Stack>
-      <Divider />
-      <DataTable
-        value={data}
-        paginator
-        rows={10}
-        rowsPerPageOptions={[10, 15, 30]}
-        showGridlines
-        size="small"
-        globalFilter={globalFilter}
-      >
-        <Column field="id" header="ID" sortable></Column>
-        <Column
-          field="name"
-          header="Subject Name"
-          filter
-          sortable
-        ></Column>
-        <Column
-          field="name"
-          header="Action"
-          body={RenderActionButtons}
-        ></Column>
-        <Column
-          field="status"
-          header="Status"
-          body={(rowData) => (
-            <Select
-              variant="filled"
-              rounded="full"
-              onChange={(e) => PrepareStatusChange(rowData.id, e.target.value)}
-              value={rowData.status === "1" ? "1" : "0"}
-            >
-              <option value="1">Active</option>
-              <option value="0">Inactive</option>
-            </Select>
-          )}
-        ></Column>
-      </DataTable>
-    </PrimeReactProvider>
+      <PrimeReactProvider>
+        <Stack p={4} backgroundColor="gray.200">
+          <Heading size="lg">Search</Heading>
+          <Input
+            backgroundColor="#fff"
+            type="search"
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search id, name..."
+          />
+        </Stack>
+        <Divider />
+        <DataTable
+          value={data}
+          paginator
+          rows={10}
+          rowsPerPageOptions={[10, 15, 30]}
+          showGridlines
+          size="small"
+          globalFilter={globalFilter}
+        >
+          <Column field="id" header="ID" sortable></Column>
+          <Column
+            field="name"
+            header="Subject Name"
+            filter
+            sortable
+          ></Column>
+          <Column
+            field="status"
+            header="Status"
+            body={(rowData) => (
+              <Select
+                variant="filled"
+                rounded="full"
+                onChange={(e) => PrepareStatusChange(rowData.id, rowData.name, e.target.value)}
+                value={rowData.status === "1" ? "1" : "0"}
+              >
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </Select>
+            )}
+          ></Column>
+          <Column
+            field="name"
+            header="Action"
+            body={RenderActionButtons}
+          ></Column>
+        </DataTable>
+      </PrimeReactProvider>
+    </>
   );
 }

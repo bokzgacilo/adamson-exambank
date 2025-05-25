@@ -91,7 +91,6 @@ export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTa
     setMultipleChoices(templates[type] || []);
   };
 
-  // handle create question for exam
   const handleCreateQuestion = () => {
     const isQuestionEmpty = question.trim() === "";
     const isTermsEmpty = selectedTerms.length === 0;
@@ -133,7 +132,8 @@ export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTa
           category: selectedCategory,
           options: multipleChoices,
           answer: multipleChoices,
-          created_by: user.fullname
+          created_by: user.fullname,
+          module: selectedModule,
         };
 
         axios.post(`${import.meta.env.VITE_API_HOST}QuestionRoute.php?action=create`, data, {
@@ -257,11 +257,28 @@ export default function CreateQuestionModal({ isOpen, onClose, onOpen, refreshTa
                   <FormLabel>Terms</FormLabel>
                   <CheckboxGroup colorScheme="blue" value={selectedTerms} onChange={setSelectedTerms}>
                     <HStack justifyContent="space-evenly">
-                      {["Prelims", "Midterms", "Finals"].map((term, index) => <Checkbox key={index} value={term}>{term}</Checkbox>)}
+                      {["Prelims", "Midterms", "Finals", "Departmental Exam"].map((term, index) => <Checkbox key={index} value={term}>{term}</Checkbox>)}
                     </HStack>
                   </CheckboxGroup>
                   {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
                 </FormControl>
+                <FormControl isRequired>
+                <FormLabel>Module</FormLabel>
+                <Select variant="filled" rounded="full" value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+                    {[
+                      "Module 1",
+                      "Module 2",
+                      "Module 3",
+                      "Module 4",
+                      "Module 5",
+                      "Module 6",
+                      "Module 7",
+                      "Module 8",
+                      "Module 9",
+                      "Module 10"
+                    ].map((val, index) => <option key={index} value={val}>{val}</option>)}
+                </Select>
+              </FormControl>
                 <FormControl isRequired>
                   <FormLabel>Classification</FormLabel>
                   <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>

@@ -10,53 +10,108 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter
 } from '@chakra-ui/react'
 import { PrimeReactProvider } from "primereact/api";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { TbEdit, TbTrash } from "react-icons/tb";
 import Swal from "sweetalert2"
+import { useRef } from 'react';
 
-const NewDepartmentModal = ({ isOpen, onClose, fetchMasterData }) => {
-  const [DepartmentName, SetDepartmentName] = useState("");
+const NewDepartmentModal = ({ isEditing, isOpen, onClose, fetchMasterData, data }) => {
+  const [DepartmentName, SetDepartmentName] = useState(data.name !== "" ? data.name : "");
+  const {isOpen: AlertIsOpen, onOpen: AlertOnOpen, onClose: AlertOnClose} = useDisclosure();
 
   const handleCreateDepartment = async () => {
-    await axios.post(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=create_department`, {
-      name: DepartmentName
-    })
+    const url = isEditing
+      ? `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=update_department`
+      : `${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=create_department`;
+
+    const FORMDATA = isEditing
+      ? { name: DepartmentName, id: data.id }
+      : { name: DepartmentName };
+
+
+    await axios.post(url, FORMDATA)
       .then(response => {
-        onClose()
-        Swal.fire("Added!", "Department Added", "success");
+        console.log(response)
+        if(isEditing){
+          Swal.fire("Updated!", "Department Updated", "success");
+        }else {
+          Swal.fire("Added!", "Department Added", "success");
+        }
         SetDepartmentName("")
         fetchMasterData()
+        onClose()
       })
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Create New Department</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <Input type="text" value={DepartmentName} onChange={(e) => SetDepartmentName(e.currentTarget.value)} placeholder="Department Name" />
-        </ModalBody>
-        <ModalFooter>
-          <Button size="sm" mr={2} onClick={onClose}>
-            Close
-          </Button>
-          <Button onClick={handleCreateDepartment} colorScheme='green' size="sm">Create</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+    <>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            <Heading size="lg">
+              {isEditing ? "Edit Department" : "Create New Department"}
+            </Heading>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input type="text" value={DepartmentName} onChange={(e) => SetDepartmentName(e.currentTarget.value)} placeholder="Department Name" />
+          </ModalBody>
+          <ModalFooter>
+            <Button  mr={4} onClick={onClose}>
+              Close
+            </Button>
+            <Button onClick={AlertOnOpen} colorScheme='green'>{isEditing ? "Save Changes" : "Create"}</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <AlertDialog
+        isOpen={AlertIsOpen}
+        onClose={AlertOnClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              {isEditing ? 'Save Changes?' : 'Create Department?'}
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              {isEditing
+                ? 'Are you sure you want to save changes to this department?'
+                : 'Are you sure you want to create this new department?'}
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button onClick={AlertOnClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="green" onClick={handleCreateDepartment} ml={4}>
+                Yes, Save Changes
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   )
 }
-
-
 
 export default function DepartmentPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [MasterData, SetMasterData] = useState([]);
+  const [isEditing, setIsEditing] = useState(false)
+  const [selectedDepartment, setSelectedDepartment] = useState([])
 
   const fetchMasterData = async () => {
     await axios.get(`${import.meta.env.VITE_API_HOST}ServicesRoute.php?action=get_all_departments`)
@@ -95,19 +150,21 @@ export default function DepartmentPage() {
     };
 
     const handleEdit = () => {
-      openEditModal(rowData); // You must define this function
+      setSelectedDepartment(rowData)
+      setIsEditing(true)
+      onOpen()
     };
 
     return (
       <HStack>
-        {/* <Button
+        <Button
           size="sm"
           colorScheme="blue"
           leftIcon={<TbEdit />}
           onClick={handleEdit}
         >
           Edit
-        </Button> */}
+        </Button>
         <Button
           size="sm"
           colorScheme="red"
@@ -120,10 +177,21 @@ export default function DepartmentPage() {
     );
   };
 
+  const handleOnClose = () => {
+    setSelectedDepartment([])
+    setIsEditing(false)
+    onClose()
+  }
 
   return (
     <Stack p={0}>
-      <NewDepartmentModal isOpen={isOpen} onClose={onClose} fetchMasterData={fetchMasterData} />
+      {isOpen && <NewDepartmentModal 
+        isEditing={isEditing} 
+        isOpen={isOpen} 
+        onClose={handleOnClose} 
+        fetchMasterData={fetchMasterData} 
+        data={selectedDepartment}
+      />}
       <Card
         height="100dvh"
       >

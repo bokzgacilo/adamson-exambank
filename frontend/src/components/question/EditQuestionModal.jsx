@@ -180,58 +180,62 @@ export default function EditQuestionModal({
           ))}
         </Select>
       </FormControl>
-      {isForExam ?
-        <>
-          <FormControl isRequired isInvalid={termsError}>
-            <FormLabel>Terms</FormLabel>
-            <CheckboxGroup colorScheme="blue">
-              <HStack justifyContent="space-evenly" mb={4}>
-                <Checkbox
-                  isChecked={selectedTerms.includes("Prelims")}
-                  onChange={() => handleCheckboxChange("Prelims")}
-                >
-                  Prelims
-                </Checkbox>
-                <Checkbox
-                  isChecked={selectedTerms.includes("Midterms")}
-                  onChange={() => handleCheckboxChange("Midterms")}
-                >
-                  Midterms
-                </Checkbox>
-                <Checkbox
-                  isChecked={selectedTerms.includes("Finals")}
-                  onChange={() => handleCheckboxChange("Finals")}
-                >
-                  Finals
-                </Checkbox>
-              </HStack>
-            </CheckboxGroup>
-            {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
-          </FormControl>
-          <FormControl isRequired>
-            <FormLabel>Classification</FormLabel>
-            <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
-              {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val, index) => (
-                <option key={index} value={val}>{val}</option>
-              ))}
-            </Select>
-          </FormControl>
-        </> :
+      <FormControl isRequired isInvalid={termsError}>
+        <FormLabel>Terms</FormLabel>
+        <CheckboxGroup colorScheme="blue">
+          <HStack justifyContent="space-evenly" mb={4}>
+            <Checkbox
+              isChecked={selectedTerms.includes("Prelims")}
+              onChange={() => handleCheckboxChange("Prelims")}
+            >
+              Prelims
+            </Checkbox>
+            <Checkbox
+              isChecked={selectedTerms.includes("Midterms")}
+              onChange={() => handleCheckboxChange("Midterms")}
+            >
+              Midterms
+            </Checkbox>
+            <Checkbox
+              isChecked={selectedTerms.includes("Finals")}
+              onChange={() => handleCheckboxChange("Finals")}
+            >
+              Finals
+            </Checkbox>
+            <Checkbox
+              isChecked={selectedTerms.includes("Departmental Exam")}
+              onChange={() => handleCheckboxChange("Departmental Exam")}
+            >
+              Departmental Exam
+            </Checkbox>
+          </HStack>
+        </CheckboxGroup>
+        {termsError && <FormErrorMessage>Please select at least one term.</FormErrorMessage>}
+      </FormControl>
+      <FormControl isRequired>
+        <FormLabel>Module Number</FormLabel>
+        <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
+          {[
+            "Module 1",
+            "Module 2",
+            "Module 3",
+            "Module 4",
+            "Module 5",
+            "Module 6",
+            "Module 7",
+            "Module 8",
+            "Module 9",
+            "Module 10"
+          ].map((type, index) => <option key={index} value={type}>{type}</option>)}
+        </Select>
+      </FormControl>
+      {isForExam &&
         <FormControl isRequired>
-          <FormLabel>Module Number</FormLabel>
-          <Select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-            {[
-              "Module 1",
-              "Module 2",
-              "Module 3",
-              "Module 4",
-              "Module 5",
-              "Module 6",
-              "Module 7",
-              "Module 8",
-              "Module 9",
-              "Module 10"
-            ].map((type, index) => <option key={index} value={type}>{type}</option>)}
+          <FormLabel>Classification</FormLabel>
+          <Select value={selectedClassification} onChange={(e) => setSelectedClassification(e.target.value)}>
+            {["Knowledge", "Comprehension", "Application", "Analysis", "Synthesis", "Evaluation"].map((val, index) => (
+              <option key={index} value={val}>{val}</option>
+            ))}
           </Select>
         </FormControl>
       }

@@ -45,7 +45,14 @@ export default function QuestionDetailModal({ QuestionData, isEditing, isForExam
               <Checkbox isChecked={QuestionData.terms.includes("Finals")}>
                 Finals
               </Checkbox>
+              <Checkbox isChecked={QuestionData.terms.includes("Departmental Exam")}>
+                Finals
+              </Checkbox>
             </HStack>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Module</FormLabel>
+            <Input value={QuestionData.module} readOnly />
           </FormControl>
           <FormControl>
             <FormLabel>Classification</FormLabel>

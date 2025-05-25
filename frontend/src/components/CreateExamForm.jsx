@@ -43,6 +43,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
       term: filteredTerm || "All",
       department: selectedDepartment || "All"
     }).then((response) => {
+      console.log(response)
       SetQuestions(response.data.questions);
       setTotalPages(Math.ceil(response.data.total / 10))
     })
@@ -149,6 +150,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
               item_number={index}
               question={item.question}
               classification={item.classification}
+              module_number={item.module}
               options={item.options}
               category={item.category}
               update={SetQuestionSet}
@@ -209,7 +211,7 @@ export default function CreateExamForm({ AccessCode, SelectedSubject, TOS, Quest
                 setPaginationPage(1)
               }}
             >
-              {["All", "Prelims", "Midterms", "Finals"].map((item, index) => (
+              {["All", "Prelims", "Midterms", "Finals", "Departmental Exam"].map((item, index) => (
                 <option key={index} value={item}>{item}</option>
               ))}
             </Select>

@@ -35,7 +35,7 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
     assigned_subject: UserSubjects,
     assigned_department: UserDepartments,
     username: Username,
-    password: Password,
+    password: "@adamson123",
   };
 
   const HandleAddUser = () => {
@@ -119,14 +119,14 @@ export default function AddNewUserForm({ isOpen, onClose, fetchMasterData }) {
                   Please use an Adamson associated email (e.g., user@adamson.edu.ph)
                 </Text>
               )}
-              <Text fontWeight="semibold">Password</Text>
+              {/* <Text fontWeight="semibold">Password</Text>
               <Input
                 value={Password}
                 placeholder="Password"
                 onChange={(e) => SetPassword(e.currentTarget.value)}
                 type="text"
                 mb={4}
-              />
+              /> */}
             </Stack>
           </ModalBody>
           <ModalFooter>

@@ -118,14 +118,11 @@ export default function QuestionDataTable({ data, refreshTable, isForExam }) {
             header="Subject"
             sortable
           ></Column>
-          {
-            !isForExam && 
-            <Column
+          <Column
               field="module"
               header="Module Number"
               sortable
             ></Column>
-          }
           {
             isForExam && 
             <Column
@@ -139,12 +136,12 @@ export default function QuestionDataTable({ data, refreshTable, isForExam }) {
             header="Created By"
             sortable
           ></Column>
-          <Column
+          {/* <Column
             field="status"
             header="Status"
             body={StatusTemplate}
             filter
-          ></Column>
+          ></Column> */}
         </DataTable>
       </PrimeReactProvider>
     </>
