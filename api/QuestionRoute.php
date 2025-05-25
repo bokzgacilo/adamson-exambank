@@ -34,7 +34,8 @@ switch ($action) {
       $data["created_by"],
       $data["subject"],
       $termJson,
-      $data["classification"]
+      $data["classification"],
+      $data['module']
     );
 
     if ($newQuestion) {
@@ -75,7 +76,8 @@ switch ($action) {
       $data["created_by"],
       $data["subject"],
       $termJson,
-      $data["classification"]
+      $data["classification"],
+      $data['module']
     );
 
     if ($newQuestion) {
@@ -146,7 +148,7 @@ switch ($action) {
       $params[] = $department;
     }
 
-    $query = "SELECT id, question, options, department, category, classification, terms 
+    $query = "SELECT module, id, question, options, department, category, classification, terms 
       FROM question 
       WHERE subject = ?
       $where

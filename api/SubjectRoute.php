@@ -28,6 +28,25 @@ switch ($action) {
 
     echo json_encode(["message" => $result ? "Subject created successfully" : "Failed to create new subject"]);
     break;
+  case "update":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!$data || !isset($data["subject_name"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
+
+    $result = $subjects->update($data["subject_name"], $data['id']);
+    create_log($conn, 'Admin', "UPDATE SUBJECT ID: {$data['id']}");
+    echo json_encode(["message" => $result ? "Subject created successfully" : "Failed to create new subject"]);
+    break;
+
+
   case "viewAll":
     if ($_SERVER["REQUEST_METHOD"] !== "GET") {
       echo json_encode(["message" => "Invalid request method"]);

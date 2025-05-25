@@ -8,11 +8,11 @@ class Question
     $this->conn = $db;
   }
 
-  public function create($question, $options, $department, $answer, $category, $name, $subject, $term, $classification)
+  public function create($question, $options, $department, $answer, $category, $name, $subject, $term, $classification, $module)
   {
-    $query = "INSERT INTO question (question, options, department, answer, category, created_by, subject, terms, classification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO question (question, options, department, answer, category, created_by, subject, terms, classification, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $this->conn->prepare($query);
-    $stmt->bind_param("sssssssss", $question, $options, $department, $answer, $category, $name, $subject, $term, $classification);
+    $stmt->bind_param("ssssssssss", $question, $options, $department, $answer, $category, $name, $subject, $term, $classification, $module);
 
     if ($stmt->execute()) {
       $last_id = $this->conn->insert_id;
@@ -31,7 +31,7 @@ class Question
     return false;
   }
 
-  public function update($id, $question, $department, $options, $answer, $category, $name, $subject, $term, $classification)
+  public function update($id, $question, $department, $options, $answer, $category, $name, $subject, $term, $classification, $module)
   {
     $query = "UPDATE question 
       SET question = ?, 
@@ -42,6 +42,7 @@ class Question
           created_by = ?, 
           subject = ?, 
           terms = ?,
+          module = ?,
           classification = ?,
           last_updated = NOW()
       WHERE id = ?";
@@ -50,7 +51,7 @@ class Question
     if (!$stmt) {
       die("Prepare failed: " . $this->conn->error);
     }
-    $stmt->bind_param("sssssssssi", $question, $department, $options, $answer, $category, $name, $subject, $term, $classification, $id);
+    $stmt->bind_param("ssssssssssi", $question, $department, $options, $answer, $category, $name, $subject, $term, $module, $classification, $id);
 
     if ($stmt->execute()) {
       $fetch_query = "SELECT * FROM question WHERE id = ?";
@@ -79,7 +80,7 @@ class Question
       return json_encode(["error" => "Invalid subject format"]);
     }
     if ($type === "Admin") {
-      $query = "SELECT * FROM question";
+      $query = "SELECT * FROM question ORDER BY date_created DESC";
       $stmt = $this->conn->query($query);
       return json_encode($stmt->fetch_all(MYSQLI_ASSOC));
     }
@@ -87,7 +88,7 @@ class Question
       return json_encode([]); // Return empty array
     }
     $placeholders = implode(',', array_fill(0, count($subject_array), '?'));
-    $query = "SELECT * FROM question WHERE subject IN ($placeholders) AND status = 1";
+    $query = "SELECT * FROM question WHERE subject IN ($placeholders) AND status = 1 ORDER BY date_created DESC";
 
     $stmt = $this->conn->prepare($query);
     if (!$stmt) {

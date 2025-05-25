@@ -21,42 +21,53 @@ class Exam
     return $result;
   }
 
-  public function viewAll($subjects, $type)
-  {
-    // If type is ADMIN, return all exams
-    if ($type === 'Admin' || $type === 'Coordinator') {
-      $query = "SELECT * FROM exam";
-      $stmt = $this->conn->prepare($query);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      return $result->fetch_all(MYSQLI_ASSOC);
+ public function viewAll($subjects, $type, $fullname)
+{
+    // Admin: return all exams (no filter)
+    if ($type === 'Admin') {
+        $query = "SELECT * FROM exam";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    // Else: decode and sanitize subjects
+    // Decode and clean subjects input
     $subjects = trim($subjects, '"');
     $subjects = stripslashes($subjects);
     $subjectsArray = json_decode($subjects, true);
 
-    // If subjects is empty, return empty result
-    if (empty($subjectsArray)) {
-      return [];
+    // If subject list is invalid or empty, return empty result
+    if (empty($subjectsArray) || !is_array($subjectsArray)) {
+        return [];
     }
 
-    // Prepare placeholders and query
+    // Build dynamic IN clause for subject filtering
     $placeholders = implode(',', array_fill(0, count($subjectsArray), '?'));
-    $query = "SELECT * FROM exam WHERE subject IN ($placeholders) AND status = 1";
+    $params = $subjectsArray;
+    $types = str_repeat('s', count($subjectsArray));
+
+    // Coordinator: filter by subject only
+    if ($type === 'Coordinator') {
+      $query = "SELECT * FROM exam WHERE subject IN ($placeholders) AND created_by = '$fullname'";
+    }
+
+    // Instructor: filter by subject and status = 1
+    elseif ($type === 'Instructor') {
+      $query = "SELECT * FROM exam WHERE subject IN ($placeholders) AND status = 1";
+    } else {
+      return []; // Unknown role
+    }
+
+    // Prepare and bind parameters
     $stmt = $this->conn->prepare($query);
-
-    // Bind parameters dynamically
-    $types = str_repeat("s", count($subjectsArray));
-    $stmt->bind_param($types, ...$subjectsArray);
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
-
     $result = $stmt->get_result();
-    $data = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    return $data;
-  }
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+
 
   public function getAllQuestion($assigned_subject)
   {

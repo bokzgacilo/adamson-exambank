@@ -51,6 +51,25 @@ function convertToLegendArray($baseString)
   return array_filter($result);
 }
 
+function update_department($name, $id)
+{
+  global $conn;
+
+  $sql = "UPDATE department SET name = ? WHERE id = ?";
+  $stmt = $conn->prepare($sql);
+
+  if (!$stmt) {
+    return false;
+  }
+
+  $int_id = (int) $id;
+
+  $stmt->bind_param("si", $name, $int_id);
+  $result = $stmt->execute();
+  $stmt->close();
+
+  return $result;
+}
 function create_department($name)
 {
   global $conn;
@@ -94,22 +113,6 @@ function delete_department($id)
     return false;
 
   $stmt->bind_param("i", $id);
-  $result = $stmt->execute();
-  $stmt->close();
-
-  return $result;
-}
-
-function update_department($id, $name)
-{
-  global $conn;
-
-  $sql = "UPDATE department SET name = ? WHERE id = ?";
-  $stmt = $conn->prepare($sql);
-  if (!$stmt)
-    return false;
-
-  $stmt->bind_param("si", $name, $id);
   $result = $stmt->execute();
   $stmt->close();
 
@@ -615,7 +618,7 @@ switch ($action) {
         }
 
         if (is_null($password) || trim($password) === '') {
-          $password = '@exambank01';
+          $password = '@adamson123';
         }
 
         // Check for existing username
@@ -660,6 +663,21 @@ switch ($action) {
       echo json_encode(["error" => "Error processing file: " . $e->getMessage()]);
     }
     break;
+  case "update_department":
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+      echo json_encode(["message" => "Invalid request method"]);
+      exit;
+    }
+
+    $data = json_decode(file_get_contents("php://input"), true);
+    if (!$data || !isset($data["name"])) {
+      echo json_encode(["message" => "Invalid input"]);
+      exit;
+    }
+
+    $result = update_department(trim($data["name"]), $data['id']);
+    echo json_encode(["message" => $result ? "Department created successfully" : "Failed to create department"]);
+    break;
   case "create_department":
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
       echo json_encode(["message" => "Invalid request method"]);
@@ -675,7 +693,6 @@ switch ($action) {
     $result = create_department(trim($data["name"]));
     echo json_encode(["message" => $result ? "Department created successfully" : "Failed to create department"]);
     break;
-
   case "get_all_departments":
     $departments = get_all_departments();
     echo json_encode($departments);

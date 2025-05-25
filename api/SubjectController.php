@@ -99,6 +99,15 @@ class Subject
     
     return $stmt->execute();
   }
+  public function update($subject_name, $id)
+  {
+    $target = (int) $id;
+    $query = "UPDATE subjects SET name = ? WHERE id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bind_param("si", $subject_name, $target);
+    
+    return $stmt->execute();
+  }
 
   public function viewAll()
   {

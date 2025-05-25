@@ -98,7 +98,8 @@ switch ($action) {
 
     $subjects = $_GET['subjects'];
     $type = $_GET['type'];
-    $exams = $exam->viewAll($subjects, $type);
+    $fullname = $_GET['fullname'];
+    $exams = $exam->viewAll($subjects, $type, $fullname);
 
     echo json_encode($exams);
     break;
